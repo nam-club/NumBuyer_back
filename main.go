@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -34,19 +35,37 @@ func main() {
 
 	server.OnConnect("/", func(s socketio.Conn) error {
 		s.SetContext("")
+		s.LeaveAll()
 		log.Println("connected:", s.ID())
 		return nil
 	})
 
-	server.OnEvent("/", "notice", func(s socketio.Conn, msg string) {
-		log.Println("notice:", msg)
-		s.Emit("reply", "have "+msg)
+	server.OnEvent("/", "login/friend_match", func(s socketio.Conn, msg string) {
+		log.Println("join:", msg)
+		// 一つの部屋にのみ入室した状態にする
+		s.LeaveAll()
+		s.Join(msg)
+		server.BroadcastToRoom("/", s.Rooms()[0], "reply", fmt.Sprintf("join: %v, room: %v", s.ID(), s.Rooms()[0]))
 	})
 
-	server.OnEvent("/chat", "msg", func(s socketio.Conn, msg string) string {
-		s.SetContext(msg)
-		return "recv " + msg
+	server.OnEvent("/", "message", func(s socketio.Conn, msg string) {
+		log.Println("message:", msg)
+
+		// 部屋への参加状態が不正の時
+		if len(s.Rooms()) != 1 {
+			s.Close()
+		}
+
+		// イベント送信元のクライアントのみに返信する場合
+		// s.Emit("reply", "have "+msg)
+		server.BroadcastToRoom("/", s.Rooms()[0], "reply", fmt.Sprintf("room: %v, from: %v, msg: %v", s.Rooms()[0], s.ID(), msg))
 	})
+
+	// ※1 フロントの引数に設定したコールバック関数に対してレスポンスする場合
+	// server.OnEvent("/chat", "msg", func(s socketio.Conn, msg string) string {
+	// 	s.SetContext(msg)
+	// 	return "recv " + msg
+	// })
 
 	server.OnEvent("/", "bye", func(s socketio.Conn) string {
 		last := s.Context().(string)
