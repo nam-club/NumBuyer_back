@@ -1,8 +1,11 @@
+// ※サンプルコード
+
 package main
 
 import (
-	"fmt"
 	"log"
+	"nam-club/NumBuyer_back/services/logic"
+	"nam-club/NumBuyer_back/services/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -40,32 +43,23 @@ func main() {
 		return nil
 	})
 
-	server.OnEvent("/", "login/friend_match", func(s socketio.Conn, msg string) {
-		log.Println("join:", msg)
+	server.OnEvent("/", "join/quick_match", func(s socketio.Conn, msg string) {
 		// 一つの部屋にのみ入室した状態にする
 		s.LeaveAll()
 		s.Join(msg)
-		server.BroadcastToRoom("/", s.Rooms()[0], "reply", fmt.Sprintf("join: %v, room: %v", s.ID(), s.Rooms()[0]))
+
+		u := logic.CreateNewPlayer("QUICK", "ITO")
+		server.BroadcastToRoom("/", s.Rooms()[0], "game/join", utils.ToResponseFormat(u))
 	})
 
-	server.OnEvent("/", "message", func(s socketio.Conn, msg string) {
-		log.Println("message:", msg)
+	server.OnEvent("/", "join/friend_match", func(s socketio.Conn, msg string) {
+		// 一つの部屋にのみ入室した状態にする
+		s.LeaveAll()
+		s.Join(msg)
 
-		// 部屋への参加状態が不正の時
-		if len(s.Rooms()) != 1 {
-			s.Close()
-		}
-
-		// イベント送信元のクライアントのみに返信する場合
-		// s.Emit("reply", "have "+msg)
-		server.BroadcastToRoom("/", s.Rooms()[0], "reply", fmt.Sprintf("room: %v, from: %v, msg: %v", s.Rooms()[0], s.ID(), msg))
+		u := logic.CreateNewPlayer("FRIEND", "JUNPEI")
+		server.BroadcastToRoom("/", s.Rooms()[0], "game/join", utils.ToResponseFormat(u))
 	})
-
-	// ※1 フロントの引数に設定したコールバック関数に対してレスポンスする場合
-	// server.OnEvent("/chat", "msg", func(s socketio.Conn, msg string) string {
-	// 	s.SetContext(msg)
-	// 	return "recv " + msg
-	// })
 
 	server.OnEvent("/", "bye", func(s socketio.Conn) string {
 		last := s.Context().(string)
