@@ -7,4 +7,5 @@ RUN mkdir /go/src/work && \
 WORKDIR /go/src/work
 ADD . /go/src/work
 
+# サンプル実行の時は sample.go を指定する
 ENTRYPOINT go run main.go

@@ -20,11 +20,13 @@ $ docker-compose build --no-cache
 
 ## サンプル実行手順（後で消す）
 ```
+Dockerfile で ENTRYPOINT に sample.go を指定する。
+
 サーバを起動しておく。
 プロジェクトのルートフォルダへ移動し、以下のコマンドを実行する。
 $ npm install -g http-server
 $ http-server
 
-http://127.0.0.1:8080/index.html
+http://127.0.0.1:8080/sample_index.html
 へアクセス
 ```
