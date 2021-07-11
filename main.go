@@ -5,6 +5,7 @@ package main
 import (
 	"log"
 	"nam-club/NumBuyer_back/consts"
+	"nam-club/NumBuyer_back/services/db"
 	"nam-club/NumBuyer_back/services/logic"
 	"nam-club/NumBuyer_back/services/utils"
 	"net/http"
@@ -33,8 +34,12 @@ func GinMiddleware(allowOrigin string) gin.HandlerFunc {
 }
 
 func main() {
-	router := gin.New()
+	// redis接続
+	c := db.Connection()
+	defer c.Close()
 
+	// サーバーセットアップ
+	router := gin.New()
 	server := socketio.NewServer(nil)
 
 	server.OnConnect("/", func(s socketio.Conn) error {
