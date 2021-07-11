@@ -4,6 +4,7 @@ package main
 
 import (
 	"log"
+	"nam-club/NumBuyer_back/consts"
 	"nam-club/NumBuyer_back/services/logic"
 	"nam-club/NumBuyer_back/services/utils"
 	"net/http"
@@ -43,22 +44,22 @@ func main() {
 		return nil
 	})
 
-	server.OnEvent("/", "join/quick_match", func(s socketio.Conn, msg string) {
+	server.OnEvent("/", consts.ToServerJoinQuickMatch, func(s socketio.Conn, msg string) {
 		// 一つの部屋にのみ入室した状態にする
 		s.LeaveAll()
 		s.Join(msg)
 
 		u := logic.CreateNewPlayer("QUICK", "ITO")
-		server.BroadcastToRoom("/", s.Rooms()[0], "game/join", utils.ToResponseFormat(u))
+		server.BroadcastToRoom("/", s.Rooms()[0], consts.FromServerGameJoin, utils.ToResponseFormat(u))
 	})
 
-	server.OnEvent("/", "join/friend_match", func(s socketio.Conn, msg string) {
+	server.OnEvent("/", consts.ToServerJoinFriendMatch, func(s socketio.Conn, msg string) {
 		// 一つの部屋にのみ入室した状態にする
 		s.LeaveAll()
 		s.Join(msg)
 
 		u := logic.CreateNewPlayer("FRIEND", "JUNPEI")
-		server.BroadcastToRoom("/", s.Rooms()[0], "game/join", utils.ToResponseFormat(u))
+		server.BroadcastToRoom("/", s.Rooms()[0], consts.FromServerGameJoin, utils.ToResponseFormat(u))
 	})
 
 	server.OnEvent("/", "bye", func(s socketio.Conn) string {
