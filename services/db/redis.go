@@ -1,4 +1,4 @@
-// プレイヤー関連のDB操作
+// redisへの接続部分
 package db
 
 import (
