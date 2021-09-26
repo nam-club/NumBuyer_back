@@ -11,13 +11,6 @@ import (
 
 func RoutesGame(server *socketio.Server) {
 
-	server.OnConnect("/", func(s socketio.Conn) error {
-		s.SetContext("")
-		s.LeaveAll()
-		log.Println("connected:", s.ID())
-		return nil
-	})
-
 	server.OnEvent("/", consts.ToServerJoinQuickMatch, func(s socketio.Conn, msg string) {
 		// 一つの部屋にのみ入室した状態にする
 		s.LeaveAll()
