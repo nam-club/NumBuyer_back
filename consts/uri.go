@@ -8,6 +8,7 @@ const (
 	// サーバへのリクエストエンドポイント
 	ToServerJoinQuickMatch     = "join/quick_match"
 	ToServerJoinFriendMatch    = "join/friend_match"
+	ToServerCreateMatch        = "create/match"
 	ToServerGameStartToServer  = "game/start_to_server"
 	ToServerGameBuyToServer    = "game/buy_to_server"
 	ToServerGameAnswerToServer = "game/answer_to_server"
