@@ -61,10 +61,13 @@
 
 <body>
   <form action="" id="form-join-friend">
-    <input id="jf" autocomplete="off" /><button>Join</button>
+    <input id="jf" autocomplete="off" /><button>Friend Join</button>
   </form>
   <form action="" id="form-join-quick">
-    <input id="jq" autocomplete="off" /><button>Join</button>
+    <input id="jq" autocomplete="off" /><button>Quick Join</button>
+  </form>
+  <form action="" id="form-create-game">
+    <input id="cr" autocomplete="off" /><button>Create Game</button>
   </form>
   <ul id="messages"></ul>
   <form action="" id="form-message">
@@ -91,7 +94,11 @@
       $('#j').val('');
       return false;
     });
-
+    $('#form-create-game').submit(function () {
+      socket.emit('create/match', $('#cr').val());
+      $('#j').val('');
+      return false;
+    });
 
     // ※1 
     // var s2 = io("http://localhost:8000/chat");      
