@@ -46,13 +46,20 @@ func SetGame(id string, game Game) (string, error) {
 	}
 	// byteからstringに変換
 	str := *(*string)(unsafe.Pointer(&j))
-	ret := Set(id, str)
+	ret, e := Set(id, str)
+	if e != nil {
+		return "", e
+	}
 	return ret, nil
 }
 
 // ゲーム情報を取得
 func GetGame(id string) (Game, error) {
-	r := Get(id)
+	r, e := Get(id)
+	if e != nil {
+		return Game{}, e
+	}
+
 	var ret Game
 	if e := json.Unmarshal([]byte(r), &ret); e != nil {
 		return Game{}, e
@@ -60,9 +67,32 @@ func GetGame(id string) (Game, error) {
 	return ret, nil
 }
 
+// ゲーム情報を取得
+func GetRandomGameId() (string, error) {
+	r, e := RandomKey()
+	if e != nil {
+		return "", e
+	}
+
+	return r, nil
+}
+
+// ゲームが存在するかをチェック
+func ExistsGame(id string) (bool, error) {
+	r, e := Exists(id)
+	if e != nil {
+		return false, e
+	}
+	return r, nil
+}
+
 // プレイヤー情報を取得
 func GetPlayers(id string) ([]Player, error) {
-	r := Get(id)
+	r, e := Get(id)
+	if e != nil {
+		return []Player{}, e
+	}
+
 	var ret Game
 	if e := json.Unmarshal([]byte(r), &ret); e != nil {
 		return []Player{}, e
@@ -72,13 +102,17 @@ func GetPlayers(id string) ([]Player, error) {
 
 // プレイヤー情報をセット
 func SetPlayer(id string, player Player) (Player, error) {
-	g, err := GetGame(id)
-	if err != nil {
-		return Player{}, err
+	g, e := GetGame(id)
+	if e != nil {
+		return Player{}, e
 	}
 	g.Players = append(g.Players, player)
 
-	str := *(*string)(unsafe.Pointer(&g)) // byteからstringに変換
-	Set(id, str)
+	b, _ := json.Marshal(g)
+	str := *(*string)(unsafe.Pointer(&b)) // byteからstringに変換
+	if _, e := Set(id, str); e != nil {
+		return Player{}, e
+	}
+
 	return player, nil
 }

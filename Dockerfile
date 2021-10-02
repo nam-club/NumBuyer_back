@@ -4,9 +4,9 @@ RUN mkdir /go/src/work && \
     go get github.com/googollee/go-socket.io && \
     go get github.com/gomodule/redigo && \
     go get github.com/gin-gonic/gin && \
-	go get github.com/kelseyhightower/envconfig && \
+	# go get github.om/kelseyhightower/envconfig && \
     go get github.com/google/uuid
-
+    # go get gopkg.in/go-playground/validator.v9
 WORKDIR /go/src/work
 ADD . /go/src/work
 

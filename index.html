@@ -90,7 +90,7 @@
     });
     
     $('#form-join-quick').submit(function () {
-      socket.emit('join/friend_match', $('#jq').val());
+      socket.emit('join/quick_match', $('#jq').val());
       $('#j').val('');
       return false;
     });
