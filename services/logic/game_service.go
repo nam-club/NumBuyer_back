@@ -2,9 +2,9 @@ package logic
 
 import (
 	"crypto/rand"
-	"errors"
 	"nam-club/NumBuyer_back/consts"
 	"nam-club/NumBuyer_back/db"
+	"nam-club/NumBuyer_back/models/orgerrors"
 	"nam-club/NumBuyer_back/models/responses"
 )
 
@@ -54,7 +54,7 @@ func generateGameId() (string, error) {
 		// 乱数を生成
 		b := make([]byte, 10)
 		if _, err := rand.Read(b); err != nil {
-			return "", errors.New("unexpected error")
+			return "", orgerrors.NewInternalServerError("")
 		}
 
 		var result string
@@ -66,5 +66,5 @@ func generateGameId() (string, error) {
 			return result, nil
 		}
 	}
-	return "", errors.New("create room id error")
+	return "", orgerrors.NewInternalServerError("create room id error")
 }

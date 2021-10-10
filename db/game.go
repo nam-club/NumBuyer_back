@@ -4,6 +4,8 @@ package db
 import (
 	"encoding/json"
 	"unsafe"
+
+	"github.com/pkg/errors"
 )
 
 type Game struct {
@@ -42,7 +44,7 @@ func Transaction(f func()) {
 func SetGame(id string, game Game) (string, error) {
 	j, e := json.Marshal(game)
 	if e != nil {
-		return "", e
+		return "", errors.WithStack(e)
 	}
 	// byteからstringに変換
 	str := *(*string)(unsafe.Pointer(&j))
@@ -62,7 +64,7 @@ func GetGame(id string) (Game, error) {
 
 	var ret Game
 	if e := json.Unmarshal([]byte(r), &ret); e != nil {
-		return Game{}, e
+		return Game{}, errors.WithStack(e)
 	}
 	return ret, nil
 }
@@ -95,7 +97,7 @@ func GetPlayers(id string) ([]Player, error) {
 
 	var ret Game
 	if e := json.Unmarshal([]byte(r), &ret); e != nil {
-		return []Player{}, e
+		return []Player{}, errors.WithStack(e)
 	}
 	return ret.Players, nil
 }

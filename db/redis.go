@@ -5,6 +5,7 @@ import (
 	"nam-club/NumBuyer_back/consts"
 
 	"github.com/gomodule/redigo/redis"
+	"github.com/pkg/errors"
 )
 
 var conn redis.Conn
@@ -34,7 +35,7 @@ func Atomic(f func()) {
 func Set(key, value string) (string, error) {
 	res, err := redis.String(conn.Do("SET", key, value))
 	if err != nil {
-		return "", err
+		return "", errors.WithStack(err)
 	}
 	return res, nil
 }
@@ -43,7 +44,7 @@ func Set(key, value string) (string, error) {
 func Get(key string) (string, error) {
 	res, err := redis.String(conn.Do("GET", key))
 	if err != nil {
-		return "", err
+		return "", errors.WithStack(err)
 	}
 	return res, nil
 }
@@ -52,7 +53,7 @@ func Get(key string) (string, error) {
 func RandomKey() (string, error) {
 	res, err := redis.String(conn.Do("RANDOMKEY"))
 	if err != nil {
-		return "", err
+		return "", errors.WithStack(err)
 	}
 	return res, nil
 }
@@ -61,7 +62,7 @@ func RandomKey() (string, error) {
 func Exists(key string) (bool, error) {
 	res, err := redis.Bool(conn.Do("EXISTS", key))
 	if err != nil {
-		return false, err
+		return false, errors.WithStack(err)
 	}
 
 	return res, nil

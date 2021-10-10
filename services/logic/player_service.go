@@ -1,8 +1,8 @@
 package logic
 
 import (
-	"errors"
 	"nam-club/NumBuyer_back/db"
+	"nam-club/NumBuyer_back/models/orgerrors"
 	"nam-club/NumBuyer_back/models/responses"
 )
 
@@ -10,7 +10,7 @@ import (
 func CreateNewPlayer(playerName, roomId string, isOwner bool) (*responses.Player, error) {
 
 	if b, _ := db.ExistsGame(roomId); b == false {
-		return nil, errors.New("invalid game id")
+		return nil, orgerrors.NewGameNotFoundError("game not found")
 	}
 
 	p := db.Player{
