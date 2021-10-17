@@ -35,8 +35,8 @@ func init() {
 }
 
 // プレイヤー情報一覧を取得
-func GetPlayers(gameId string) ([]Player, error) {
-	r, e := rp.HVals(gameId)
+func GetPlayers(roomId string) ([]Player, error) {
+	r, e := rp.HVals(roomId)
 	if e != nil {
 		return []Player{}, e
 	}
@@ -55,8 +55,8 @@ func GetPlayers(gameId string) ([]Player, error) {
 }
 
 // プレイヤー情報を取得
-func GetPlayer(gameId, playerId string) (Player, error) {
-	r, e := rp.HGet(gameId, playerId)
+func GetPlayer(roomId, playerId string) (Player, error) {
+	r, e := rp.HGet(roomId, playerId)
 	if e != nil {
 		return Player{}, e
 	}
@@ -69,8 +69,8 @@ func GetPlayer(gameId, playerId string) (Player, error) {
 }
 
 // プレイヤー情報を追加
-func AddPlayer(gameId string, player Player) (Player, error) {
-	if b, e := ExistsGame(gameId); e != nil || b == false {
+func AddPlayer(roomId string, player Player) (Player, error) {
+	if b, e := ExistsGame(roomId); e != nil || b == false {
 		if e != nil {
 			return Player{}, errors.WithStack(e)
 		}
@@ -79,7 +79,7 @@ func AddPlayer(gameId string, player Player) (Player, error) {
 
 	b, _ := json.Marshal(player)
 	str := *(*string)(unsafe.Pointer(&b)) // byteからstringに変換
-	if _, e := rp.HSet(gameId, player.PlayerID, str); e != nil {
+	if _, e := rp.HSet(roomId, player.PlayerID, str); e != nil {
 		return Player{}, e
 	}
 

@@ -26,7 +26,7 @@ func RoutesGame(server *socketio.Server) {
 			return
 		}
 
-		roomId, e := logic.GetRandomGameId()
+		roomId, e := logic.GetRandomRoomId()
 		if e != nil {
 			s.Emit(consts.FromServerGameJoin, responseError(e))
 			return

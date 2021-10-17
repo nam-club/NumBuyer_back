@@ -55,7 +55,7 @@ func GetGame(id string) (Game, error) {
 }
 
 // ゲーム情報を取得
-func GetRandomGameId() (string, error) {
+func GetRandomRoomId() (string, error) {
 	r, e := rg.RandomKey()
 	if e != nil {
 		return "", e

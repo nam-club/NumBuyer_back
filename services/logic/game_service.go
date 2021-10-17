@@ -13,7 +13,7 @@ func CreateNewGame(owner string) (*responses.Player, error) {
 
 	var id string
 	var e error
-	if id, e = generateGameId(); e != nil {
+	if id, e = generateRoomId(); e != nil {
 		return nil, e
 	}
 
@@ -37,8 +37,8 @@ func CreateNewGame(owner string) (*responses.Player, error) {
 }
 
 // ランダムなゲームIDを一つ取得する
-func GetRandomGameId() (string, error) {
-	r, e := db.GetRandomGameId()
+func GetRandomRoomId() (string, error) {
+	r, e := db.GetRandomRoomId()
 	if e != nil {
 		return "", e
 	}
@@ -46,7 +46,7 @@ func GetRandomGameId() (string, error) {
 }
 
 // ゲームIDを生成する
-func generateGameId() (string, error) {
+func generateRoomId() (string, error) {
 	const letters = "0123456789"
 
 	for i := 0; i < 3; i++ {
