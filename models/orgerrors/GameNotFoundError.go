@@ -11,8 +11,8 @@ func (e *GameNotFoundError) Error() string { return e.Message }
 
 func NewGameNotFoundError(message string) error {
 	if message == "" {
-		return errors.WithStack(&ValidationError{Code: "error.game.notFound", Message: "not found game"})
+		return errors.WithStack(&GameNotFoundError{Code: "error.game.notFound", Message: "not found game"})
 	} else {
-		return errors.WithStack(&ValidationError{Code: "error.game.notFound", Message: message})
+		return errors.WithStack(&GameNotFoundError{Code: "error.game.notFound", Message: message})
 	}
 }

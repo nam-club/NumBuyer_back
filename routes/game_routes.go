@@ -86,12 +86,12 @@ func RoutesGame(server *socketio.Server) {
 // リクエストメッセージの構造体への変換 & バリデーション
 func valid(reqBody string, result interface{}) error {
 	if e := json.Unmarshal([]byte(reqBody), result); e != nil {
-		return errors.WithStack(e)
+		return orgerrors.NewValidationError(e.Error())
 	}
 
 	v := validator.New()
 	if e := v.Struct(result); e != nil {
-		return errors.WithStack(e)
+		return orgerrors.NewValidationError(e.Error())
 	}
 
 	return nil
@@ -105,17 +105,15 @@ func response(val interface{}) string {
 
 // インスタンスをレスポンス形式（JSON文字列）に変換する
 func responseError(err error) string {
-
 	errUnwrap := errors.Unwrap(err)
 	var retJson []byte
-	switch err := err.(type) {
-	case *orgerrors.ValidationError:
-	case *orgerrors.GameNotFoundError:
-		retJson, _ = json.Marshal(errUnwrap)
+	switch e := errUnwrap.(type) {
+	case *orgerrors.ValidationError, *orgerrors.GameNotFoundError:
+		retJson, _ = json.Marshal(e)
 		break
 	case *orgerrors.InternalServerError:
-		log.Printf("[ERROR] %+v\n", err)
-		retJson, _ = json.Marshal(errUnwrap)
+		log.Printf("[ERROR] %+v\n", e)
+		retJson, _ = json.Marshal(e)
 		break
 	default:
 		log.Printf("[ERROR] %+v\n", err)
