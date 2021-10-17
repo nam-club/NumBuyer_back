@@ -6,6 +6,7 @@ import (
 	"nam-club/NumBuyer_back/consts"
 	"nam-club/NumBuyer_back/models/orgerrors"
 	"nam-club/NumBuyer_back/models/requests"
+	"nam-club/NumBuyer_back/models/responses"
 	"nam-club/NumBuyer_back/services/logic"
 
 	socketio "github.com/googollee/go-socket.io"
@@ -37,12 +38,14 @@ func RoutesGame(server *socketio.Server) {
 			return
 		}
 
-		u, e := logic.CreateNewPlayer(req.PlayerName, roomId, false)
+		player, e := logic.CreateNewPlayer(req.PlayerName, roomId, false)
 		if e != nil {
 			s.Emit(consts.FromServerGameJoin, responseError(e))
 			return
 		}
-		server.BroadcastToRoom("/", s.Rooms()[0], consts.FromServerGameJoin, response(u))
+
+		resp := responses.JoinResponse{RoomID: roomId, PlayerID: player.PlayerID}
+		server.BroadcastToRoom("/", s.Rooms()[0], consts.FromServerGameJoin, response(resp))
 	})
 
 	server.OnEvent("/", consts.ToServerJoinFriendMatch, func(s socketio.Conn, msg string) {
@@ -56,12 +59,13 @@ func RoutesGame(server *socketio.Server) {
 			return
 		}
 
-		u, e := logic.CreateNewPlayer(req.PlayerName, req.RoomID, false)
+		player, e := logic.CreateNewPlayer(req.PlayerName, req.RoomID, false)
 		if e != nil {
 			s.Emit(consts.FromServerGameJoin, responseError(e))
 			return
 		}
-		server.BroadcastToRoom("/", s.Rooms()[0], consts.FromServerGameJoin, response(u))
+		resp := responses.JoinResponse{RoomID: req.RoomID, PlayerID: player.PlayerID}
+		server.BroadcastToRoom("/", s.Rooms()[0], consts.FromServerGameJoin, response(resp))
 	})
 
 	server.OnEvent("/", consts.ToServerCreateMatch, func(s socketio.Conn, msg string) {
@@ -71,15 +75,42 @@ func RoutesGame(server *socketio.Server) {
 			return
 		}
 
-		ret, e := logic.CreateNewGame(req.PlayerName)
+		resp, e := logic.CreateNewGame(req.PlayerName)
 		if e != nil {
 			s.Emit(consts.FromServerGameJoin, responseError(e))
 			return
 		}
 		s.LeaveAll()
-		s.Join(ret.RoomID)
+		s.Join(resp.RoomID)
 
-		server.BroadcastToRoom("/", s.Rooms()[0], consts.FromServerGameJoin, response(ret))
+		server.BroadcastToRoom("/", s.Rooms()[0], consts.FromServerGameJoin, response(resp))
+	})
+
+	server.OnEvent("/", consts.ToServerGamePlayersInfo, func(s socketio.Conn, msg string) {
+		req := &requests.GamePlayerInfo{}
+		if e := valid(msg, req); e != nil {
+			s.Emit(consts.FromServerGameJoin, responseError(e))
+			return
+		}
+		resp, e := logic.GetPlayersInfo(req.RoomID, req.PlayerID)
+		if e != nil {
+			s.Emit(consts.FromServerGameJoin, responseError(e))
+		}
+		server.BroadcastToRoom("/", s.Rooms()[0], consts.FromServerGamePlayersInfo, response(resp))
+	})
+
+	server.OnEvent("/", consts.ToServerGameNextTurn, func(s socketio.Conn, msg string) {
+		req := &requests.GameNextTurn{}
+		if e := valid(msg, req); e != nil {
+			s.Emit(consts.ToServerGameNextTurn, responseError(e))
+			return
+		}
+		resp, e := logic.NextTurn(req.RoomID, req.PlayerID)
+		if e != nil {
+			s.Emit(consts.ToServerGameNextTurn, responseError(e))
+			return
+		}
+		server.BroadcastToRoom("/", s.Rooms()[0], consts.FromServerGameNextTurn, response(resp))
 	})
 }
 

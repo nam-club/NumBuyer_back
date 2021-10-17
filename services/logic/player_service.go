@@ -9,38 +9,39 @@ import (
 )
 
 // 新規プレイヤー情報を生成する
-func CreateNewPlayer(playerName, roomId string, isOwner bool) (*responses.Player, error) {
+func CreateNewPlayer(playerName, roomId string, isOwner bool) (*db.Player, error) {
 
 	if b, _ := db.ExistsGame(roomId); b == false {
 		return nil, orgerrors.NewGameNotFoundError("game not found")
 	}
 
-	p := db.Player{
+	p := &db.Player{
 		PlayerID:   generatePlayerId(roomId),
 		PlayerName: playerName,
 		Coin:       100,
 	}
 
-	var regist db.Player
+	var ret *db.Player
 	var e error
-	regist, e = db.AddPlayer(roomId, p)
+	ret, e = db.AddPlayer(roomId, p)
 	if e != nil {
 		return nil, e
-	}
-
-	ret := &responses.Player{
-		PlayerID:   regist.PlayerID,
-		PlayerName: regist.PlayerName,
-		RoomID:     roomId,
-		Money:      regist.Coin,
-		Cards:      regist.Cards,
 	}
 
 	return ret, nil
 }
 
+// プレイヤー情報を取得する
+func GetPlayersInfo(roomId, playerId string) (*responses.PlayersInfoResponse, error) {
+	players, e := db.GetPlayers(roomId)
+	if e != nil {
+		return nil, e
+	}
+
+	return responses.GeneratePlayersInfoResponse(players, roomId), nil
+}
+
 // プレイヤーIDを生成する
 func generatePlayerId(roomId string) string {
 	return uuid.Must(uuid.NewUUID()).String()
-
 }

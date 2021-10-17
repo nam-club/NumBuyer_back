@@ -4,7 +4,6 @@ package db
 import (
 	"encoding/json"
 	"nam-club/NumBuyer_back/models/orgerrors"
-	"strings"
 	"unsafe"
 
 	"github.com/pkg/errors"
@@ -24,8 +23,8 @@ type BuyAction struct {
 	Value  string `json:"value"`
 }
 type AnswerAction struct {
-	Action  string `json:"action"`
-	CardIds []int  `json:"cardIds"`
+	Action string   `json:"action"`
+	Cards  []string `json:"cards"`
 }
 
 var rp *RedisHandler
@@ -41,12 +40,10 @@ func GetPlayers(roomId string) ([]Player, error) {
 		return []Player{}, e
 	}
 
-	players := strings.Split(r, ",")
-
 	var ret []Player
-	for _, v := range players {
+	for _, v := range r {
 		var player Player
-		if e := json.Unmarshal([]byte(v), &player); e != nil {
+		if e := json.Unmarshal(v, &player); e != nil {
 			return []Player{}, errors.WithStack(e)
 		}
 		ret = append(ret, player)
@@ -55,33 +52,36 @@ func GetPlayers(roomId string) ([]Player, error) {
 }
 
 // プレイヤー情報を取得
-func GetPlayer(roomId, playerId string) (Player, error) {
+func GetPlayer(roomId, playerId string) (*Player, error) {
 	r, e := rp.HGet(roomId, playerId)
 	if e != nil {
-		return Player{}, e
+		return nil, e
 	}
 
-	var ret Player
+	var ret *Player
 	if e := json.Unmarshal([]byte(r), &ret); e != nil {
-		return Player{}, errors.WithStack(e)
+		return nil, errors.WithStack(e)
 	}
 	return ret, nil
 }
 
 // プレイヤー情報を追加
-func AddPlayer(roomId string, player Player) (Player, error) {
+func AddPlayer(roomId string, player *Player) (*Player, error) {
 	if b, e := ExistsGame(roomId); e != nil || b == false {
 		if e != nil {
-			return Player{}, errors.WithStack(e)
+			return nil, errors.WithStack(e)
 		}
-		return Player{}, orgerrors.NewGameNotFoundError("")
+		return nil, orgerrors.NewGameNotFoundError("")
 	}
 
 	b, _ := json.Marshal(player)
 	str := *(*string)(unsafe.Pointer(&b)) // byteからstringに変換
 	if _, e := rp.HSet(roomId, player.PlayerID, str); e != nil {
-		return Player{}, e
+		return nil, e
 	}
 
+	if _, e := rp.HGet(roomId, player.PlayerID); e != nil {
+		return nil, e
+	}
 	return player, nil
 }

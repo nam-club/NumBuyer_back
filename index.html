@@ -69,6 +69,12 @@
   <form action="" id="form-create-game">
     <input id="cr" autocomplete="off" /><button>Create Game</button>
   </form>
+  <form action="" id="form-players-info">
+    <input id="pi" autocomplete="off" /><button>Players Info</button>
+  </form>
+  <form action="" id="form-next-turn">
+    <input id="nt" autocomplete="off" /><button>Next Turn</button>
+  </form>
   <ul id="messages"></ul>
   <form action="" id="form-message">
     <input id="m" autocomplete="off" /><button>Send</button>
@@ -81,6 +87,13 @@
     socket.on('game/join', function (msg) {
       $('#messages').append($('<li>').text(msg));
     });
+    socket.on('game/players_info', function (msg) {
+      $('#messages').append($('<li>').text(msg));
+    });
+    socket.on('game/next_turn', function (msg) {
+      $('#messages').append($('<li>').text(msg));
+    });
+
 
 
     $('#form-join-friend').submit(function () {
@@ -96,6 +109,18 @@
     });
     $('#form-create-game').submit(function () {
       socket.emit('create/match', $('#cr').val());
+      $('#j').val('');
+      return false;
+    });
+
+    $('#form-players-info').submit(function () {
+      socket.emit('game/players_info', $('#pi').val());
+      $('#j').val('');
+      return false;
+    });
+
+    $('#form-next-turn').submit(function () {
+      socket.emit('game/next_turn', $('#nt').val());
       $('#j').val('');
       return false;
     });

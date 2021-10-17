@@ -9,7 +9,7 @@ import (
 )
 
 // 新規ゲームを生成する
-func CreateNewGame(owner string) (*responses.Player, error) {
+func CreateNewGame(owner string) (*responses.JoinResponse, error) {
 
 	var id string
 	var e error
@@ -17,22 +17,25 @@ func CreateNewGame(owner string) (*responses.Player, error) {
 		return nil, e
 	}
 
-	g := db.Game{
+	g := &db.Game{
 		RoomID: id,
 		State: db.State{
 			Phase:   consts.PhaseBeforeStart,
 			Auction: "",
-			Answer:  0,
+			Answer:  "",
 		},
 	}
 
 	if _, e = db.SetGame(id, g); e != nil {
 		return nil, e
 	}
-	var ret *responses.Player
-	if ret, e = CreateNewPlayer(owner, id, true); e != nil {
+	player, e := CreateNewPlayer(owner, id, true)
+	if e != nil {
 		return nil, e
 	}
+
+	ret := &responses.JoinResponse{RoomID: id, PlayerID: player.PlayerID}
+
 	return ret, nil
 }
 
@@ -43,6 +46,22 @@ func GetRandomRoomId() (string, error) {
 		return "", e
 	}
 	return r, nil
+}
+
+// 次ターンに移行する
+func NextTurn(roomId, playerId string) (*responses.NextTurnResponse, error) {
+	game, err := db.GetGame(roomId)
+	if err != nil {
+		return nil, orgerrors.NewGameNotFoundError("")
+	}
+	game.State.Phase = consts.PhaseAuction
+	db.SetGame(roomId, game)
+	player, e := db.GetPlayer(roomId, playerId)
+	if e != nil {
+		return nil, e
+	}
+
+	return responses.GenerateNextTurnResponse(*player, *game), nil
 }
 
 // ゲームIDを生成する
