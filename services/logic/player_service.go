@@ -16,6 +16,7 @@ func CreateNewPlayer(playerName, roomId string, isOwner bool) (*responses.Player
 	}
 
 	p := db.Player{
+		RoomID:     roomId,
 		PlayerID:   generatePlayerId(roomId),
 		PlayerName: playerName,
 		Coin:       100,
@@ -32,15 +33,34 @@ func CreateNewPlayer(playerName, roomId string, isOwner bool) (*responses.Player
 		PlayerID:   regist.PlayerID,
 		PlayerName: regist.PlayerName,
 		RoomID:     roomId,
-		Money:      regist.Coin,
-		Cards:      regist.Cards,
+		Coin:       regist.Coin,
+		CardNum:    len(regist.Cards),
 	}
 
 	return ret, nil
 }
 
+func GeneratePlayersResponse(roomId string) (*responses.PlayersResponse, error) {
+	players, err := db.GetPlayers(roomId)
+	if err != nil {
+		return nil, err
+	}
+	ret := &responses.PlayersResponse{}
+	for _, v := range players {
+		ret.Players = append(ret.Players,
+			responses.Players{
+				PlayerID:   v.PlayerID,
+				PlayerName: v.PlayerName,
+				RoomID:     v.RoomID,
+				Coin:       v.Coin,
+				CardNum:    len(v.Cards),
+			})
+	}
+	return ret, nil
+
+}
+
 // プレイヤーIDを生成する
 func generatePlayerId(roomId string) string {
 	return uuid.Must(uuid.NewUUID()).String()
-
 }

@@ -67,10 +67,19 @@ func (o *RedisHandler) HGet(key, field string) (string, error) {
 }
 
 // Hashデータの取得
-func (o *RedisHandler) HVals(key string) (string, error) {
-	res, err := redis.String(o.conn.Do("HVALS", key))
+func (o *RedisHandler) HVals(key string) ([][]byte, error) {
+	res, err := redis.ByteSlices(o.conn.Do("HVALS", key))
 	if err != nil {
-		return "", errors.WithStack(err)
+		return nil, errors.WithStack(err)
+	}
+	return res, nil
+}
+
+// データベースに存在するキーの数を取得
+func (o *RedisHandler) DBSize() (int64, error) {
+	res, err := redis.Int64(o.conn.Do("DBSIZE"))
+	if err != nil {
+		return -1, errors.WithStack(err)
 	}
 	return res, nil
 }

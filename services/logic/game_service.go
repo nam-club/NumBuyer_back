@@ -9,7 +9,7 @@ import (
 )
 
 // 新規ゲームを生成する
-func CreateNewGame(owner string) (*responses.Player, error) {
+func CreateNewGame(owner string) (*responses.PlayersResponse, error) {
 
 	var id string
 	var e error
@@ -29,10 +29,15 @@ func CreateNewGame(owner string) (*responses.Player, error) {
 	if _, e = db.SetGame(id, g); e != nil {
 		return nil, e
 	}
-	var ret *responses.Player
-	if ret, e = CreateNewPlayer(owner, id, true); e != nil {
+	if _, e = CreateNewPlayer(owner, id, true); e != nil {
 		return nil, e
 	}
+
+	ret, err := GeneratePlayersResponse(id)
+	if err != nil {
+		return nil, err
+	}
+
 	return ret, nil
 }
 

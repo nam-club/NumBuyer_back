@@ -37,12 +37,19 @@ func RoutesGame(server *socketio.Server) {
 			return
 		}
 
-		u, e := logic.CreateNewPlayer(req.PlayerName, roomId, false)
+		_, e = logic.CreateNewPlayer(req.PlayerName, roomId, false)
 		if e != nil {
 			s.Emit(consts.FromServerGameJoin, responseError(e))
 			return
 		}
-		server.BroadcastToRoom("/", s.Rooms()[0], consts.FromServerGameJoin, response(u))
+
+		resp, e := logic.GeneratePlayersResponse(roomId)
+		if e != nil {
+			s.Emit(consts.FromServerGameJoin, responseError(e))
+			return
+		}
+
+		server.BroadcastToRoom("/", s.Rooms()[0], consts.FromServerGameJoin, response(resp))
 	})
 
 	server.OnEvent("/", consts.ToServerJoinFriendMatch, func(s socketio.Conn, msg string) {
@@ -56,12 +63,19 @@ func RoutesGame(server *socketio.Server) {
 			return
 		}
 
-		u, e := logic.CreateNewPlayer(req.PlayerName, req.RoomID, false)
+		_, e := logic.CreateNewPlayer(req.PlayerName, req.RoomID, false)
 		if e != nil {
 			s.Emit(consts.FromServerGameJoin, responseError(e))
 			return
 		}
-		server.BroadcastToRoom("/", s.Rooms()[0], consts.FromServerGameJoin, response(u))
+
+		resp, e := logic.GeneratePlayersResponse(req.RoomID)
+		if e != nil {
+			s.Emit(consts.FromServerGameJoin, responseError(e))
+			return
+		}
+
+		server.BroadcastToRoom("/", s.Rooms()[0], consts.FromServerGameJoin, response(resp))
 	})
 
 	server.OnEvent("/", consts.ToServerCreateMatch, func(s socketio.Conn, msg string) {
@@ -77,7 +91,7 @@ func RoutesGame(server *socketio.Server) {
 			return
 		}
 		s.LeaveAll()
-		s.Join(ret.RoomID)
+		s.Join(ret.Players[0].RoomID)
 
 		server.BroadcastToRoom("/", s.Rooms()[0], consts.FromServerGameJoin, response(ret))
 	})

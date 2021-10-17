@@ -3,6 +3,7 @@ package db
 
 import (
 	"encoding/json"
+	"nam-club/NumBuyer_back/models/orgerrors"
 	"unsafe"
 
 	"github.com/pkg/errors"
@@ -54,8 +55,16 @@ func GetGame(id string) (Game, error) {
 	return ret, nil
 }
 
-// ゲーム情報を取得
+//ランダムな部屋IDを取得
 func GetRandomRoomId() (string, error) {
+	l, e := rg.DBSize()
+	if e != nil {
+		return "", e
+	}
+	if l < 1 {
+		return "", orgerrors.NewGameNotFoundError("")
+	}
+
 	r, e := rg.RandomKey()
 	if e != nil {
 		return "", e

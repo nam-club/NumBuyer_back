@@ -4,13 +4,13 @@ package db
 import (
 	"encoding/json"
 	"nam-club/NumBuyer_back/models/orgerrors"
-	"strings"
 	"unsafe"
 
 	"github.com/pkg/errors"
 )
 
 type Player struct {
+	RoomID       string       `json:"roomId"`
 	PlayerID     string       `json:"playerId"`
 	PlayerName   string       `json:"playerName"`
 	Coin         int          `json:"coin"`
@@ -41,12 +41,10 @@ func GetPlayers(roomId string) ([]Player, error) {
 		return []Player{}, e
 	}
 
-	players := strings.Split(r, ",")
-
 	var ret []Player
-	for _, v := range players {
+	for _, v := range r {
 		var player Player
-		if e := json.Unmarshal([]byte(v), &player); e != nil {
+		if e := json.Unmarshal(v, &player); e != nil {
 			return []Player{}, errors.WithStack(e)
 		}
 		ret = append(ret, player)
