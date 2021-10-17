@@ -1,12 +1,8 @@
-// ※サンプルコード
-
 package main
 
 import (
 	"log"
-	"nam-club/NumBuyer_back/consts"
-	"nam-club/NumBuyer_back/services/logic"
-	"nam-club/NumBuyer_back/services/utils"
+	"nam-club/NumBuyer_back/routes"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -44,34 +40,6 @@ func main() {
 		return nil
 	})
 
-	server.OnEvent("/", consts.ToServerJoinQuickMatch, func(s socketio.Conn, msg string) {
-		// 一つの部屋にのみ入室した状態にする
-		s.LeaveAll()
-		s.Join(msg)
-
-		u := logic.CreateNewPlayer("JUNPEI", "rid", false)
-		server.BroadcastToRoom("/", s.Rooms()[0], consts.FromServerGameJoin, utils.ToResponseFormat(u))
-	})
-
-	server.OnEvent("/", consts.ToServerJoinFriendMatch, func(s socketio.Conn, msg string) {
-		// 一つの部屋にのみ入室した状態にする
-		s.LeaveAll()
-		s.Join(msg)
-
-		u := logic.CreateNewPlayer("FRIEND", "JUNPEI", false)
-		server.BroadcastToRoom("/", s.Rooms()[0], consts.FromServerGameJoin, utils.ToResponseFormat(u))
-	})
-
-	server.OnEvent("/", consts.ToServerCreateMatch, func(s socketio.Conn, msg string) {
-		log.Println("creatematch: ", msg)
-
-		g := logic.CreateNewGame("OWENER")
-		s.LeaveAll()
-		s.Join(g.RoomID)
-
-		server.BroadcastToRoom("/", s.Rooms()[0], consts.FromServerGameJoin, utils.ToResponseFormat(g))
-	})
-
 	server.OnEvent("/", "bye", func(s socketio.Conn) string {
 		last := s.Context().(string)
 		s.Emit("bye", last)
@@ -87,6 +55,8 @@ func main() {
 		log.Println("closed", msg)
 	})
 
+	routes.RoutesGame(server)
+
 	go func() {
 		if err := server.Serve(); err != nil {
 			log.Fatalf("socketio listen error: %s\n", err)
@@ -95,6 +65,7 @@ func main() {
 	defer server.Close()
 
 	router.Use(GinMiddleware("http://localhost:3000"))
+	router.Use(GinMiddleware("http://127.0.0.1:8080"))
 	router.GET("/socket.io/*any", gin.WrapH(server))
 	router.POST("/socket.io/*any", gin.WrapH(server))
 	router.StaticFS("/public", http.Dir("../asset"))
