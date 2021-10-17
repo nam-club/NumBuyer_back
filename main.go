@@ -65,7 +65,6 @@ func main() {
 	defer server.Close()
 
 	router.Use(GinMiddleware("http://localhost:3000"))
-	router.Use(GinMiddleware("http://127.0.0.1:8080"))
 	router.GET("/socket.io/*any", gin.WrapH(server))
 	router.POST("/socket.io/*any", gin.WrapH(server))
 	router.StaticFS("/public", http.Dir("../asset"))
