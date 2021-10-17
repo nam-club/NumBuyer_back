@@ -4,6 +4,8 @@ import (
 	"nam-club/NumBuyer_back/db"
 	"nam-club/NumBuyer_back/models/orgerrors"
 	"nam-club/NumBuyer_back/models/responses"
+
+	"github.com/google/uuid"
 )
 
 // 新規プレイヤー情報を生成する
@@ -21,7 +23,7 @@ func CreateNewPlayer(playerName, roomId string, isOwner bool) (*responses.Player
 
 	var regist db.Player
 	var e error
-	regist, e = db.SetPlayer(roomId, p)
+	regist, e = db.AddPlayer(roomId, p)
 	if e != nil {
 		return nil, e
 	}
@@ -37,8 +39,8 @@ func CreateNewPlayer(playerName, roomId string, isOwner bool) (*responses.Player
 	return ret, nil
 }
 
-// ゲームIDを生成する
-func generatePlayerId(roomId string) int {
-	game, _ := db.GetGame(roomId)
-	return len(game.Players) + 1
+// プレイヤーIDを生成する
+func generatePlayerId(roomId string) string {
+	return uuid.Must(uuid.NewUUID()).String()
+
 }
