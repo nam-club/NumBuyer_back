@@ -9,55 +9,36 @@ import (
 )
 
 // 新規プレイヤー情報を生成する
-func CreateNewPlayer(playerName, roomId string, isOwner bool) (*responses.Player, error) {
+func CreateNewPlayer(playerName, roomId string, isOwner bool) (*db.Player, error) {
 
 	if b, _ := db.ExistsGame(roomId); b == false {
 		return nil, orgerrors.NewGameNotFoundError("game not found")
 	}
 
-	p := db.Player{
-		RoomID:     roomId,
+	p := &db.Player{
 		PlayerID:   generatePlayerId(roomId),
 		PlayerName: playerName,
 		Coin:       100,
 	}
 
-	var regist db.Player
+	var ret *db.Player
 	var e error
-	regist, e = db.AddPlayer(roomId, p)
+	ret, e = db.AddPlayer(roomId, p)
 	if e != nil {
 		return nil, e
-	}
-
-	ret := &responses.Player{
-		PlayerID:   regist.PlayerID,
-		PlayerName: regist.PlayerName,
-		RoomID:     roomId,
-		Coin:       regist.Coin,
-		CardNum:    len(regist.Cards),
 	}
 
 	return ret, nil
 }
 
-func GeneratePlayersResponse(roomId string) (*responses.PlayersResponse, error) {
-	players, err := db.GetPlayers(roomId)
-	if err != nil {
-		return nil, err
+// プレイヤー情報を取得する
+func GetPlayersInfo(roomId, playerId string) (*responses.PlayersInfoResponse, error) {
+	players, e := db.GetPlayers(roomId)
+	if e != nil {
+		return nil, e
 	}
-	ret := &responses.PlayersResponse{}
-	for _, v := range players {
-		ret.Players = append(ret.Players,
-			responses.Players{
-				PlayerID:   v.PlayerID,
-				PlayerName: v.PlayerName,
-				RoomID:     v.RoomID,
-				Coin:       v.Coin,
-				CardNum:    len(v.Cards),
-			})
-	}
-	return ret, nil
 
+	return responses.GeneratePlayersInfoResponse(players, roomId), nil
 }
 
 // プレイヤーIDを生成する

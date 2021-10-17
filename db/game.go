@@ -17,7 +17,7 @@ type Game struct {
 type State struct {
 	Phase   string `json:"phase"`
 	Auction string `json:"auction"`
-	Answer  int    `json:"answer"`
+	Answer  string `json:"answer"`
 }
 
 var rg *RedisHandler
@@ -27,30 +27,31 @@ func init() {
 }
 
 // ゲーム情報をセット
-func SetGame(id string, game Game) (string, error) {
+func SetGame(id string, game *Game) (*Game, error) {
 	j, e := json.Marshal(game)
 	if e != nil {
-		return "", errors.WithStack(e)
+		return nil, errors.WithStack(e)
 	}
 	// byteからstringに変換
 	str := *(*string)(unsafe.Pointer(&j))
-	ret, e := rg.Set(id, str)
+	_, e = rg.Set(id, str)
 	if e != nil {
-		return "", e
+		return nil, e
 	}
-	return ret, nil
+
+	return game, nil
 }
 
 // ゲーム情報を取得
-func GetGame(id string) (Game, error) {
+func GetGame(id string) (*Game, error) {
 	r, e := rg.Get(id)
 	if e != nil {
-		return Game{}, e
+		return nil, e
 	}
 
-	var ret Game
+	var ret *Game
 	if e := json.Unmarshal([]byte(r), &ret); e != nil {
-		return Game{}, errors.WithStack(e)
+		return nil, errors.WithStack(e)
 	}
 	return ret, nil
 }

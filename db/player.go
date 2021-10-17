@@ -10,7 +10,6 @@ import (
 )
 
 type Player struct {
-	RoomID       string       `json:"roomId"`
 	PlayerID     string       `json:"playerId"`
 	PlayerName   string       `json:"playerName"`
 	Coin         int          `json:"coin"`
@@ -24,8 +23,8 @@ type BuyAction struct {
 	Value  string `json:"value"`
 }
 type AnswerAction struct {
-	Action  string `json:"action"`
-	CardIds []int  `json:"cardIds"`
+	Action string   `json:"action"`
+	Cards  []string `json:"cards"`
 }
 
 var rp *RedisHandler
@@ -53,33 +52,36 @@ func GetPlayers(roomId string) ([]Player, error) {
 }
 
 // プレイヤー情報を取得
-func GetPlayer(roomId, playerId string) (Player, error) {
+func GetPlayer(roomId, playerId string) (*Player, error) {
 	r, e := rp.HGet(roomId, playerId)
 	if e != nil {
-		return Player{}, e
+		return nil, e
 	}
 
-	var ret Player
+	var ret *Player
 	if e := json.Unmarshal([]byte(r), &ret); e != nil {
-		return Player{}, errors.WithStack(e)
+		return nil, errors.WithStack(e)
 	}
 	return ret, nil
 }
 
 // プレイヤー情報を追加
-func AddPlayer(roomId string, player Player) (Player, error) {
+func AddPlayer(roomId string, player *Player) (*Player, error) {
 	if b, e := ExistsGame(roomId); e != nil || b == false {
 		if e != nil {
-			return Player{}, errors.WithStack(e)
+			return nil, errors.WithStack(e)
 		}
-		return Player{}, orgerrors.NewGameNotFoundError("")
+		return nil, orgerrors.NewGameNotFoundError("")
 	}
 
 	b, _ := json.Marshal(player)
 	str := *(*string)(unsafe.Pointer(&b)) // byteからstringに変換
 	if _, e := rp.HSet(roomId, player.PlayerID, str); e != nil {
-		return Player{}, e
+		return nil, e
 	}
 
+	if _, e := rp.HGet(roomId, player.PlayerID); e != nil {
+		return nil, e
+	}
 	return player, nil
 }
