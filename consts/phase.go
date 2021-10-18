@@ -1,8 +1,10 @@
 package consts
 
+type Phase string
+
 const (
-	PhaseBeforeStart = "BEFORE_START"
-	PhaseAuction     = "AUCTION"
-	PhaseCalculate   = "CALCULATE"
-	PhaseResult      = "RESULT"
+	PhaseBeforeStart = Phase("BEFORE_START")
+	PhaseAuction     = Phase("AUCTION")
+	PhaseCalculate   = Phase("CALCULATE")
+	PhaseResult      = Phase("RESULT")
 )
