@@ -6,6 +6,7 @@ import (
 	"nam-club/NumBuyer_back/db"
 	"nam-club/NumBuyer_back/models/orgerrors"
 	"nam-club/NumBuyer_back/models/responses"
+	"time"
 )
 
 // 新規ゲームを生成する
@@ -20,9 +21,10 @@ func CreateNewGame(owner string) (*responses.JoinResponse, error) {
 	g := &db.Game{
 		RoomID: id,
 		State: db.State{
-			Phase:   string(consts.PhaseBeforeStart),
-			Auction: "",
-			Answer:  "",
+			Phase:       string(consts.PhaseBeforeStart),
+			Auction:     "",
+			Answer:      "",
+			ChangedTime: time.Now().String(),
 		},
 	}
 
