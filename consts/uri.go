@@ -26,4 +26,5 @@ const (
 	FromServerGameTargetCardToClients = "game/targetCard_to_clients"
 	FromServerGameFinishGame          = "game/finish_game"
 	FromServerGameUpdatePlayerInfo    = "game/update_playerInfo"
+	FromServerGameUpdateState         = "game/update_state"
 )

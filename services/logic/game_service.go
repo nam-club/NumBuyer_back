@@ -24,7 +24,7 @@ func CreateNewGame(owner string) (*responses.JoinResponse, error) {
 			Phase:       string(consts.PhaseBeforeStart),
 			Auction:     "",
 			Answer:      "",
-			ChangedTime: time.Now().String(),
+			ChangedTime: time.Now().Format(time.RFC3339),
 		},
 	}
 
@@ -64,6 +64,22 @@ func NextTurn(roomId, playerId string) (*responses.NextTurnResponse, error) {
 	}
 
 	return responses.GenerateNextTurnResponse(*player, *game), nil
+}
+
+// 次フェーズに移行する
+func NextPhase(nextPhase consts.Phase, roomId string) (*responses.NextPhaseResponse, error) {
+	game, err := db.GetGame(roomId)
+	if err != nil {
+		return nil, orgerrors.NewGameNotFoundError("")
+	}
+	game.State.Phase = string(nextPhase)
+	db.SetGame(roomId, game)
+	players, e := db.GetPlayers(roomId)
+	if e != nil {
+		return nil, e
+	}
+
+	return responses.GenerateNextPhaseResponse(players, nextPhase), nil
 }
 
 // ゲームIDを生成する

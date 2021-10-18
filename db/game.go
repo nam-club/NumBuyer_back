@@ -57,6 +57,11 @@ func GetGame(id string) (*Game, error) {
 	return ret, nil
 }
 
+// ゲーム情報を削除
+func DeleteGame(id string) (int, error) {
+	return rg.Delete(id)
+}
+
 //ランダムな部屋IDを取得
 func GetRandomRoomId() (string, error) {
 	l, e := rg.DBSize()
