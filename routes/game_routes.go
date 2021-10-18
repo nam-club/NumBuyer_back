@@ -89,12 +89,12 @@ func RoutesGame(server *socketio.Server) {
 	server.OnEvent("/", consts.ToServerGamePlayersInfo, func(s socketio.Conn, msg string) {
 		req := &requests.GamePlayerInfo{}
 		if e := valid(msg, req); e != nil {
-			s.Emit(consts.FromServerGameJoin, responseError(e))
+			s.Emit(consts.FromServerGamePlayersInfo, responseError(e))
 			return
 		}
 		resp, e := logic.GetPlayersInfo(req.RoomID, req.PlayerID)
 		if e != nil {
-			s.Emit(consts.FromServerGameJoin, responseError(e))
+			s.Emit(consts.FromServerGamePlayersInfo, responseError(e))
 		}
 		server.BroadcastToRoom("/", s.Rooms()[0], consts.FromServerGamePlayersInfo, response(resp))
 	})
@@ -102,12 +102,12 @@ func RoutesGame(server *socketio.Server) {
 	server.OnEvent("/", consts.ToServerGameNextTurn, func(s socketio.Conn, msg string) {
 		req := &requests.GameNextTurn{}
 		if e := valid(msg, req); e != nil {
-			s.Emit(consts.ToServerGameNextTurn, responseError(e))
+			s.Emit(consts.FromServerGameNextTurn, responseError(e))
 			return
 		}
 		resp, e := logic.NextTurn(req.RoomID, req.PlayerID)
 		if e != nil {
-			s.Emit(consts.ToServerGameNextTurn, responseError(e))
+			s.Emit(consts.FromServerGameNextTurn, responseError(e))
 			return
 		}
 		server.BroadcastToRoom("/", s.Rooms()[0], consts.FromServerGameNextTurn, response(resp))
