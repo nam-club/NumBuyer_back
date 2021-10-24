@@ -2,6 +2,7 @@ package routes
 
 import (
 	"encoding/json"
+	"errors"
 	"nam-club/NumBuyer_back/consts"
 	"nam-club/NumBuyer_back/models/orgerrors"
 	"nam-club/NumBuyer_back/models/requests"
@@ -28,23 +29,35 @@ func RoutesGame(server *socketio.Server) {
 
 		roomId, e := logic.GetRandomRoomId()
 		if e != nil {
-			s.Emit(consts.FromServerGameJoin, utils.ResponseError(e))
-			return
-		}
+			// 部屋が見つからなかった場合は新規作成
+			switch errors.Unwrap(e).(type) {
+			case *orgerrors.GameNotFoundError:
+				resp, e := logic.CreateNewGame(req.PlayerName)
+				if e != nil {
+					s.Emit(consts.FromServerGameJoin, utils.ResponseError(e))
+					return
+				}
 
-		if roomId == "" {
-			s.Emit(consts.FromServerGameJoin, utils.ResponseError(orgerrors.NewGameNotFoundError("")))
-			return
-		}
+				s.LeaveAll()
+				s.Join(resp.RoomID)
 
-		player, e := logic.CreateNewPlayer(req.PlayerName, roomId, false)
-		if e != nil {
-			s.Emit(consts.FromServerGameJoin, utils.ResponseError(e))
-			return
-		}
+				server.BroadcastToRoom("/", s.Rooms()[0], consts.FromServerGameJoin, utils.Response(resp))
+				return
+			default:
+				s.Emit(consts.FromServerGameJoin, utils.ResponseError(e))
+				return
+			}
+		} else {
+			// 部屋が見つかった場合はその部屋に参加
+			player, e := logic.CreateNewPlayer(req.PlayerName, roomId, false)
+			if e != nil {
+				s.Emit(consts.FromServerGameJoin, utils.ResponseError(e))
+				return
+			}
 
-		resp := responses.JoinResponse{RoomID: roomId, PlayerID: player.PlayerID}
-		server.BroadcastToRoom("/", s.Rooms()[0], consts.FromServerGameJoin, utils.Response(resp))
+			resp := responses.JoinResponse{RoomID: roomId, PlayerID: player.PlayerID}
+			server.BroadcastToRoom("/", s.Rooms()[0], consts.FromServerGameJoin, utils.Response(resp))
+		}
 	})
 
 	server.OnEvent("/", consts.ToServerJoinFriendMatch, func(s socketio.Conn, msg string) {
