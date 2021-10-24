@@ -15,9 +15,10 @@ type Game struct {
 	Players []Player `json:"players"`
 }
 type State struct {
-	Phase   string `json:"phase"`
-	Auction string `json:"auction"`
-	Answer  string `json:"answer"`
+	Phase       string `json:"phase"`
+	Auction     string `json:"auction"`
+	Answer      string `json:"answer"`
+	ChangedTime string `json:"changedTime"`
 }
 
 var rg *RedisHandler
@@ -54,6 +55,11 @@ func GetGame(id string) (*Game, error) {
 		return nil, errors.WithStack(e)
 	}
 	return ret, nil
+}
+
+// ゲーム情報を削除
+func DeleteGame(id string) (int, error) {
+	return rg.Delete(id)
 }
 
 //ランダムな部屋IDを取得

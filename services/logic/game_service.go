@@ -6,6 +6,7 @@ import (
 	"nam-club/NumBuyer_back/db"
 	"nam-club/NumBuyer_back/models/orgerrors"
 	"nam-club/NumBuyer_back/models/responses"
+	"time"
 )
 
 // 新規ゲームを生成する
@@ -20,9 +21,10 @@ func CreateNewGame(owner string) (*responses.JoinResponse, error) {
 	g := &db.Game{
 		RoomID: id,
 		State: db.State{
-			Phase:   consts.PhaseBeforeStart,
-			Auction: "",
-			Answer:  "",
+			Phase:       string(consts.PhaseBeforeStart),
+			Auction:     "",
+			Answer:      "",
+			ChangedTime: time.Now().Format(time.RFC3339),
 		},
 	}
 
@@ -54,7 +56,7 @@ func NextTurn(roomId, playerId string) (*responses.NextTurnResponse, error) {
 	if err != nil {
 		return nil, orgerrors.NewGameNotFoundError("")
 	}
-	game.State.Phase = consts.PhaseAuction
+	game.State.Phase = string(consts.PhaseAuction)
 	db.SetGame(roomId, game)
 	player, e := db.GetPlayer(roomId, playerId)
 	if e != nil {
@@ -62,6 +64,22 @@ func NextTurn(roomId, playerId string) (*responses.NextTurnResponse, error) {
 	}
 
 	return responses.GenerateNextTurnResponse(*player, *game), nil
+}
+
+// 次フェーズに移行する
+func NextPhase(nextPhase consts.Phase, roomId string) (*responses.NextPhaseResponse, error) {
+	game, err := db.GetGame(roomId)
+	if err != nil {
+		return nil, orgerrors.NewGameNotFoundError("")
+	}
+	game.State.Phase = string(nextPhase)
+	db.SetGame(roomId, game)
+	players, e := db.GetPlayers(roomId)
+	if e != nil {
+		return nil, e
+	}
+
+	return responses.GenerateNextPhaseResponse(players, nextPhase), nil
 }
 
 // ゲームIDを生成する

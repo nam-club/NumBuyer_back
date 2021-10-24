@@ -57,6 +57,15 @@ func (o *RedisHandler) Get(key string) (string, error) {
 	return res, nil
 }
 
+// データの削除
+func (o *RedisHandler) Delete(key string) (int, error) {
+	res, err := redis.Int(o.conn.Do("DEL", key))
+	if err != nil {
+		return -1, errors.WithStack(err)
+	}
+	return res, nil
+}
+
 // Hashデータの取得
 func (o *RedisHandler) HGet(key, field string) (string, error) {
 	res, err := redis.String(o.conn.Do("HGET", key, field))

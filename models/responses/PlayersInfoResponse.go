@@ -3,10 +3,10 @@ package responses
 import "nam-club/NumBuyer_back/db"
 
 type PlayersInfoResponse struct {
-	RoomID  string    `json:"roomId"`
-	Players []Players `json:"players"`
+	RoomID  string               `json:"roomId"`
+	Players []PlayersInfoPlayers `json:"players"`
 }
-type Players struct {
+type PlayersInfoPlayers struct {
 	PlayerID   string `json:"playerId"`
 	PlayerName string `json:"playerName"`
 	Coin       int    `json:"coin"`
@@ -20,7 +20,7 @@ func GeneratePlayersInfoResponse(players []db.Player, roomId string) *PlayersInf
 	ret.RoomID = roomId
 	for _, v := range players {
 		ret.Players = append(ret.Players,
-			Players{
+			PlayersInfoPlayers{
 				PlayerID:   v.PlayerID,
 				PlayerName: v.PlayerName,
 				Coin:       v.Coin,
