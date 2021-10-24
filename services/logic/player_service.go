@@ -18,6 +18,7 @@ func CreateNewPlayer(playerName, roomId string, isOwner bool) (*db.Player, error
 	p := &db.Player{
 		PlayerID:   generatePlayerId(roomId),
 		PlayerName: playerName,
+		IsOwner:    isOwner,
 		Coin:       100,
 	}
 
