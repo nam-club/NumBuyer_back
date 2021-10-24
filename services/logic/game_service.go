@@ -21,7 +21,7 @@ func CreateNewGame(owner string) (*responses.JoinResponse, error) {
 	g := &db.Game{
 		RoomID: id,
 		State: db.State{
-			Phase:       string(consts.PhaseBeforeStart),
+			Phase:       consts.PhaseBeforeStart.Value,
 			Auction:     "",
 			Answer:      "",
 			ChangedTime: time.Now().Format(time.RFC3339),
@@ -56,7 +56,7 @@ func NextTurn(roomId, playerId string) (*responses.NextTurnResponse, error) {
 	if err != nil {
 		return nil, orgerrors.NewGameNotFoundError("")
 	}
-	game.State.Phase = string(consts.PhaseAuction)
+	game.State.Phase = consts.PhaseBeforeAuction.Value
 	db.SetGame(roomId, game)
 	player, e := db.GetPlayer(roomId, playerId)
 	if e != nil {
@@ -72,7 +72,7 @@ func NextPhase(nextPhase consts.Phase, roomId string) (*responses.NextPhaseRespo
 	if err != nil {
 		return nil, orgerrors.NewGameNotFoundError("")
 	}
-	game.State.Phase = string(nextPhase)
+	game.State.Phase = nextPhase.Value
 	db.SetGame(roomId, game)
 	players, e := db.GetPlayers(roomId)
 	if e != nil {

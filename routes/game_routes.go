@@ -94,7 +94,8 @@ func RoutesGame(server *socketio.Server) {
 		}
 		s.LeaveAll()
 		s.Join(resp.RoomID)
-
+		// フェーズのタイマーをスタート
+		logic.NewPhaseScheduler(resp.RoomID, server).Start()
 		server.BroadcastToRoom("/", s.Rooms()[0], consts.FromServerGameJoin, utils.Response(resp))
 	})
 

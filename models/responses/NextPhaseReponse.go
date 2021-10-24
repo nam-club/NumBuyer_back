@@ -19,7 +19,7 @@ type NextPhasePlayers struct {
 // DB接続、分岐などのビジネスロジックは書かないこと
 func GenerateNextPhaseResponse(players []db.Player, phase consts.Phase) *NextPhaseResponse {
 	ret := &NextPhaseResponse{}
-	ret.Phase = string(phase)
+	ret.Phase = phase.Value
 	for _, v := range players {
 		ret.Players = append(ret.Players,
 			NextPhasePlayers{

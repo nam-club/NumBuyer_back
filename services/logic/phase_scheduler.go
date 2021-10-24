@@ -1,6 +1,7 @@
 package logic
 
 import (
+	"fmt"
 	"nam-club/NumBuyer_back/consts"
 	"nam-club/NumBuyer_back/db"
 	"nam-club/NumBuyer_back/utils"
@@ -15,7 +16,7 @@ type PhaseSheduler struct {
 }
 
 func NewPhaseScheduler(roomId string, server *socketio.Server) *PhaseSheduler {
-	return &PhaseSheduler{roomId: roomId}
+	return &PhaseSheduler{roomId: roomId, server: server}
 }
 
 func (o *PhaseSheduler) Start() {
@@ -24,7 +25,7 @@ func (o *PhaseSheduler) Start() {
 
 func (o *PhaseSheduler) monitor() {
 	for {
-		time.Sleep(1 * time.Second)
+		time.Sleep(2 * time.Second)
 
 		game, e := db.GetGame(o.roomId)
 		if e != nil {
@@ -47,24 +48,29 @@ func (o *PhaseSheduler) monitor() {
 		var next consts.Phase
 		switch phase {
 		case consts.PhaseBeforeStart:
-			threshold = consts.PhaseTimeBeforeStart
+			threshold = consts.PhaseBeforeStart.Duration
 			next = consts.PhaseBeforeAuction
 		case consts.PhaseBeforeAuction:
-			threshold = consts.PhaseTimeBeforeAuction
+			threshold = consts.PhaseBeforeAuction.Duration
 			next = consts.PhaseAuction
 		case consts.PhaseAuction:
-			threshold = consts.PhaseTimeAuction
+			threshold = consts.PhaseAuction.Duration
 			next = consts.PhaseAuctionResult
 		case consts.PhaseAuctionResult:
-			threshold = consts.PhaseTimeAuctionResult
+			threshold = consts.PhaseAuctionResult.Duration
 			next = consts.PhaseCalculate
 		case consts.PhaseCalculate:
-			threshold = consts.PhaseTimeCalculate
+			threshold = consts.PhaseCalculate.Duration
 			next = consts.PhaseCalculateResult
 		case consts.PhaseCalculateResult:
-			threshold = consts.PhaseTimeCalculateResult
+			threshold = consts.PhaseCalculateResult.Duration
 			next = consts.PhaseBeforeAuction
 		default:
+			o.finish()
+			break
+		}
+
+		if startTime.Add(time.Duration(consts.TimeAutoEnd) * time.Second).Before(time.Now()) {
 			o.finish()
 			break
 		}

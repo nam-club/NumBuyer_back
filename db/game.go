@@ -4,6 +4,7 @@ package db
 import (
 	"encoding/json"
 	"nam-club/NumBuyer_back/models/orgerrors"
+	"time"
 	"unsafe"
 
 	"github.com/pkg/errors"
@@ -29,6 +30,9 @@ func init() {
 
 // ゲーム情報をセット
 func SetGame(id string, game *Game) (*Game, error) {
+	// 変更時間を更新する
+	game.State.ChangedTime = time.Now().Format(time.RFC3339)
+
 	j, e := json.Marshal(game)
 	if e != nil {
 		return nil, errors.WithStack(e)
