@@ -48,16 +48,22 @@ func (o *PhaseSheduler) monitor() {
 		switch phase {
 		case consts.PhaseBeforeStart:
 			threshold = consts.PhaseTimeBeforeStart
+			next = consts.PhaseBeforeAuction
+		case consts.PhaseBeforeAuction:
+			threshold = consts.PhaseTimeBeforeAuction
 			next = consts.PhaseAuction
 		case consts.PhaseAuction:
 			threshold = consts.PhaseTimeAuction
+			next = consts.PhaseAuctionResult
+		case consts.PhaseAuctionResult:
+			threshold = consts.PhaseTimeAuctionResult
 			next = consts.PhaseCalculate
 		case consts.PhaseCalculate:
 			threshold = consts.PhaseTimeCalculate
-			next = consts.PhaseResult
-		case consts.PhaseResult:
-			threshold = consts.PhaseTimeResult
-			next = consts.PhaseAuction
+			next = consts.PhaseCalculateResult
+		case consts.PhaseCalculateResult:
+			threshold = consts.PhaseTimeCalculateResult
+			next = consts.PhaseBeforeAuction
 		default:
 			o.finish()
 			break

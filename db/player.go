@@ -12,6 +12,7 @@ import (
 type Player struct {
 	PlayerID     string       `json:"playerId"`
 	PlayerName   string       `json:"playerName"`
+	IsOwner      bool         `json:"isOwner"`
 	Coin         int          `json:"coin"`
 	Cards        []string     `json:"cards"`
 	BuyAction    BuyAction    `json:"buyAction"`

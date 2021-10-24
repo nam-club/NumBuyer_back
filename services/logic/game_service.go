@@ -36,7 +36,7 @@ func CreateNewGame(owner string) (*responses.JoinResponse, error) {
 		return nil, e
 	}
 
-	ret := &responses.JoinResponse{RoomID: id, PlayerID: player.PlayerID}
+	ret := &responses.JoinResponse{RoomID: id, PlayerID: player.PlayerID, IsOwner: player.IsOwner}
 
 	return ret, nil
 }
