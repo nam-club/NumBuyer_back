@@ -72,6 +72,9 @@
   <form action="" id="form-players-info">
     <input id="pi" autocomplete="off" /><button>Players Info</button>
   </form>
+  <form action="" id="form-game-start">
+    <input id="st" autocomplete="off" /><button>Game Start</button>
+  </form>
   <form action="" id="form-next-turn">
     <input id="nt" autocomplete="off" /><button>Next Turn</button>
   </form>
@@ -88,6 +91,9 @@
       $('#messages').append($('<li>').text(msg));
     });
     socket.on('game/players_info', function (msg) {
+      $('#messages').append($('<li>').text(msg));
+    });
+    socket.on('game/start', function (msg) {
       $('#messages').append($('<li>').text(msg));
     });
     socket.on('game/next_turn', function (msg) {
@@ -115,9 +121,13 @@
       $('#j').val('');
       return false;
     });
-
     $('#form-players-info').submit(function () {
       socket.emit('game/players_info', $('#pi').val());
+      $('#j').val('');
+      return false;
+    });
+    $('#form-game-start').submit(function () {
+      socket.emit('game/start', $('#st').val());
       $('#j').val('');
       return false;
     });

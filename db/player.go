@@ -17,6 +17,7 @@ type Player struct {
 	Cards        []string     `json:"cards"`
 	BuyAction    BuyAction    `json:"buyAction"`
 	AnswerAction AnswerAction `json:"answerAction"`
+	Ready        bool         `json:"ready"`
 }
 
 type BuyAction struct {

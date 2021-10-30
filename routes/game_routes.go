@@ -92,10 +92,16 @@ func RoutesGame(server *socketio.Server) {
 			s.Emit(consts.FromServerGameJoin, utils.ResponseError(e))
 			return
 		}
+
+		// フェーズのタイマーをスタート
+		if e := logic.CanCreateGameScheduler(resp.RoomID); e != nil {
+			s.Emit(consts.FromServerGameStart, utils.ResponseError(e))
+			return
+		}
+		logic.NewPhaseScheduler(resp.RoomID, server).Start()
+
 		s.LeaveAll()
 		s.Join(resp.RoomID)
-		// フェーズのタイマーをスタート
-		logic.NewPhaseScheduler(resp.RoomID, server).Start()
 		server.BroadcastToRoom("/", s.Rooms()[0], consts.FromServerGameJoin, utils.Response(resp))
 	})
 
@@ -110,6 +116,25 @@ func RoutesGame(server *socketio.Server) {
 			s.Emit(consts.FromServerGamePlayersInfo, utils.ResponseError(e))
 		}
 		server.BroadcastToRoom("/", s.Rooms()[0], consts.FromServerGamePlayersInfo, utils.Response(resp))
+	})
+
+	server.OnEvent("/", consts.ToServerGameStart, func(s socketio.Conn, msg string) {
+		req := &requests.GameStart{}
+		if e := valid(msg, req); e != nil {
+			s.Emit(consts.FromServerGameStart, utils.ResponseError(e))
+			return
+		}
+		if e := logic.CanCreateGameScheduler(req.RoomID); e != nil {
+			s.Emit(consts.FromServerGameStart, utils.ResponseError(e))
+			return
+		}
+
+		if e := logic.StartGame(req.RoomID); e != nil {
+			s.Emit(consts.FromServerGameStart, utils.ResponseError(e))
+		}
+
+		resp := &responses.GameStartResponse{StartFlag: true}
+		server.BroadcastToRoom("/", s.Rooms()[0], consts.FromServerGameStart, utils.Response(resp))
 	})
 
 	server.OnEvent("/", consts.ToServerGameNextTurn, func(s socketio.Conn, msg string) {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"nam-club/NumBuyer_back/consts"
 	"nam-club/NumBuyer_back/db"
+	"nam-club/NumBuyer_back/models/orgerrors"
 	"nam-club/NumBuyer_back/utils"
 	"time"
 
@@ -13,6 +14,22 @@ import (
 type PhaseSheduler struct {
 	roomId string
 	server *socketio.Server
+}
+
+func CanCreateGameScheduler(roomId string) error {
+	if exists, _ := db.ExistsGame(roomId); !exists {
+		return orgerrors.NewGameNotFoundError("")
+	}
+	game, e := db.GetGame(roomId)
+	if e != nil {
+		return orgerrors.NewInternalServerError("")
+	}
+	if p, e := consts.ParsePhase(game.State.Phase); e != nil {
+		return orgerrors.NewInternalServerError("")
+	} else if p != consts.PhaseBeforeStart {
+		return orgerrors.NewValidationError("game already started")
+	}
+	return nil
 }
 
 func NewPhaseScheduler(roomId string, server *socketio.Server) *PhaseSheduler {
@@ -70,6 +87,8 @@ func (o *PhaseSheduler) monitor() {
 			break
 		}
 
+		fmt.Printf("thredhold: %v, current: %v, next: %v\n", threshold, phase, next)
+
 		if startTime.Add(time.Duration(consts.TimeAutoEnd) * time.Second).Before(time.Now()) {
 			o.finish()
 			break
@@ -88,6 +107,7 @@ func (o *PhaseSheduler) nextPhase(phase consts.Phase) {
 	if e != nil {
 		o.server.BroadcastToRoom("/", o.roomId, consts.FromServerGameUpdateState, utils.ResponseError(e))
 	}
+
 	o.server.BroadcastToRoom("/", o.roomId, consts.FromServerGameUpdateState, utils.Response(resp))
 }
 

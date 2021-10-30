@@ -50,14 +50,12 @@ func GetRandomRoomId() (string, error) {
 	return r, nil
 }
 
-// 次ターンに移行する
+// 次ターンで必要な情報を返却する
 func NextTurn(roomId, playerId string) (*responses.NextTurnResponse, error) {
 	game, err := db.GetGame(roomId)
 	if err != nil {
 		return nil, orgerrors.NewGameNotFoundError("")
 	}
-	game.State.Phase = consts.PhaseBeforeAuction.Value
-	db.SetGame(roomId, game)
 	player, e := db.GetPlayer(roomId, playerId)
 	if e != nil {
 		return nil, e
@@ -80,6 +78,18 @@ func NextPhase(nextPhase consts.Phase, roomId string) (*responses.NextPhaseRespo
 	}
 
 	return responses.GenerateNextPhaseResponse(players, nextPhase), nil
+}
+
+// ゲームを開始する
+func StartGame(roomId string) error {
+	game, err := db.GetGame(roomId)
+	if err != nil {
+		return orgerrors.NewGameNotFoundError("")
+	}
+	game.State.Phase = consts.PhaseBeforeAuction.Value
+	db.SetGame(roomId, game)
+
+	return nil
 }
 
 // ゲームIDを生成する
