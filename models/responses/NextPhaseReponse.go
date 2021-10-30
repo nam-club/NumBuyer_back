@@ -7,12 +7,13 @@ import (
 
 type NextPhaseResponse struct {
 	Phase   string             `json:"phase"`
-	Players []NextPhasePlayers `json:"playerList"`
+	Players []NextPhasePlayers `json:"players"`
 }
 type NextPhasePlayers struct {
-	PlayerID string `json:"playerId"`
-	Coin     int    `json:"coin"`
-	CardNum  int    `json:"cardNum"`
+	PlayerID   string `json:"playerId"`
+	PlayerName string `json:"playerName"`
+	Coin       int    `json:"coin"`
+	CardNum    int    `json:"cardNum"`
 }
 
 // レスポンスを生成
@@ -23,9 +24,10 @@ func GenerateNextPhaseResponse(players []db.Player, phase consts.Phase) *NextPha
 	for _, v := range players {
 		ret.Players = append(ret.Players,
 			NextPhasePlayers{
-				PlayerID: v.PlayerID,
-				Coin:     v.Coin,
-				CardNum:  len(v.Cards),
+				PlayerID:   v.PlayerID,
+				PlayerName: v.PlayerName,
+				Coin:       v.Coin,
+				CardNum:    len(v.Cards),
 			})
 	}
 	return ret
