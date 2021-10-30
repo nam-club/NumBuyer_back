@@ -6,6 +6,7 @@ import (
 	"nam-club/NumBuyer_back/db"
 	"nam-club/NumBuyer_back/models/orgerrors"
 	"nam-club/NumBuyer_back/utils"
+
 	"time"
 
 	socketio "github.com/googollee/go-socket.io"
@@ -66,6 +67,9 @@ func (o *PhaseSheduler) monitor() {
 		switch phase {
 		case consts.PhaseBeforeStart:
 			threshold = consts.PhaseBeforeStart.Duration
+			next = consts.PhaseWating
+		case consts.PhaseWating:
+			threshold = consts.PhaseWating.Duration
 			next = consts.PhaseBeforeAuction
 		case consts.PhaseBeforeAuction:
 			threshold = consts.PhaseBeforeAuction.Duration
@@ -81,7 +85,7 @@ func (o *PhaseSheduler) monitor() {
 			next = consts.PhaseCalculateResult
 		case consts.PhaseCalculateResult:
 			threshold = consts.PhaseCalculateResult.Duration
-			next = consts.PhaseBeforeAuction
+			next = consts.PhaseWating
 		default:
 			o.finish()
 			break
@@ -98,6 +102,8 @@ func (o *PhaseSheduler) monitor() {
 			if startTime.Add(time.Duration(threshold) * time.Second).Before(time.Now()) {
 				o.nextPhase(next)
 			}
+		} else if ready, _ := IsAllPlayersReady(o.roomId); ready {
+			o.nextPhase(next)
 		}
 	}
 }

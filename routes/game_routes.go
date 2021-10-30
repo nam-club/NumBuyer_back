@@ -131,6 +131,7 @@ func RoutesGame(server *socketio.Server) {
 
 		if e := logic.StartGame(req.RoomID); e != nil {
 			s.Emit(consts.FromServerGameStart, utils.ResponseError(e))
+			return
 		}
 
 		resp := &responses.GameStartResponse{StartFlag: true}

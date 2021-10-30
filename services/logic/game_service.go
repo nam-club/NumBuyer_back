@@ -61,6 +61,12 @@ func NextTurn(roomId, playerId string) (*responses.NextTurnResponse, error) {
 		return nil, e
 	}
 
+	player.Ready = true
+	player, e = db.AddPlayer(roomId, player)
+	if e != nil {
+		return nil, e
+	}
+
 	return responses.GenerateNextTurnResponse(*player, *game), nil
 }
 
@@ -72,9 +78,14 @@ func NextPhase(nextPhase consts.Phase, roomId string) (*responses.NextPhaseRespo
 	}
 	game.State.Phase = nextPhase.Value
 	db.SetGame(roomId, game)
+
 	players, e := db.GetPlayers(roomId)
 	if e != nil {
 		return nil, e
+	}
+	for _, p := range players {
+		p.Ready = false
+		db.AddPlayer(roomId, &p)
 	}
 
 	return responses.GenerateNextPhaseResponse(players, nextPhase), nil
@@ -86,7 +97,7 @@ func StartGame(roomId string) error {
 	if err != nil {
 		return orgerrors.NewGameNotFoundError("")
 	}
-	game.State.Phase = consts.PhaseBeforeAuction.Value
+	game.State.Phase = consts.PhaseWating.Value
 	db.SetGame(roomId, game)
 
 	return nil

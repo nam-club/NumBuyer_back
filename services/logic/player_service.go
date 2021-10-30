@@ -42,6 +42,24 @@ func GetPlayersInfo(roomId, playerId string) (*responses.PlayersInfoResponse, er
 	return responses.GeneratePlayersInfoResponse(players, roomId), nil
 }
 
+// 全プレイヤーが次フェーズに移行する準備ができているか
+func IsAllPlayersReady(roomId string) (bool, error) {
+	players, e := db.GetPlayers(roomId)
+	if e != nil {
+		return false, e
+	}
+
+	ready := true
+	for _, p := range players {
+		if !p.Ready {
+			ready = false
+			break
+		}
+	}
+
+	return ready, nil
+}
+
 // プレイヤーIDを生成する
 func generatePlayerId(roomId string) string {
 	return uuid.Must(uuid.NewUUID()).String()
