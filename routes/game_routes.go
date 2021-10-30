@@ -107,6 +107,7 @@ func RoutesGame(server *socketio.Server) {
 		resp, e := logic.GetPlayersInfo(req.RoomID, req.PlayerID)
 		if e != nil {
 			s.Emit(consts.FromServerGamePlayersInfo, utils.ResponseError(e))
+			return
 		}
 		server.BroadcastToRoom("/", s.Rooms()[0], consts.FromServerGamePlayersInfo, utils.Response(resp))
 	})
