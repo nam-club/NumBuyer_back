@@ -6,6 +6,7 @@ import (
 	"nam-club/NumBuyer_back/db"
 	"nam-club/NumBuyer_back/models/orgerrors"
 	"nam-club/NumBuyer_back/models/responses"
+	"sort"
 	"time"
 )
 
@@ -101,6 +102,72 @@ func StartGame(roomId string) error {
 	db.SetGame(roomId, game)
 
 	return nil
+}
+
+// ゲームのクリア条件を満たしているかチェックする
+func IsMeetClearCondition(roomId string) (bool, error) {
+	players, err := db.GetPlayers(roomId)
+	if err != nil {
+		return false, err
+	}
+	for _, player := range players {
+		if player.Coin >= consts.CoinClearNum {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+// ゲームを終了する（ゲーム終了条件のチェックは行わない）
+func FinishGame(roomId string) (*responses.FinishGameResponse, error) {
+	players, err := db.GetPlayers(roomId)
+	if err != nil {
+		return nil, err
+	}
+
+	// 回答時刻でsort (昇順）
+	sort.Slice(players, func(i, j int) bool {
+		tiStr := players[i].AnswerAction.AnswerTime
+		tjStr := players[j].AnswerAction.AnswerTime
+		if tiStr == "" {
+			return false
+		}
+		if tjStr == "" {
+			return true
+		}
+		ti, _ := time.Parse(time.RFC3339, tiStr)
+		tj, _ := time.Parse(time.RFC3339, tjStr)
+		return ti.Before(tj)
+	})
+
+	// Coin数でsort (降順）
+	sort.Slice(players, func(i, j int) bool { return players[i].Coin > players[j].Coin })
+
+	resp := &responses.FinishGameResponse{}
+	for i, player := range players {
+		resp.Players[i].PlayerName = player.PlayerName
+		isSameRank := false // 同立順位か
+		if i > 0 {
+			if players[i-1].Coin == players[i-1].Coin &&
+				players[i-1].AnswerAction.AnswerTime == players[i].AnswerAction.AnswerTime {
+				isSameRank = true
+			}
+		}
+		if isSameRank {
+			resp.Players[i].Rank = resp.Players[i-1].Rank
+		} else {
+			resp.Players[i].Rank = i + 1
+		}
+	}
+
+	game, err := db.GetGame(roomId)
+	if err != nil {
+		return nil, orgerrors.NewGameNotFoundError("")
+	}
+	game.State.Phase = consts.PhaseEnd.Value
+	db.SetGame(roomId, game)
+
+	return resp, nil
 }
 
 // ゲームIDを生成する

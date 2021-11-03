@@ -5,6 +5,7 @@ import (
 	"nam-club/NumBuyer_back/consts"
 	"nam-club/NumBuyer_back/db"
 	"nam-club/NumBuyer_back/models/orgerrors"
+	"nam-club/NumBuyer_back/models/responses"
 	"nam-club/NumBuyer_back/utils"
 
 	"time"
@@ -86,8 +87,11 @@ func (o *PhaseSheduler) monitor() {
 		case consts.PhaseCalculateResult:
 			threshold = consts.PhaseCalculateResult.Duration
 			next = consts.PhaseWating
+		case consts.PhaseEnd:
+			o.clean()
+			break
 		default:
-			o.finish()
+			// 呼び出されないケース
 			o.clean()
 			break
 		}
@@ -95,31 +99,87 @@ func (o *PhaseSheduler) monitor() {
 		fmt.Printf("thredhold: %v, current: %v, next: %v\n", threshold, phase, next)
 
 		if startTime.Add(time.Duration(consts.TimeAutoEnd) * time.Second).Before(time.Now()) {
-			o.finish()
 			o.clean()
 			break
 		}
 
 		if threshold != consts.PhaseTimeValueInfinite {
 			if startTime.Add(time.Duration(threshold) * time.Second).Before(time.Now()) {
-				o.nextPhase(next)
+				o.phaseFinishAction(phase, next)
 			}
 		} else if ready, _ := IsAllPlayersReady(o.roomId); ready {
-			o.nextPhase(next)
+			o.phaseFinishAction(phase, next)
 		}
 	}
 }
 
-func (o *PhaseSheduler) nextPhase(phase consts.Phase) {
-	resp, e := NextPhase(phase, o.roomId)
+func (o *PhaseSheduler) phaseFinishAction(current, next consts.Phase) {
+
+	switch current {
+	case consts.PhaseBeforeStart:
+		o.nextPhase(next)
+	case consts.PhaseWating:
+		o.nextPhase(next)
+	case consts.PhaseBeforeAuction:
+		o.nextPhase(next)
+	case consts.PhaseAuction:
+		o.auctionFinishAction(next)
+	case consts.PhaseAuctionResult:
+		o.nextPhase(next)
+	case consts.PhaseCalculate:
+		o.calculateFinishAction(next)
+	case consts.PhaseCalculateResult:
+		o.calculateResultFinishAction(next)
+	}
+}
+func (o *PhaseSheduler) nextPhase(next consts.Phase) {
+
+	resp, e := NextPhase(next, o.roomId)
 	if e != nil {
 		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameUpdateState, utils.ResponseError(e))
+		return
 	}
-
 	o.server.BroadcastToRoom("/", o.roomId, consts.FSGameUpdateState, utils.Response(resp))
 }
 
-func (o *PhaseSheduler) finish() {
+func (o *PhaseSheduler) auctionFinishAction(next consts.Phase) {
+
+	// TODO 落札者を決定しレスポンスに詰める処理をここに。落札者がいない場合はbroadcastしない
+	resp := &responses.BuyNotifyResponse{}
+	o.server.BroadcastToRoom("/", o.roomId, consts.FSGameBuyNotify, utils.Response(resp))
+
+	o.nextPhase(next)
+}
+
+func (o *PhaseSheduler) calculateFinishAction(next consts.Phase) {
+
+	if finished, _ := IsMeetClearCondition(o.roomId); finished {
+		// ゲーム終了処理
+		resp, e := FinishGame(o.roomId)
+		if e != nil {
+			o.server.BroadcastToRoom("/", o.roomId, consts.FSGameFinishGame, utils.ResponseError(e))
+			return
+		}
+		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameFinishGame, utils.Response(resp))
+	} else {
+		// TODO 正解者一覧の抽出処理
+		resp := &responses.CorrectPlayersResponse{}
+		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameCorrectPlayers, utils.Response(resp))
+		o.nextPhase(next)
+	}
+
+}
+
+func (o *PhaseSheduler) calculateResultFinishAction(next consts.Phase) {
+	// TODO 次のAnswerを生成する処理
+	resp := &responses.UpdateAnswerResponse{}
+	o.server.BroadcastToRoom("/", o.roomId, consts.FSGameUpdateAnswer, utils.Response(resp))
+}
+
+func (o *PhaseSheduler) finishGame() {
+	FinishGame(o.roomId)
+}
+
 func (o *PhaseSheduler) clean() {
 	db.DeleteGame(o.roomId)
 }
