@@ -11,12 +11,12 @@
     }
 
     body {
-      font: 13px Helvetica, Arial;
+      font: 8px Helvetica, Arial;
     }
 
     form {
       background: #000;
-      padding: 3px;
+      padding: 1px;
       width: 100%;
     }
 
@@ -31,7 +31,7 @@
 
     form input {
       border: 0;
-      padding: 10px;
+      padding: 1px;
       width: 90%;
       margin-right: .5%;
     }
@@ -40,7 +40,7 @@
       width: 9%;
       background: rgb(130, 224, 255);
       border: none;
-      padding: 10px;
+      padding: 1px;
     }
 
     #messages {
@@ -78,6 +78,15 @@
   <form action="" id="form-next-turn">
     <input id="nt" autocomplete="off" /><button>Next Turn</button>
   </form>
+  <form action="" id="form-bid">
+    <input id="bd" autocomplete="off" /><button>Bid</button>
+  </form>
+  <form action="" id="form-buy">
+    <input id="by" autocomplete="off" /><button>Buy</button>
+  </form>
+  <form action="" id="form-calculate">
+    <input id="cc" autocomplete="off" /><button>Calculate</button>
+  </form>
   <ul id="messages"></ul>
   <form action="" id="form-message">
     <input id="m" autocomplete="off" /><button>Send</button>
@@ -102,39 +111,69 @@
     socket.on('game/update_state', function (msg) {
       $('#messages').append($('<li>').text(msg));
     });
+    socket.on('game/bid', function (msg) {
+      $('#messages').append($('<li>').text(msg));
+    });
+    socket.on('game/buy_notify', function (msg) {
+      $('#messages').append($('<li>').text(msg));
+    });
+    socket.on('game/buy_update', function (msg) {
+      $('#messages').append($('<li>').text(msg));
+    });
+    socket.on('game/calculate_result', function (msg) {
+      $('#messages').append($('<li>').text(msg));
+    });
+    socket.on('game/correct_players', function (msg) {
+      $('#messages').append($('<li>').text(msg));
+    });
+    socket.on('game/update_answer', function (msg) {
+      $('#messages').append($('<li>').text(msg));
+    });
+    socket.on('game/finish_game', function (msg) {
+      $('#messages').append($('<li>').text(msg));
+    });
 
 
 
     $('#form-join-friend').submit(function () {
       socket.emit('join/friend_match', $('#jf').val());
-      $('#j').val('');
       return false;
     });
     
     $('#form-join-quick').submit(function () {
       socket.emit('join/quick_match', $('#jq').val());
-      $('#j').val('');
       return false;
     });
     $('#form-create-game').submit(function () {
       socket.emit('create/match', $('#cr').val());
-      $('#j').val('');
       return false;
     });
     $('#form-players-info').submit(function () {
       socket.emit('game/players_info', $('#pi').val());
-      $('#j').val('');
       return false;
     });
     $('#form-game-start').submit(function () {
       socket.emit('game/start', $('#st').val());
-      $('#j').val('');
       return false;
     });
 
     $('#form-next-turn').submit(function () {
       socket.emit('game/next_turn', $('#nt').val());
-      $('#j').val('');
+      return false;
+    });
+
+    $('#form-bid').submit(function () {
+      socket.emit('game/bid', $('#bd').val());
+      return false;
+    });
+
+    $('#form-buy').submit(function () {
+      socket.emit('game/buy', $('#by').val());
+      return false;
+    });
+
+    $('#form-calculate').submit(function () {
+      socket.emit('game/calculate', $('#cc').val());
       return false;
     });
 
