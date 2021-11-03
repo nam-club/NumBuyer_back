@@ -111,10 +111,10 @@ func (o *PhaseSheduler) monitor() {
 func (o *PhaseSheduler) nextPhase(phase consts.Phase) {
 	resp, e := NextPhase(phase, o.roomId)
 	if e != nil {
-		o.server.BroadcastToRoom("/", o.roomId, consts.FromServerGameUpdateState, utils.ResponseError(e))
+		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameUpdateState, utils.ResponseError(e))
 	}
 
-	o.server.BroadcastToRoom("/", o.roomId, consts.FromServerGameUpdateState, utils.Response(resp))
+	o.server.BroadcastToRoom("/", o.roomId, consts.FSGameUpdateState, utils.Response(resp))
 }
 
 func (o *PhaseSheduler) finish() {
