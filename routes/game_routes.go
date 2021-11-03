@@ -16,14 +16,14 @@ import (
 
 func RoutesGame(server *socketio.Server) {
 
-	server.OnEvent("/", consts.ToServerJoinQuickMatch, func(s socketio.Conn, msg string) {
+	server.OnEvent("/", consts.TSJoinQuickMatch, func(s socketio.Conn, msg string) {
 		// 一つの部屋にのみ入室した状態にする
 		s.LeaveAll()
 		s.Join(msg)
 
 		req := &requests.JoinQuickMatch{}
 		if e := valid(msg, req); e != nil {
-			s.Emit(consts.FromServerGameJoin, utils.ResponseError(e))
+			s.Emit(consts.FSGameJoin, utils.ResponseError(e))
 			return
 		}
 
@@ -34,123 +34,123 @@ func RoutesGame(server *socketio.Server) {
 			case *orgerrors.GameNotFoundError:
 				resp, e := logic.CreateNewGame(req.PlayerName)
 				if e != nil {
-					s.Emit(consts.FromServerGameJoin, utils.ResponseError(e))
+					s.Emit(consts.FSGameJoin, utils.ResponseError(e))
 					return
 				}
 
 				s.LeaveAll()
 				s.Join(resp.RoomID)
 
-				server.BroadcastToRoom("/", s.Rooms()[0], consts.FromServerGameJoin, utils.Response(resp))
+				server.BroadcastToRoom("/", s.Rooms()[0], consts.FSGameJoin, utils.Response(resp))
 				return
 			default:
-				s.Emit(consts.FromServerGameJoin, utils.ResponseError(e))
+				s.Emit(consts.FSGameJoin, utils.ResponseError(e))
 				return
 			}
 		} else {
 			// 部屋が見つかった場合はその部屋に参加
 			player, e := logic.CreateNewPlayer(req.PlayerName, roomId, false)
 			if e != nil {
-				s.Emit(consts.FromServerGameJoin, utils.ResponseError(e))
+				s.Emit(consts.FSGameJoin, utils.ResponseError(e))
 				return
 			}
 
 			resp := responses.JoinResponse{RoomID: roomId, PlayerID: player.PlayerID}
-			server.BroadcastToRoom("/", s.Rooms()[0], consts.FromServerGameJoin, utils.Response(resp))
+			server.BroadcastToRoom("/", s.Rooms()[0], consts.FSGameJoin, utils.Response(resp))
 		}
 	})
 
-	server.OnEvent("/", consts.ToServerJoinFriendMatch, func(s socketio.Conn, msg string) {
+	server.OnEvent("/", consts.TSJoinFriendMatch, func(s socketio.Conn, msg string) {
 		// 一つの部屋にのみ入室した状態にする
 		s.LeaveAll()
 		s.Join(msg)
 
 		req := &requests.JoinFriendMatch{}
 		if e := valid(msg, req); e != nil {
-			s.Emit(consts.FromServerGameJoin, utils.ResponseError(e))
+			s.Emit(consts.FSGameJoin, utils.ResponseError(e))
 			return
 		}
 
 		player, e := logic.CreateNewPlayer(req.PlayerName, req.RoomID, false)
 		if e != nil {
-			s.Emit(consts.FromServerGameJoin, utils.ResponseError(e))
+			s.Emit(consts.FSGameJoin, utils.ResponseError(e))
 			return
 		}
 		resp := responses.JoinResponse{RoomID: req.RoomID, PlayerID: player.PlayerID}
-		server.BroadcastToRoom("/", s.Rooms()[0], consts.FromServerGameJoin, utils.Response(resp))
+		server.BroadcastToRoom("/", s.Rooms()[0], consts.FSGameJoin, utils.Response(resp))
 	})
 
-	server.OnEvent("/", consts.ToServerCreateMatch, func(s socketio.Conn, msg string) {
+	server.OnEvent("/", consts.TSCreateMatch, func(s socketio.Conn, msg string) {
 		req := &requests.CreateMatch{}
 		if e := valid(msg, req); e != nil {
-			s.Emit(consts.FromServerGameJoin, utils.ResponseError(e))
+			s.Emit(consts.FSGameJoin, utils.ResponseError(e))
 			return
 		}
 
 		resp, e := logic.CreateNewGame(req.PlayerName)
 		if e != nil {
-			s.Emit(consts.FromServerGameJoin, utils.ResponseError(e))
+			s.Emit(consts.FSGameJoin, utils.ResponseError(e))
 			return
 		}
 
 		// フェーズのタイマーをスタート
 		if e := logic.CanCreateGameScheduler(resp.RoomID); e != nil {
-			s.Emit(consts.FromServerGameStart, utils.ResponseError(e))
+			s.Emit(consts.FSGameStart, utils.ResponseError(e))
 			return
 		}
 		logic.NewPhaseScheduler(resp.RoomID, server).Start()
 
 		s.LeaveAll()
 		s.Join(resp.RoomID)
-		server.BroadcastToRoom("/", s.Rooms()[0], consts.FromServerGameJoin, utils.Response(resp))
+		server.BroadcastToRoom("/", s.Rooms()[0], consts.FSGameJoin, utils.Response(resp))
 	})
 
-	server.OnEvent("/", consts.ToServerGamePlayersInfo, func(s socketio.Conn, msg string) {
+	server.OnEvent("/", consts.TSGamePlayersInfo, func(s socketio.Conn, msg string) {
 		req := &requests.GamePlayerInfo{}
 		if e := valid(msg, req); e != nil {
-			s.Emit(consts.FromServerGamePlayersInfo, utils.ResponseError(e))
+			s.Emit(consts.FSGamePlayersInfo, utils.ResponseError(e))
 			return
 		}
 		resp, e := logic.GetPlayersInfo(req.RoomID, req.PlayerID)
 		if e != nil {
-			s.Emit(consts.FromServerGamePlayersInfo, utils.ResponseError(e))
+			s.Emit(consts.FSGamePlayersInfo, utils.ResponseError(e))
 			return
 		}
-		server.BroadcastToRoom("/", s.Rooms()[0], consts.FromServerGamePlayersInfo, utils.Response(resp))
+		server.BroadcastToRoom("/", s.Rooms()[0], consts.FSGamePlayersInfo, utils.Response(resp))
 	})
 
-	server.OnEvent("/", consts.ToServerGameStart, func(s socketio.Conn, msg string) {
+	server.OnEvent("/", consts.TSGameStart, func(s socketio.Conn, msg string) {
 		req := &requests.GameStart{}
 		if e := valid(msg, req); e != nil {
-			s.Emit(consts.FromServerGameStart, utils.ResponseError(e))
+			s.Emit(consts.FSGameStart, utils.ResponseError(e))
 			return
 		}
 		if e := logic.CanCreateGameScheduler(req.RoomID); e != nil {
-			s.Emit(consts.FromServerGameStart, utils.ResponseError(e))
+			s.Emit(consts.FSGameStart, utils.ResponseError(e))
 			return
 		}
 
 		if e := logic.StartGame(req.RoomID); e != nil {
-			s.Emit(consts.FromServerGameStart, utils.ResponseError(e))
+			s.Emit(consts.FSGameStart, utils.ResponseError(e))
 			return
 		}
 
 		resp := &responses.GameStartResponse{StartFlag: true}
-		server.BroadcastToRoom("/", s.Rooms()[0], consts.FromServerGameStart, utils.Response(resp))
+		server.BroadcastToRoom("/", s.Rooms()[0], consts.FSGameStart, utils.Response(resp))
 	})
 
-	server.OnEvent("/", consts.ToServerGameNextTurn, func(s socketio.Conn, msg string) {
+	server.OnEvent("/", consts.TSGameNextTurn, func(s socketio.Conn, msg string) {
 		req := &requests.GameNextTurn{}
 		if e := valid(msg, req); e != nil {
-			s.Emit(consts.FromServerGameNextTurn, utils.ResponseError(e))
+			s.Emit(consts.FSGameNextTurn, utils.ResponseError(e))
 			return
 		}
 		resp, e := logic.NextTurn(req.RoomID, req.PlayerID)
 		if e != nil {
-			s.Emit(consts.FromServerGameNextTurn, utils.ResponseError(e))
+			s.Emit(consts.FSGameNextTurn, utils.ResponseError(e))
 			return
 		}
-		server.BroadcastToRoom("/", s.Rooms()[0], consts.FromServerGameNextTurn, utils.Response(resp))
+		server.BroadcastToRoom("/", s.Rooms()[0], consts.FSGameNextTurn, utils.Response(resp))
 	})
 }
 
