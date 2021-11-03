@@ -47,18 +47,18 @@ func (o *PhaseSheduler) monitor() {
 
 		game, e := db.GetGame(o.roomId)
 		if e != nil {
-			o.finish()
+			o.clean()
 			break
 		}
 		startTime, e := time.Parse(time.RFC3339, game.State.ChangedTime)
 		if e != nil {
-			o.finish()
+			o.clean()
 			break
 		}
 
 		phase, e := consts.ParsePhase(game.State.Phase)
 		if e != nil {
-			o.finish()
+			o.clean()
 			break
 		}
 
@@ -88,6 +88,7 @@ func (o *PhaseSheduler) monitor() {
 			next = consts.PhaseWating
 		default:
 			o.finish()
+			o.clean()
 			break
 		}
 
@@ -95,6 +96,7 @@ func (o *PhaseSheduler) monitor() {
 
 		if startTime.Add(time.Duration(consts.TimeAutoEnd) * time.Second).Before(time.Now()) {
 			o.finish()
+			o.clean()
 			break
 		}
 
@@ -118,5 +120,6 @@ func (o *PhaseSheduler) nextPhase(phase consts.Phase) {
 }
 
 func (o *PhaseSheduler) finish() {
+func (o *PhaseSheduler) clean() {
 	db.DeleteGame(o.roomId)
 }
