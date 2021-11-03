@@ -163,6 +163,16 @@ func RoutesGame(server *socketio.Server) {
 		server.BroadcastToRoom("/", s.Rooms()[0], consts.FSGameBid, utils.Response(resp))
 	})
 
+	server.OnEvent("/", consts.TSGameBuy, func(s socketio.Conn, msg string) {
+		req := &requests.GameBuy{}
+		if e := valid(msg, req); e != nil {
+			s.Emit(consts.FSGameBuyUpdate, utils.ResponseError(e))
+			return
+		}
+		resp := &responses.BuyUpdateResponse{PlayerID: "ID_JUNPEI_UPDATED", Coin: 66, Cards: []string{"21", "87", "*", "/", "4"}}
+		s.Emit(consts.FSGameBuyUpdate, utils.Response(resp))
+	})
+
 	server.OnEvent("/", consts.TSGameCalculate, func(s socketio.Conn, msg string) {
 		req := &requests.GameCalculate{}
 		if e := valid(msg, req); e != nil {

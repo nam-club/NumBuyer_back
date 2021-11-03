@@ -13,6 +13,7 @@ const (
 	TSGameStart       = "game/start"
 	TSGameNextTurn    = "game/next_turn"
 	TSGameBid         = "game/bid"
+	TSGameBuy         = "game/buy"
 	TSGameCalculate   = "game/calculate"
 
 	// サーバからのレスポンスエンドポイント
