@@ -41,7 +41,7 @@ func RoutesGame(server *socketio.Server) {
 				s.LeaveAll()
 				s.Join(resp.RoomID)
 
-				server.BroadcastToRoom("/", s.Rooms()[0], consts.FSGameJoin, utils.Response(resp))
+				s.Emit(consts.FSGameJoin, utils.Response(resp))
 				return
 			default:
 				s.Emit(consts.FSGameJoin, utils.ResponseError(e))
@@ -56,7 +56,7 @@ func RoutesGame(server *socketio.Server) {
 			}
 
 			resp := responses.JoinResponse{RoomID: roomId, PlayerID: player.PlayerID}
-			server.BroadcastToRoom("/", s.Rooms()[0], consts.FSGameJoin, utils.Response(resp))
+			s.Emit(consts.FSGameJoin, utils.Response(resp))
 		}
 	})
 
@@ -77,7 +77,7 @@ func RoutesGame(server *socketio.Server) {
 			return
 		}
 		resp := responses.JoinResponse{RoomID: req.RoomID, PlayerID: player.PlayerID}
-		server.BroadcastToRoom("/", s.Rooms()[0], consts.FSGameJoin, utils.Response(resp))
+		s.Emit(consts.FSGameJoin, utils.Response(resp))
 	})
 
 	server.OnEvent("/", consts.TSCreateMatch, func(s socketio.Conn, msg string) {
@@ -102,7 +102,7 @@ func RoutesGame(server *socketio.Server) {
 
 		s.LeaveAll()
 		s.Join(resp.RoomID)
-		server.BroadcastToRoom("/", s.Rooms()[0], consts.FSGameJoin, utils.Response(resp))
+		s.Emit(consts.FSGameJoin, utils.Response(resp))
 	})
 
 	server.OnEvent("/", consts.TSGamePlayersInfo, func(s socketio.Conn, msg string) {
