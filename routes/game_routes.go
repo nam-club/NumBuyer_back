@@ -152,6 +152,26 @@ func RoutesGame(server *socketio.Server) {
 		}
 		server.BroadcastToRoom("/", s.Rooms()[0], consts.FSGameNextTurn, utils.Response(resp))
 	})
+
+	server.OnEvent("/", consts.TSGameBid, func(s socketio.Conn, msg string) {
+		req := &requests.GameBid{}
+		if e := valid(msg, req); e != nil {
+			s.Emit(consts.FSGameBid, utils.ResponseError(e))
+			return
+		}
+		resp := &responses.BidResponse{PlayerName: "JUNPEI", Coin: 99}
+		server.BroadcastToRoom("/", s.Rooms()[0], consts.FSGameBid, utils.Response(resp))
+	})
+
+	server.OnEvent("/", consts.TSGameCalculate, func(s socketio.Conn, msg string) {
+		req := &requests.GameCalculate{}
+		if e := valid(msg, req); e != nil {
+			s.Emit(consts.FSGameCalculateResult, utils.ResponseError(e))
+			return
+		}
+		resp := &responses.CalculateResponse{IsCorrectAnswer: true, PlayerID: "ID_JUNPEI", Coin: 77, Cards: []string{"12", "33", "9", "+", "-"}}
+		server.BroadcastToRoom("/", s.Rooms()[0], consts.FSGameCalculateResult, utils.Response(resp))
+	})
 }
 
 // リクエストメッセージの構造体への変換 & バリデーション
