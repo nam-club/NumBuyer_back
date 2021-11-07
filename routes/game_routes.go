@@ -17,10 +17,6 @@ import (
 func RoutesGame(server *socketio.Server) {
 
 	server.OnEvent("/", consts.TSJoinQuickMatch, func(s socketio.Conn, msg string) {
-		// 一つの部屋にのみ入室した状態にする
-		s.LeaveAll()
-		s.Join(msg)
-
 		req := &requests.JoinQuickMatch{}
 		if e := valid(msg, req); e != nil {
 			s.Emit(consts.FSGameJoin, utils.ResponseError(e))
@@ -55,16 +51,16 @@ func RoutesGame(server *socketio.Server) {
 				return
 			}
 
+			// 一つの部屋にのみ入室した状態にする
+			s.LeaveAll()
+			s.Join(roomId)
+
 			resp := responses.JoinResponse{RoomID: roomId, PlayerID: player.PlayerID}
 			s.Emit(consts.FSGameJoin, utils.Response(resp))
 		}
 	})
 
 	server.OnEvent("/", consts.TSJoinFriendMatch, func(s socketio.Conn, msg string) {
-		// 一つの部屋にのみ入室した状態にする
-		s.LeaveAll()
-		s.Join(msg)
-
 		req := &requests.JoinFriendMatch{}
 		if e := valid(msg, req); e != nil {
 			s.Emit(consts.FSGameJoin, utils.ResponseError(e))
@@ -76,6 +72,11 @@ func RoutesGame(server *socketio.Server) {
 			s.Emit(consts.FSGameJoin, utils.ResponseError(e))
 			return
 		}
+
+		// 一つの部屋にのみ入室した状態にする
+		s.LeaveAll()
+		s.Join(req.RoomID)
+
 		resp := responses.JoinResponse{RoomID: req.RoomID, PlayerID: player.PlayerID}
 		s.Emit(consts.FSGameJoin, utils.Response(resp))
 	})
