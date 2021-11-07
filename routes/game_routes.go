@@ -135,7 +135,7 @@ func RoutesGame(server *socketio.Server) {
 			return
 		}
 
-		resp := &responses.GameStartResponse{StartFlag: true}
+		resp := &responses.GameStartResponse{RoomID: req.RoomID}
 		server.BroadcastToRoom("/", s.Rooms()[0], consts.FSGameStart, utils.Response(resp))
 	})
 
