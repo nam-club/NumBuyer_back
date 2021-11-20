@@ -91,6 +91,27 @@ func AppendCard(roomId, playerId, appendCard string) (*db.Player, error) {
 	return player, nil
 }
 
+// プレイヤーのコインを減らす
+func SubtractCoin(roomId, playerId string, subtract int) (*db.Player, error) {
+	player, e := db.GetPlayer(roomId, playerId)
+	if e != nil {
+		return nil, e
+	}
+
+	subtracted := player.Coin - subtract
+	if subtracted < 0 {
+		return nil, orgerrors.NewValidationError("coin shortage")
+	}
+
+	player.Coin = subtracted
+	player, e = db.AddPlayer(roomId, player)
+	if e != nil {
+		return nil, e
+	}
+
+	return player, nil
+}
+
 // プレイヤーIDを生成する
 func generatePlayerId(roomId string) string {
 	return uuid.Must(uuid.NewUUID()).String()

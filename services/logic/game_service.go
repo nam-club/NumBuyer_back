@@ -101,6 +101,18 @@ func StartGame(roomId string) error {
 		return orgerrors.NewInternalServerError("set players status ready failed.")
 	}
 
+	// 解答をシャッフル
+	_, e = ShuffleAnswer(roomId)
+	if e != nil {
+		return orgerrors.NewInternalServerError("failed to shuffle answer.")
+	}
+
+	// オークションカードをシャッフル
+	_, e = ShuffleAuctionCard(roomId)
+	if e != nil {
+		return orgerrors.NewInternalServerError("failed to shuffle auction.")
+	}
+
 	return nil
 }
 
