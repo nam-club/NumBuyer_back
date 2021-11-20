@@ -1,10 +1,10 @@
 package logic
 
 import (
-	"math/rand"
 	"nam-club/NumBuyer_back/consts"
 	"nam-club/NumBuyer_back/db"
 	"nam-club/NumBuyer_back/models/responses"
+	"nam-club/NumBuyer_back/utils"
 	"strconv"
 )
 
@@ -98,14 +98,7 @@ func ShuffleAuctionCard(roomId string) (string, error) {
 	}
 
 	// ランダムなオークションカードを生成する
-	if rand.Intn(100) <= consts.AuctionCodeProbability {
-		// 符号を生成
-		index := rand.Intn(len(consts.Codes))
-		game.State.Auction = consts.Codes[index]
-	} else {
-		// 数字を生成（最小値以上、最大値未満）
-		game.State.Auction = strconv.Itoa(rand.Intn(consts.TermMax-consts.TermMin) + consts.TermMin)
-	}
+	game.State.Auction = utils.GenerateRandomCard()
 
 	game, e = db.SetGame(roomId, game)
 	if e != nil {

@@ -6,6 +6,7 @@ import (
 	"nam-club/NumBuyer_back/db"
 	"nam-club/NumBuyer_back/models/orgerrors"
 	"nam-club/NumBuyer_back/models/responses"
+	"nam-club/NumBuyer_back/utils"
 	"sort"
 	"time"
 )
@@ -111,6 +112,18 @@ func StartGame(roomId string) error {
 	_, e = ShuffleAuctionCard(roomId)
 	if e != nil {
 		return orgerrors.NewInternalServerError("failed to shuffle auction.")
+	}
+
+	// プレイヤーに初期カードを付与する
+	players, err := db.GetPlayers(roomId)
+	if err != nil {
+		return err
+	}
+	for _, player := range players {
+		for i := 0; i < consts.InitialCardsNum; i++ {
+			player.Cards = append(player.Cards, utils.GenerateRandomCard())
+		}
+		db.AddPlayer(roomId, &player)
 	}
 
 	return nil

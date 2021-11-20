@@ -1,6 +1,9 @@
 package consts
 
 const (
+	// プレイヤーの初期カード枚数
+	InitialCardsNum = 5
+
 	// コイン数のクリア条件
 	CoinClearNum = 3000
 
