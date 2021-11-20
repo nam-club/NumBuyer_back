@@ -129,7 +129,7 @@ func (o *PhaseSheduler) phaseFinishAction(current, next consts.Phase) {
 	case consts.PhaseCalculate:
 		o.calculateFinishAction(next)
 	case consts.PhaseCalculateResult:
-		o.calculateResultFinishAction(next)
+		o.nextPhase(next)
 	}
 }
 func (o *PhaseSheduler) nextPhase(next consts.Phase) error {
@@ -148,7 +148,11 @@ func (o *PhaseSheduler) nextPhase(next consts.Phase) error {
 func (o *PhaseSheduler) auctionFinishAction(next consts.Phase) {
 
 	resp, e := DetermineBuyer(o.roomId)
-	if resp != nil && e == nil {
+
+	if e != nil {
+		// エラー発生時
+		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameBuyNotify, utils.ResponseError(e))
+	} else if resp != nil {
 		// 落札者が決まった時の制御
 
 		game, e := db.GetGame(o.roomId)
@@ -159,6 +163,14 @@ func (o *PhaseSheduler) auctionFinishAction(next consts.Phase) {
 
 		// 落札者にカードを追加
 		buyer, e := AppendCard(o.roomId, resp.PlayerID, game.State.Auction)
+		if e != nil {
+			o.server.BroadcastToRoom("/", o.roomId, consts.FSGameBuyNotify, utils.ResponseError(e))
+			return
+		}
+
+		// プレイヤーのコインを減らす
+		subtract, _ := strconv.Atoi(buyer.BuyAction.Value)
+		buyer, e = SubtractCoin(o.roomId, resp.PlayerID, subtract)
 		if e != nil {
 			o.server.BroadcastToRoom("/", o.roomId, consts.FSGameBuyNotify, utils.ResponseError(e))
 			return
@@ -177,11 +189,16 @@ func (o *PhaseSheduler) auctionFinishAction(next consts.Phase) {
 			Coin:       buyer.Coin}
 
 		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameBuyNotify, utils.Response(resp))
-	} else if e != nil {
-		// エラー発生時
-		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameBuyNotify, utils.ResponseError(e))
 	}
 
+	// オークションカードをシャッフル
+	_, e = ShuffleAuctionCard(o.roomId)
+	if e != nil {
+		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameUpdateAnswer, utils.ResponseError(e))
+		return
+	}
+
+	// 次フェーズへ移動
 	o.nextPhase(next)
 }
 
@@ -208,36 +225,18 @@ func (o *PhaseSheduler) calculateFinishAction(next consts.Phase) {
 			resp.AnsPlayers = append(resp.AnsPlayers, corrector.PlayerName)
 		}
 
+		// 正答者が一人でもいれば解答をシャッフル
+		if len(resp.AnsPlayers) > 0 {
+			_, e := ShuffleAnswer(o.roomId)
+			if e != nil {
+				o.server.BroadcastToRoom("/", o.roomId, consts.FSGameCorrectPlayers, utils.ResponseError(e))
+				return
+			}
+		}
+
 		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameCorrectPlayers, utils.Response(resp))
 		o.nextPhase(next)
 	}
-}
-
-func (o *PhaseSheduler) calculateResultFinishAction(next consts.Phase) {
-
-	// 解答をシャッフル
-	newAnswer, e := ShuffleAnswer(o.roomId)
-	if e != nil {
-		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameUpdateAnswer, utils.ResponseError(e))
-		return
-	}
-
-	// オークションカードをシャッフル
-	_, e = ShuffleAuctionCard(o.roomId)
-	if e != nil {
-		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameUpdateAnswer, utils.ResponseError(e))
-		return
-	}
-
-	// 次のフェーズへ移行
-	if o.nextPhase(next) != nil {
-		return
-	} else {
-		// 新しい解答をブロードキャスト
-		resp := &responses.UpdateAnswerResponse{AnswerCard: newAnswer}
-		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameUpdateAnswer, utils.Response(resp))
-	}
-
 }
 
 func (o *PhaseSheduler) finishGame() {

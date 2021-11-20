@@ -61,31 +61,31 @@
 
 <body>
   <form action="" id="form-join-friend">
-    <input id="jf" autocomplete="off" /><button>Friend Join</button>
+    <input id="jf" value="{&quot;roomId&quot;:&quot;xx&quot;,&quot;playerName&quot;:&quot;junpei&quot;}" autocomplete="off" /><button>Friend Join</button>
   </form>
   <form action="" id="form-join-quick">
-    <input id="jq" autocomplete="off" /><button>Quick Join</button>
+    <input id="jq" value="{&quot;playerName&quot;:&quot;junpei&quot;}" autocomplete="off" /><button>Quick Join</button>
   </form>
   <form action="" id="form-create-game">
-    <input id="cr" autocomplete="off" /><button>Create Game</button>
+    <input id="cr" value="{&quot;playerName&quot;:&quot;junpei&quot;}" autocomplete="off" /><button>Create Game</button>
   </form>
   <form action="" id="form-players-info">
-    <input id="pi" autocomplete="off" /><button>Players Info</button>
+    <input id="pi" value="{&quot;roomId&quot;:&quot;xx&quot;,&quot;playerId&quot;:&quot;junpei&quot;}" autocomplete="off" /><button>Players Info</button>
   </form>
   <form action="" id="form-game-start">
-    <input id="st" autocomplete="off" /><button>Game Start</button>
+    <input id="st" value="{&quot;roomId&quot;:&quot;xx&quot;}" autocomplete="off" /><button>Game Start</button>
   </form>
   <form action="" id="form-next-turn">
-    <input id="nt" autocomplete="off" /><button>Next Turn</button>
+    <input id="nt" value="{&quot;roomId&quot;:&quot;xx&quot;,&quot;playerId&quot;:&quot;junpei&quot;}" autocomplete="off" /><button>Next Turn</button>
   </form>
   <form action="" id="form-bid">
-    <input id="bd" autocomplete="off" /><button>Bid</button>
+    <input id="bd" value="{&quot;roomId&quot;:&quot;xx&quot;,&quot;playerId&quot;:&quot;junpei&quot;,&quot;coin&quot;:100,&quot;action&quot;:&quot;bid&quot;}"  autocomplete="off" /><button>Bid</button>
   </form>
   <form action="" id="form-buy">
-    <input id="by" autocomplete="off" /><button>Buy</button>
+    <input id="by" value="{&quot;roomId&quot;:&quot;xx&quot;,&quot;playerId&quot;:&quot;junpei&quot;}" autocomplete="off" /><button>Buy</button>
   </form>
   <form action="" id="form-calculate">
-    <input id="cc" autocomplete="off" /><button>Calculate</button>
+    <input id="cc" value="{&quot;playerId&quot;: &quot;junpei&quot;,&quot;roomId&quot;: &quot;a123456789&quot;,&quot;calculateCards&quot;:[&quot;1&quot;,&quot;+&quot;,&quot;2&quot;],&quot;action&quot;:&quot;answer&quot;}" autocomplete="off" /><button>Calculate</button>
   </form>
   <ul id="messages"></ul>
   <form action="" id="form-message">
@@ -97,43 +97,41 @@
     var socket = io("http://localhost:8000/");
 
     socket.on('game/join', function (msg) {
-      $('#messages').append($('<li>').text(msg));
+      $('#messages').append($('<li>').text('[game/join] ' + msg));
     });
     socket.on('game/players_info', function (msg) {
-      $('#messages').append($('<li>').text(msg));
+      $('#messages').append($('<li>').text('[game/players_info] ' + msg));
     });
     socket.on('game/start', function (msg) {
-      $('#messages').append($('<li>').text(msg));
+      $('#messages').append($('<li>').text('[game/start] ' + msg));
     });
     socket.on('game/next_turn', function (msg) {
-      $('#messages').append($('<li>').text(msg));
+      $('#messages').append($('<li>').text('[game/next_turn] ' + msg));
     });
     socket.on('game/update_state', function (msg) {
-      $('#messages').append($('<li>').text(msg));
+      $('#messages').append($('<li>').text('[game/update_state] ' + msg));
     });
     socket.on('game/bid', function (msg) {
-      $('#messages').append($('<li>').text(msg));
+      $('#messages').append($('<li>').text('[game/bid] ' + msg));
     });
     socket.on('game/buy_notify', function (msg) {
-      $('#messages').append($('<li>').text(msg));
+      $('#messages').append($('<li>').text('[game/buy_notify] ' + msg));
     });
     socket.on('game/buy_update', function (msg) {
-      $('#messages').append($('<li>').text(msg));
+      $('#messages').append($('<li>').text('[game/buy_update] ' + msg));
     });
     socket.on('game/calculate_result', function (msg) {
-      $('#messages').append($('<li>').text(msg));
+      $('#messages').append($('<li>').text('[game/calculate_result] ' + msg));
     });
     socket.on('game/correct_players', function (msg) {
-      $('#messages').append($('<li>').text(msg));
+      $('#messages').append($('<li>').text('[game/correct_players] ' + msg));
     });
     socket.on('game/update_answer', function (msg) {
-      $('#messages').append($('<li>').text(msg));
+      $('#messages').append($('<li>').text('[game/update_answer] ' + msg));
     });
     socket.on('game/finish_game', function (msg) {
-      $('#messages').append($('<li>').text(msg));
+      $('#messages').append($('<li>').text('[game/finish_game] ' + msg));
     });
-
-
 
     $('#form-join-friend').submit(function () {
       socket.emit('join/friend_match', $('#jf').val());
