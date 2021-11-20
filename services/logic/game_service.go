@@ -94,12 +94,12 @@ func NextPhase(nextPhase consts.Phase, roomId string) (*responses.NextPhaseRespo
 
 // ゲームを開始する
 func StartGame(roomId string) error {
-	game, err := db.GetGame(roomId)
-	if err != nil {
-		return orgerrors.NewGameNotFoundError("")
+
+	// 全てのプレイヤーを準備完了にする
+	e := SetAllPlayersReady(roomId)
+	if e != nil {
+		return orgerrors.NewInternalServerError("set players status ready failed.")
 	}
-	game.State.Phase = consts.PhaseReady.Value
-	db.SetGame(roomId, game)
 
 	return nil
 }
