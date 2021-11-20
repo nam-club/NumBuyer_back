@@ -8,8 +8,8 @@ import (
 type CalculateAction string
 
 const (
-	CalculateActionBid  CalculateAction = "answer"
-	CalculateActionPass                 = "pass"
+	CalculateActionAnswer CalculateAction = "answer"
+	CalculateActionPass                   = "pass"
 )
 
 func (v CalculateAction) String() string {
@@ -18,7 +18,7 @@ func (v CalculateAction) String() string {
 
 func (v CalculateAction) Valid() error {
 	switch v {
-	case CalculateActionBid, CalculateActionPass:
+	case CalculateActionAnswer, CalculateActionPass:
 		return nil
 	default:
 		return orgerrors.NewValidationError("invalid bid action type")

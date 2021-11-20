@@ -60,6 +60,22 @@ func IsAllPlayersReady(roomId string) (bool, error) {
 	return ready, nil
 }
 
+// プレイヤーにカードを追加する
+func AppendCard(roomId, playerId, appendCard string) (*db.Player, error) {
+	player, e := db.GetPlayer(roomId, playerId)
+	if e != nil {
+		return nil, e
+	}
+
+	player.Cards = append(player.Cards, appendCard)
+	player, e = db.AddPlayer(roomId, player)
+	if e != nil {
+		return nil, e
+	}
+
+	return player, nil
+}
+
 // プレイヤーIDを生成する
 func generatePlayerId(roomId string) string {
 	return uuid.Must(uuid.NewUUID()).String()

@@ -9,8 +9,8 @@ type Phase struct {
 
 var (
 	PhaseBeforeStart     = Phase{"BEFORE_START", PhaseTimeValueInfinite}
-	PhaseWating          = Phase{"WAITING", PhaseTimeValueInfinite}
-	PhaseBeforeAuction   = Phase{"BEFORE_AUCTION", 14}
+	PhaseWaiting         = Phase{"WAITING", PhaseTimeValueInfinite}
+	PhaseReady           = Phase{"READY", 14}
 	PhaseAuction         = Phase{"AUCTION", 30}
 	PhaseAuctionResult   = Phase{"AUCTION_RESULT", 5}
 	PhaseCalculate       = Phase{"CALCULATE", 20}
@@ -30,10 +30,10 @@ func ParsePhase(s string) (v Phase, err error) {
 	switch s {
 	case PhaseBeforeStart.Value:
 		return PhaseBeforeStart, nil
-	case PhaseWating.Value:
-		return PhaseWating, nil
-	case PhaseBeforeAuction.Value:
-		return PhaseBeforeAuction, nil
+	case PhaseWaiting.Value:
+		return PhaseWaiting, nil
+	case PhaseReady.Value:
+		return PhaseReady, nil
 	case PhaseAuction.Value:
 		return PhaseAuction, nil
 	case PhaseAuctionResult.Value:

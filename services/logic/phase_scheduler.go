@@ -28,7 +28,7 @@ func CanCreateGameScheduler(roomId string) error {
 	}
 	if p, e := consts.ParsePhase(game.State.Phase); e != nil {
 		return orgerrors.NewInternalServerError("")
-	} else if p != consts.PhaseBeforeStart {
+	} else if p != consts.PhaseWaiting {
 		return orgerrors.NewValidationError("game already started")
 	}
 	return nil
@@ -68,12 +68,12 @@ func (o *PhaseSheduler) monitor() {
 		switch phase {
 		case consts.PhaseBeforeStart:
 			threshold = consts.PhaseBeforeStart.Duration
-			next = consts.PhaseWating
-		case consts.PhaseWating:
-			threshold = consts.PhaseWating.Duration
-			next = consts.PhaseBeforeAuction
-		case consts.PhaseBeforeAuction:
-			threshold = consts.PhaseBeforeAuction.Duration
+			next = consts.PhaseWaiting
+		case consts.PhaseWaiting:
+			threshold = consts.PhaseWaiting.Duration
+			next = consts.PhaseReady
+		case consts.PhaseReady:
+			threshold = consts.PhaseReady.Duration
 			next = consts.PhaseAuction
 		case consts.PhaseAuction:
 			threshold = consts.PhaseAuction.Duration
@@ -86,7 +86,7 @@ func (o *PhaseSheduler) monitor() {
 			next = consts.PhaseCalculateResult
 		case consts.PhaseCalculateResult:
 			threshold = consts.PhaseCalculateResult.Duration
-			next = consts.PhaseWating
+			next = consts.PhaseReady
 		case consts.PhaseEnd:
 			o.clean()
 			break
@@ -118,9 +118,9 @@ func (o *PhaseSheduler) phaseFinishAction(current, next consts.Phase) {
 	switch current {
 	case consts.PhaseBeforeStart:
 		o.nextPhase(next)
-	case consts.PhaseWating:
+	case consts.PhaseWaiting:
 		o.nextPhase(next)
-	case consts.PhaseBeforeAuction:
+	case consts.PhaseReady:
 		o.nextPhase(next)
 	case consts.PhaseAuction:
 		o.auctionFinishAction(next)
@@ -132,21 +132,55 @@ func (o *PhaseSheduler) phaseFinishAction(current, next consts.Phase) {
 		o.calculateResultFinishAction(next)
 	}
 }
-func (o *PhaseSheduler) nextPhase(next consts.Phase) {
+func (o *PhaseSheduler) nextPhase(next consts.Phase) error {
 
 	resp, e := NextPhase(next, o.roomId)
 	if e != nil {
+		fmt.Printf("error broadcast: %v\n", next)
 		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameUpdateState, utils.ResponseError(e))
-		return
+		return e
 	}
+	fmt.Printf("broadcast: %v\n", next)
 	o.server.BroadcastToRoom("/", o.roomId, consts.FSGameUpdateState, utils.Response(resp))
+	return nil
 }
 
 func (o *PhaseSheduler) auctionFinishAction(next consts.Phase) {
 
-	// TODO 落札者を決定しレスポンスに詰める処理をここに。落札者がいない場合はbroadcastしない
-	resp := &responses.BuyNotifyResponse{}
-	o.server.BroadcastToRoom("/", o.roomId, consts.FSGameBuyNotify, utils.Response(resp))
+	resp, e := DetermineBuyer(o.roomId)
+	if resp != nil && e == nil {
+		// 落札者が決まった時の制御
+
+		game, e := db.GetGame(o.roomId)
+		if e != nil {
+			o.server.BroadcastToRoom("/", o.roomId, consts.FSGameBuyNotify, utils.ResponseError(e))
+			return
+		}
+
+		// 落札者にカードを追加
+		buyer, e := AppendCard(o.roomId, resp.PlayerID, game.State.Auction)
+		if e != nil {
+			o.server.BroadcastToRoom("/", o.roomId, consts.FSGameBuyNotify, utils.ResponseError(e))
+			return
+		}
+
+		// オークション情報をクリアする
+		e = ClearAuction(o.roomId)
+		if e != nil {
+			o.server.BroadcastToRoom("/", o.roomId, consts.FSGameBuyNotify, utils.ResponseError(e))
+			return
+		}
+
+		resp := &responses.BuyNotifyResponse{
+			PlayerName: buyer.PlayerName,
+			PlayerID:   buyer.PlayerID,
+			Coin:       buyer.Coin}
+
+		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameBuyNotify, utils.Response(resp))
+	} else if e != nil {
+		// エラー発生時
+		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameBuyNotify, utils.ResponseError(e))
+	}
 
 	o.nextPhase(next)
 }
@@ -162,18 +196,48 @@ func (o *PhaseSheduler) calculateFinishAction(next consts.Phase) {
 		}
 		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameFinishGame, utils.Response(resp))
 	} else {
-		// TODO 正解者一覧の抽出処理
+		// 正解者一覧を抽出し返却
+		correctors, e := PickAllCorrector(o.roomId)
+		if e != nil {
+			o.server.BroadcastToRoom("/", o.roomId, consts.FSGameCorrectPlayers, utils.ResponseError(e))
+			return
+		}
+
 		resp := &responses.CorrectPlayersResponse{}
+		for _, corrector := range correctors {
+			resp.AnsPlayers = append(resp.AnsPlayers, corrector.PlayerName)
+		}
+
 		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameCorrectPlayers, utils.Response(resp))
 		o.nextPhase(next)
 	}
-
 }
 
 func (o *PhaseSheduler) calculateResultFinishAction(next consts.Phase) {
-	// TODO 次のAnswerを生成する処理
-	resp := &responses.UpdateAnswerResponse{}
-	o.server.BroadcastToRoom("/", o.roomId, consts.FSGameUpdateAnswer, utils.Response(resp))
+
+	// 解答をシャッフル
+	newAnswer, e := ShuffleAnswer(o.roomId)
+	if e != nil {
+		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameUpdateAnswer, utils.ResponseError(e))
+		return
+	}
+
+	// オークションカードをシャッフル
+	_, e = ShuffleAuctionCard(o.roomId)
+	if e != nil {
+		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameUpdateAnswer, utils.ResponseError(e))
+		return
+	}
+
+	// 次のフェーズへ移行
+	if o.nextPhase(next) != nil {
+		return
+	} else {
+		// 新しい解答をブロードキャスト
+		resp := &responses.UpdateAnswerResponse{AnswerCard: newAnswer}
+		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameUpdateAnswer, utils.Response(resp))
+	}
+
 }
 
 func (o *PhaseSheduler) finishGame() {

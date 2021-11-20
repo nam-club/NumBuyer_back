@@ -28,6 +28,7 @@ type AnswerAction struct {
 	Action     string   `json:"action"`
 	Cards      []string `json:"cards"`
 	AnswerTime string   `json:"answerTime"`
+	Correct    bool     `json:"correct"`
 }
 
 var rp *RedisHandler
