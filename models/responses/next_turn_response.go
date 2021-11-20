@@ -14,10 +14,11 @@ type NextTurnResponse struct {
 // DB接続、分岐などのビジネスロジックは書かないこと
 func GenerateNextTurnResponse(player db.Player, game db.Game) *NextTurnResponse {
 	return &NextTurnResponse{
-		PlayerID:   player.PlayerID,
-		Cards:      player.Cards,
-		Coin:       player.Coin,
-		TargetCard: game.State.Answer,
+		PlayerID:    player.PlayerID,
+		Cards:       player.Cards,
+		Coin:        player.Coin,
+		TargetCard:  game.State.Answer,
+		AuctionCard: game.State.Auction,
 	}
 
 }
