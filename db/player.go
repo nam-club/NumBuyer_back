@@ -25,8 +25,10 @@ type BuyAction struct {
 	Value  string `json:"value"`
 }
 type AnswerAction struct {
-	Action string   `json:"action"`
-	Cards  []string `json:"cards"`
+	Action     string   `json:"action"`
+	Cards      []string `json:"cards"`
+	AnswerTime string   `json:"answerTime"`
+	Correct    bool     `json:"correct"`
 }
 
 var rp *RedisHandler

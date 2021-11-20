@@ -34,6 +34,13 @@ func RoutesGame(server *socketio.Server) {
 					return
 				}
 
+				// フェーズのタイマーをスタート
+				if e := logic.CanCreateGameScheduler(resp.RoomID); e != nil {
+					s.Emit(consts.FSGameStart, utils.ResponseError(e))
+					return
+				}
+				logic.NewPhaseScheduler(resp.RoomID, server).Start()
+
 				s.LeaveAll()
 				s.Join(resp.RoomID)
 
@@ -146,7 +153,7 @@ func RoutesGame(server *socketio.Server) {
 			s.Emit(consts.FSGameNextTurn, utils.ResponseError(e))
 			return
 		}
-		resp, e := logic.NextTurn(req.RoomID, req.PlayerID)
+		resp, e := logic.FetchNextTurnInfo(req.RoomID, req.PlayerID)
 		if e != nil {
 			s.Emit(consts.FSGameNextTurn, utils.ResponseError(e))
 			return
@@ -160,7 +167,18 @@ func RoutesGame(server *socketio.Server) {
 			s.Emit(consts.FSGameBid, utils.ResponseError(e))
 			return
 		}
-		resp := &responses.BidResponse{PlayerName: "JUNPEI", Coin: 99}
+		bidAction, e := consts.ParseBidAction(req.Action)
+		if e != nil {
+			s.Emit(consts.FSGameBid, utils.ResponseError(e))
+			return
+		}
+
+		resp, e := logic.Bid(req.RoomID, req.PlayerID, bidAction, req.Coin)
+		if e != nil {
+			s.Emit(consts.FSGameBid, utils.ResponseError(e))
+			return
+		}
+
 		server.BroadcastToRoom("/", s.Rooms()[0], consts.FSGameBid, utils.Response(resp))
 	})
 
@@ -170,7 +188,11 @@ func RoutesGame(server *socketio.Server) {
 			s.Emit(consts.FSGameBuyUpdate, utils.ResponseError(e))
 			return
 		}
-		resp := &responses.BuyUpdateResponse{PlayerID: "ID_JUNPEI_UPDATED", Coin: 66, Cards: []string{"21", "87", "*", "/", "4"}}
+		resp, e := logic.FetchAuctionEndInfo(req.RoomID, req.PlayerID)
+		if e != nil {
+			s.Emit(consts.FSGameBuyUpdate, utils.ResponseError(e))
+			return
+		}
 		s.Emit(consts.FSGameBuyUpdate, utils.Response(resp))
 	})
 
@@ -180,7 +202,19 @@ func RoutesGame(server *socketio.Server) {
 			s.Emit(consts.FSGameCalculateResult, utils.ResponseError(e))
 			return
 		}
-		resp := &responses.CalculateResponse{IsCorrectAnswer: true, PlayerID: "ID_JUNPEI", Coin: 77, Cards: []string{"12", "33", "9", "+", "-"}}
+
+		action, e := consts.ParseCalculateAction(req.Action)
+		if e != nil {
+			s.Emit(consts.FSGameBuyUpdate, utils.ResponseError(e))
+			return
+		}
+
+		resp, e := logic.CalculateSubmits(req.RoomID, req.PlayerID, action, req.CalculateCards)
+		if e != nil {
+			s.Emit(consts.FSGameCalculateResult, utils.ResponseError(e))
+			return
+		}
+
 		server.BroadcastToRoom("/", s.Rooms()[0], consts.FSGameCalculateResult, utils.Response(resp))
 	})
 }

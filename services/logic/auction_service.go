@@ -1,1 +1,116 @@
 package logic
+
+import (
+	"math/rand"
+	"nam-club/NumBuyer_back/consts"
+	"nam-club/NumBuyer_back/db"
+	"nam-club/NumBuyer_back/models/responses"
+	"strconv"
+)
+
+// 入札する
+func Bid(roomId, playerId string, bidAction consts.BidAction, coin int) (*responses.BidResponse, error) {
+
+	player, e := db.GetPlayer(roomId, playerId)
+	if e != nil {
+		return nil, e
+	}
+
+	player.BuyAction.Action = bidAction.String()
+	if bidAction == consts.BidActionBid {
+		player.BuyAction.Value = strconv.Itoa(coin)
+	}
+	player, e = db.AddPlayer(roomId, player)
+	if e != nil {
+		return nil, e
+	}
+
+	return &responses.BidResponse{PlayerName: player.PlayerName, Coin: coin}, nil
+}
+
+// プレイヤーのオークション終了時に必要な情報を取得する
+func FetchAuctionEndInfo(roomId, playerId string) (*responses.BuyUpdateResponse, error) {
+
+	player, e := db.GetPlayer(roomId, playerId)
+	if e != nil {
+		return nil, e
+	}
+
+	return &responses.BuyUpdateResponse{PlayerID: player.PlayerID, Coin: player.Coin, Cards: player.Cards}, nil
+}
+
+// 落札者を決定する
+func DetermineBuyer(roomId string) (*db.Player, error) {
+
+	players, e := db.GetPlayers(roomId)
+	if e != nil {
+		return nil, e
+	}
+
+	var buyer *db.Player
+	maxBidCoin := 0
+	for _, p := range players {
+		if p.BuyAction.Action == consts.BidActionBid.String() {
+			b, e := strconv.Atoi(p.BuyAction.Value)
+			if e == nil && b > maxBidCoin {
+				maxBidCoin = b
+				buyer = &p
+			}
+		}
+	}
+
+	return buyer, nil
+}
+
+// オークションの状態をクリアする
+func ClearAuction(roomId string) error {
+
+	game, e := db.GetGame(roomId)
+	if e != nil {
+		return e
+	}
+
+	game.State.Auction = ""
+	game, e = db.SetGame(roomId, game)
+	if e != nil {
+		return e
+	}
+
+	players, e := db.GetPlayers(roomId)
+	if e != nil {
+		return e
+	}
+
+	for _, player := range players {
+		player.BuyAction = db.BuyAction{}
+		db.AddPlayer(roomId, &player)
+	}
+
+	return nil
+}
+
+// オークションカードをシャッフルする
+func ShuffleAuctionCard(roomId string) (string, error) {
+
+	game, e := db.GetGame(roomId)
+	if e != nil {
+		return "", e
+	}
+
+	// ランダムなオークションカードを生成する
+	if rand.Intn(100) <= consts.AuctionCodeProbability {
+		// 符号を生成
+		index := rand.Intn(len(consts.Codes))
+		game.State.Auction = consts.Codes[index]
+	} else {
+		// 数字を生成（最小値以上、最大値未満）
+		game.State.Auction = strconv.Itoa(rand.Intn(consts.TermMax-consts.TermMin) + consts.TermMin)
+	}
+
+	game, e = db.SetGame(roomId, game)
+	if e != nil {
+		return "", e
+	}
+
+	return game.State.Auction, nil
+}

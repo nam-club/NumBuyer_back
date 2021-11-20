@@ -5,6 +5,7 @@ import (
 	"nam-club/NumBuyer_back/consts"
 	"nam-club/NumBuyer_back/db"
 	"nam-club/NumBuyer_back/models/orgerrors"
+	"nam-club/NumBuyer_back/models/responses"
 	"nam-club/NumBuyer_back/utils"
 
 	"time"
@@ -27,7 +28,7 @@ func CanCreateGameScheduler(roomId string) error {
 	}
 	if p, e := consts.ParsePhase(game.State.Phase); e != nil {
 		return orgerrors.NewInternalServerError("")
-	} else if p != consts.PhaseBeforeStart {
+	} else if p != consts.PhaseWaiting {
 		return orgerrors.NewValidationError("game already started")
 	}
 	return nil
@@ -47,18 +48,18 @@ func (o *PhaseSheduler) monitor() {
 
 		game, e := db.GetGame(o.roomId)
 		if e != nil {
-			o.finish()
+			o.clean()
 			break
 		}
 		startTime, e := time.Parse(time.RFC3339, game.State.ChangedTime)
 		if e != nil {
-			o.finish()
+			o.clean()
 			break
 		}
 
 		phase, e := consts.ParsePhase(game.State.Phase)
 		if e != nil {
-			o.finish()
+			o.clean()
 			break
 		}
 
@@ -67,12 +68,12 @@ func (o *PhaseSheduler) monitor() {
 		switch phase {
 		case consts.PhaseBeforeStart:
 			threshold = consts.PhaseBeforeStart.Duration
-			next = consts.PhaseWating
-		case consts.PhaseWating:
-			threshold = consts.PhaseWating.Duration
-			next = consts.PhaseBeforeAuction
-		case consts.PhaseBeforeAuction:
-			threshold = consts.PhaseBeforeAuction.Duration
+			next = consts.PhaseWaiting
+		case consts.PhaseWaiting:
+			threshold = consts.PhaseWaiting.Duration
+			next = consts.PhaseReady
+		case consts.PhaseReady:
+			threshold = consts.PhaseReady.Duration
 			next = consts.PhaseAuction
 		case consts.PhaseAuction:
 			threshold = consts.PhaseAuction.Duration
@@ -85,38 +86,164 @@ func (o *PhaseSheduler) monitor() {
 			next = consts.PhaseCalculateResult
 		case consts.PhaseCalculateResult:
 			threshold = consts.PhaseCalculateResult.Duration
-			next = consts.PhaseWating
+			next = consts.PhaseReady
+		case consts.PhaseEnd:
+			o.clean()
+			break
 		default:
-			o.finish()
+			// 呼び出されないケース
+			o.clean()
 			break
 		}
 
 		fmt.Printf("thredhold: %v, current: %v, next: %v\n", threshold, phase, next)
 
 		if startTime.Add(time.Duration(consts.TimeAutoEnd) * time.Second).Before(time.Now()) {
-			o.finish()
+			o.clean()
 			break
 		}
 
 		if threshold != consts.PhaseTimeValueInfinite {
 			if startTime.Add(time.Duration(threshold) * time.Second).Before(time.Now()) {
-				o.nextPhase(next)
+				o.phaseFinishAction(phase, next)
 			}
 		} else if ready, _ := IsAllPlayersReady(o.roomId); ready {
-			o.nextPhase(next)
+			o.phaseFinishAction(phase, next)
 		}
 	}
 }
 
-func (o *PhaseSheduler) nextPhase(phase consts.Phase) {
-	resp, e := NextPhase(phase, o.roomId)
-	if e != nil {
-		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameUpdateState, utils.ResponseError(e))
-	}
+func (o *PhaseSheduler) phaseFinishAction(current, next consts.Phase) {
 
+	switch current {
+	case consts.PhaseBeforeStart:
+		o.nextPhase(next)
+	case consts.PhaseWaiting:
+		o.nextPhase(next)
+	case consts.PhaseReady:
+		o.nextPhase(next)
+	case consts.PhaseAuction:
+		o.auctionFinishAction(next)
+	case consts.PhaseAuctionResult:
+		o.nextPhase(next)
+	case consts.PhaseCalculate:
+		o.calculateFinishAction(next)
+	case consts.PhaseCalculateResult:
+		o.calculateResultFinishAction(next)
+	}
+}
+func (o *PhaseSheduler) nextPhase(next consts.Phase) error {
+
+	resp, e := NextPhase(next, o.roomId)
+	if e != nil {
+		fmt.Printf("error broadcast: %v\n", next)
+		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameUpdateState, utils.ResponseError(e))
+		return e
+	}
+	fmt.Printf("broadcast: %v\n", next)
 	o.server.BroadcastToRoom("/", o.roomId, consts.FSGameUpdateState, utils.Response(resp))
+	return nil
 }
 
-func (o *PhaseSheduler) finish() {
+func (o *PhaseSheduler) auctionFinishAction(next consts.Phase) {
+
+	resp, e := DetermineBuyer(o.roomId)
+	if resp != nil && e == nil {
+		// 落札者が決まった時の制御
+
+		game, e := db.GetGame(o.roomId)
+		if e != nil {
+			o.server.BroadcastToRoom("/", o.roomId, consts.FSGameBuyNotify, utils.ResponseError(e))
+			return
+		}
+
+		// 落札者にカードを追加
+		buyer, e := AppendCard(o.roomId, resp.PlayerID, game.State.Auction)
+		if e != nil {
+			o.server.BroadcastToRoom("/", o.roomId, consts.FSGameBuyNotify, utils.ResponseError(e))
+			return
+		}
+
+		// オークション情報をクリアする
+		e = ClearAuction(o.roomId)
+		if e != nil {
+			o.server.BroadcastToRoom("/", o.roomId, consts.FSGameBuyNotify, utils.ResponseError(e))
+			return
+		}
+
+		resp := &responses.BuyNotifyResponse{
+			PlayerName: buyer.PlayerName,
+			PlayerID:   buyer.PlayerID,
+			Coin:       buyer.Coin}
+
+		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameBuyNotify, utils.Response(resp))
+	} else if e != nil {
+		// エラー発生時
+		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameBuyNotify, utils.ResponseError(e))
+	}
+
+	o.nextPhase(next)
+}
+
+func (o *PhaseSheduler) calculateFinishAction(next consts.Phase) {
+
+	if finished, _ := IsMeetClearCondition(o.roomId); finished {
+		// ゲーム終了処理
+		resp, e := FinishGame(o.roomId)
+		if e != nil {
+			o.server.BroadcastToRoom("/", o.roomId, consts.FSGameFinishGame, utils.ResponseError(e))
+			return
+		}
+		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameFinishGame, utils.Response(resp))
+	} else {
+		// 正解者一覧を抽出し返却
+		correctors, e := PickAllCorrector(o.roomId)
+		if e != nil {
+			o.server.BroadcastToRoom("/", o.roomId, consts.FSGameCorrectPlayers, utils.ResponseError(e))
+			return
+		}
+
+		resp := &responses.CorrectPlayersResponse{}
+		for _, corrector := range correctors {
+			resp.AnsPlayers = append(resp.AnsPlayers, corrector.PlayerName)
+		}
+
+		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameCorrectPlayers, utils.Response(resp))
+		o.nextPhase(next)
+	}
+}
+
+func (o *PhaseSheduler) calculateResultFinishAction(next consts.Phase) {
+
+	// 解答をシャッフル
+	newAnswer, e := ShuffleAnswer(o.roomId)
+	if e != nil {
+		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameUpdateAnswer, utils.ResponseError(e))
+		return
+	}
+
+	// オークションカードをシャッフル
+	_, e = ShuffleAuctionCard(o.roomId)
+	if e != nil {
+		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameUpdateAnswer, utils.ResponseError(e))
+		return
+	}
+
+	// 次のフェーズへ移行
+	if o.nextPhase(next) != nil {
+		return
+	} else {
+		// 新しい解答をブロードキャスト
+		resp := &responses.UpdateAnswerResponse{AnswerCard: newAnswer}
+		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameUpdateAnswer, utils.Response(resp))
+	}
+
+}
+
+func (o *PhaseSheduler) finishGame() {
+	FinishGame(o.roomId)
+}
+
+func (o *PhaseSheduler) clean() {
 	db.DeleteGame(o.roomId)
 }
