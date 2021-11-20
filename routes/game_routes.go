@@ -36,7 +36,7 @@ func RoutesGame(server *socketio.Server) {
 
 				// フェーズのタイマーをスタート
 				if e := logic.CanCreateGameScheduler(resp.RoomID); e != nil {
-					s.Emit(consts.FSGameStart, utils.ResponseError(e))
+					s.Emit(consts.FSGameJoin, utils.ResponseError(e))
 					return
 				}
 				logic.NewPhaseScheduler(resp.RoomID, server).Start()
@@ -103,7 +103,7 @@ func RoutesGame(server *socketio.Server) {
 
 		// フェーズのタイマーをスタート
 		if e := logic.CanCreateGameScheduler(resp.RoomID); e != nil {
-			s.Emit(consts.FSGameStart, utils.ResponseError(e))
+			s.Emit(consts.FSGameJoin, utils.ResponseError(e))
 			return
 		}
 		logic.NewPhaseScheduler(resp.RoomID, server).Start()
