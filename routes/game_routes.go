@@ -133,10 +133,6 @@ func RoutesGame(server *socketio.Server) {
 			s.Emit(consts.FSGameStart, utils.ResponseError(e))
 			return
 		}
-		if e := logic.CanCreateGameScheduler(req.RoomID); e != nil {
-			s.Emit(consts.FSGameStart, utils.ResponseError(e))
-			return
-		}
 
 		if e := logic.StartGame(req.RoomID); e != nil {
 			s.Emit(consts.FSGameStart, utils.ResponseError(e))
