@@ -47,19 +47,19 @@ func DetermineBuyer(roomId string) (*db.Player, error) {
 		return nil, e
 	}
 
-	var buyer *db.Player
+	var buyer db.Player
 	maxBidCoin := 0
 	for _, p := range players {
 		if p.BuyAction.Action == consts.BidActionBid.String() {
 			b, e := strconv.Atoi(p.BuyAction.Value)
 			if e == nil && b > maxBidCoin {
 				maxBidCoin = b
-				buyer = &p
+				buyer = p
 			}
 		}
 	}
 
-	return buyer, nil
+	return &buyer, nil
 }
 
 // オークションの状態をクリアする
