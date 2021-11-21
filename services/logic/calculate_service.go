@@ -30,6 +30,21 @@ func PickAllCorrector(roomId string) ([]db.Player, error) {
 	return correctors, nil
 }
 
+// 計算結果をクリアする
+func ClearCalculateAction(roomId string) error {
+	players, e := db.GetPlayers(roomId)
+	if e != nil {
+		return e
+	}
+
+	for _, player := range players {
+		player.AnswerAction = db.AnswerAction{}
+		db.SetPlayer(roomId, &player)
+	}
+
+	return nil
+}
+
 // 解答をシャッフルする
 func ShuffleAnswer(roomId string) (string, error) {
 

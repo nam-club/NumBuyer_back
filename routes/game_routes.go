@@ -215,7 +215,12 @@ func RoutesGame(server *socketio.Server) {
 			return
 		}
 
-		server.BroadcastToRoom("/", s.Rooms()[0], consts.FSGameCalculateResult, utils.Response(resp))
+		// Answer時のみレスポンスを返却
+		if action == consts.CalculateActionAnswer {
+			s.Emit(s.Rooms()[0], consts.FSGameCalculateResult, utils.Response(resp))
+			return
+		}
+
 	})
 }
 
