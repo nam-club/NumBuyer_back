@@ -4,6 +4,7 @@ import (
 	"nam-club/NumBuyer_back/db"
 	"nam-club/NumBuyer_back/models/orgerrors"
 	"nam-club/NumBuyer_back/models/responses"
+	"nam-club/NumBuyer_back/utils"
 
 	"github.com/google/uuid"
 )
@@ -51,6 +52,21 @@ func SetAllPlayersReady(roomId string) error {
 
 	for _, p := range players {
 		p.Ready = true
+		db.SetPlayer(roomId, &p)
+	}
+
+	return nil
+}
+
+// 全プレイヤーにランダムにカードを一枚付与する
+func AddCardToAllPlayers(roomId string) error {
+	players, e := db.GetPlayers(roomId)
+	if e != nil {
+		return e
+	}
+
+	for _, p := range players {
+		p.Cards = append(p.Cards, utils.GenerateRandomCard())
 		db.SetPlayer(roomId, &p)
 	}
 
