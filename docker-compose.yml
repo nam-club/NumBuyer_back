@@ -5,7 +5,7 @@ services:
       - REDISURL=redis:6379
     build: .
     ports:
-        - "8000:8000"
+        - "8000:8001"
     tty: true
     volumes:
       - .:/go/src/work
