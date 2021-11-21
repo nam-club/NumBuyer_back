@@ -101,13 +101,11 @@ func CalculateSubmits(roomId, playerId string, action consts.CalculateAction, su
 			// 正解した時、正解者のコイン数とカード情報を更新する
 			player.Coin += calculated
 			player.AnswerAction.Correct = true
-			var updatedCards []string
+
 			for _, s := range submits {
-				if !utils.ContainsString(player.Cards, s) {
-					updatedCards = append(updatedCards, s)
-				}
+				i := utils.ContainsStringWithIndex(player.Cards, s)
+				player.Cards = utils.DeleteSliceElement(player.Cards, i)
 			}
-			player.Cards = updatedCards
 			player, e = db.SetPlayer(roomId, player)
 			if e != nil {
 				return nil, e
