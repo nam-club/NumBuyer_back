@@ -63,7 +63,7 @@ func CalculateSubmits(roomId, playerId string, action consts.CalculateAction, su
 	if action == consts.CalculateActionPass {
 		// actionがpassの場合ステータスをpassにだけ更新してリターン
 		player.AnswerAction.Action = action.String()
-		player, e = db.AddPlayer(roomId, player)
+		player, e = db.SetPlayer(roomId, player)
 		if e != nil {
 			return nil, e
 		}
@@ -108,7 +108,7 @@ func CalculateSubmits(roomId, playerId string, action consts.CalculateAction, su
 				}
 			}
 			player.Cards = updatedCards
-			player, e = db.AddPlayer(roomId, player)
+			player, e = db.SetPlayer(roomId, player)
 			if e != nil {
 				return nil, e
 			}
@@ -121,7 +121,7 @@ func CalculateSubmits(roomId, playerId string, action consts.CalculateAction, su
 		} else {
 			// 不正解の時
 			player.AnswerAction.Correct = false
-			player, e = db.AddPlayer(roomId, player)
+			player, e = db.SetPlayer(roomId, player)
 			if e != nil {
 				return nil, e
 			}
