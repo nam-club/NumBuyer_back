@@ -175,7 +175,11 @@ func RoutesGame(server *socketio.Server) {
 			return
 		}
 
-		server.BroadcastToRoom("/", s.Rooms()[0], consts.FSGameBid, utils.Response(resp))
+		// Bid時のみレスポンスを返却
+		if bidAction == consts.BidActionBid {
+			server.BroadcastToRoom("/", s.Rooms()[0], consts.FSGameBid, utils.Response(resp))
+			return
+		}
 	})
 
 	server.OnEvent("/", consts.TSGameBuy, func(s socketio.Conn, msg string) {
