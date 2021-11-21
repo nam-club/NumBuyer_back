@@ -247,6 +247,7 @@ func (o *PhaseSheduler) calculateFinishAction(next consts.Phase) {
 
 // 次ターンに移るときの準備をする
 func (o *PhaseSheduler) setUpNextTurn(next consts.Phase) {
+	ClearCalculateAction(o.roomId)
 	AddCardToAllPlayers(o.roomId)
 	o.nextPhase(next)
 }
