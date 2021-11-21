@@ -61,36 +61,47 @@
 
 <body>
   <form action="" id="form-join-friend">
-    <input id="jf" value="{&quot;roomId&quot;:&quot;xx&quot;,&quot;playerName&quot;:&quot;junpei&quot;}" autocomplete="off" /><button>Friend Join</button>
+    <button>Friend Join</button>
+    <input id="jf" value="{&quot;roomId&quot;:&quot;xx&quot;,&quot;playerName&quot;:&quot;junpei&quot;}" autocomplete="off" />
   </form>
   <form action="" id="form-join-quick">
-    <input id="jq" value="{&quot;playerName&quot;:&quot;junpei&quot;}" autocomplete="off" /><button>Quick Join</button>
+    <button>Quick Join</button>
+    <input id="jq" value="{&quot;playerName&quot;:&quot;junpei&quot;}" autocomplete="off" />
   </form>
   <form action="" id="form-create-game">
-    <input id="cr" value="{&quot;playerName&quot;:&quot;junpei&quot;}" autocomplete="off" /><button>Create Game</button>
+    <button>Create Game</button>
+    <input id="cr" value="{&quot;playerName&quot;:&quot;junpei&quot;}" autocomplete="off" />
   </form>
   <form action="" id="form-players-info">
-    <input id="pi" value="{&quot;roomId&quot;:&quot;xx&quot;,&quot;playerId&quot;:&quot;junpei&quot;}" autocomplete="off" /><button>Players Info</button>
+    <button>Players Info</button>
+    <input id="pi" value="{&quot;roomId&quot;:&quot;xx&quot;,&quot;playerId&quot;:&quot;junpei&quot;}" autocomplete="off" />
   </form>
   <form action="" id="form-game-start">
-    <input id="st" value="{&quot;roomId&quot;:&quot;xx&quot;}" autocomplete="off" /><button>Game Start</button>
+    <button>Game Start</button>
+    <input id="st" value="{&quot;roomId&quot;:&quot;xx&quot;}" autocomplete="off" />
   </form>
   <form action="" id="form-next-turn">
-    <input id="nt" value="{&quot;roomId&quot;:&quot;xx&quot;,&quot;playerId&quot;:&quot;junpei&quot;}" autocomplete="off" /><button>Next Turn</button>
+    <button>Next Turn</button>
+    <input id="nt" value="{&quot;roomId&quot;:&quot;xx&quot;,&quot;playerId&quot;:&quot;junpei&quot;}" autocomplete="off" />
   </form>
   <form action="" id="form-bid">
-    <input id="bd" value="{&quot;roomId&quot;:&quot;xx&quot;,&quot;playerId&quot;:&quot;junpei&quot;,&quot;coin&quot;:100,&quot;action&quot;:&quot;bid&quot;}"  autocomplete="off" /><button>Bid</button>
+    <button>Bid</button>
+    <input id="bd" value="{&quot;roomId&quot;:&quot;xx&quot;,&quot;playerId&quot;:&quot;junpei&quot;,&quot;coin&quot;:100,&quot;action&quot;:&quot;bid&quot;}" autocomplete="off" />
   </form>
   <form action="" id="form-buy">
-    <input id="by" value="{&quot;roomId&quot;:&quot;xx&quot;,&quot;playerId&quot;:&quot;junpei&quot;}" autocomplete="off" /><button>Buy</button>
+    <button>Buy</button>
+    <input id="by" value="{&quot;roomId&quot;:&quot;xx&quot;,&quot;playerId&quot;:&quot;junpei&quot;}" autocomplete="off" />
   </form>
   <form action="" id="form-calculate">
-    <input id="cc" value="{&quot;playerId&quot;: &quot;junpei&quot;,&quot;roomId&quot;: &quot;a123456789&quot;,&quot;calculateCards&quot;:[&quot;1&quot;,&quot;+&quot;,&quot;2&quot;],&quot;action&quot;:&quot;answer&quot;}" autocomplete="off" /><button>Calculate</button>
+    <button>Calculate</button>
+    <input id="cc" value="{&quot;playerId&quot;: &quot;junpei&quot;,&quot;roomId&quot;: &quot;a123456789&quot;,&quot;calculateCards&quot;:[&quot;1&quot;,&quot;+&quot;,&quot;2&quot;],&quot;action&quot;:&quot;answer&quot;}" autocomplete="off" />
   </form>
+  <button id="clear-button">Clear</button>
+
   <ul id="messages"></ul>
-  <form action="" id="form-message">
+  <!-- <form action="" id="form-message">
     <input id="m" autocomplete="off" /><button>Send</button>
-  </form>
+  </form> -->
   <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
   <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
   <script>
@@ -137,7 +148,7 @@
       socket.emit('join/friend_match', $('#jf').val());
       return false;
     });
-    
+
     $('#form-join-quick').submit(function () {
       socket.emit('join/quick_match', $('#jq').val());
       return false;
@@ -187,6 +198,10 @@
 
       $('#m').val('');
       return false;
+    });
+
+    $('#clear-button').on('click', function () {
+      $('#messages').empty();
     });
   </script>
 </body>
