@@ -7,7 +7,6 @@ type PlayersInfoResponse struct {
 	Players []PlayersInfoPlayers `json:"players"`
 }
 type PlayersInfoPlayers struct {
-	PlayerID   string `json:"playerId"`
 	PlayerName string `json:"playerName"`
 	Coin       int    `json:"coin"`
 	CardNum    int    `json:"cardNum"`
@@ -21,7 +20,6 @@ func GeneratePlayersInfoResponse(players []db.Player, roomId string) *PlayersInf
 	for _, v := range players {
 		ret.Players = append(ret.Players,
 			PlayersInfoPlayers{
-				PlayerID:   v.PlayerID,
 				PlayerName: v.PlayerName,
 				Coin:       v.Coin,
 				CardNum:    len(v.Cards),
