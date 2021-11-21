@@ -55,45 +55,14 @@ func CalculateSubmits(roomId, playerId string, action consts.CalculateAction, su
 		return nil, e
 	}
 
-	calculated, e := calculate(submits)
-	if e != nil {
-		return nil, e
-	}
-
 	player, e := db.GetPlayer(roomId, playerId)
 	if e != nil {
 		return nil, e
 	}
 
-	player.AnswerAction.Action = action.String()
-	if action == consts.CalculateActionAnswer {
-		player.AnswerAction.AnswerTime = time.Now().Format(time.RFC3339)
-	}
-
-	// 結果の判定
-	if game.State.Answer == strconv.Itoa(calculated) {
-		// 正解した時、正解者のコイン数とカード情報を更新する
-		player.Coin += calculated
-		player.AnswerAction.Correct = true
-		var updatedCards []string
-		for _, s := range submits {
-			if !utils.ContainsString(player.Cards, s) {
-				updatedCards = append(updatedCards, s)
-			}
-		}
-		player, e = db.AddPlayer(roomId, player)
-		if e != nil {
-			return nil, e
-		}
-		return &responses.CalculateResponse{
-			IsCorrectAnswer: true,
-			PlayerID:        playerId,
-			Coin:            player.Coin,
-			Cards:           player.Cards,
-		}, nil
-	} else {
-		// 不正解の時
-		player.AnswerAction.Correct = false
+	if action == consts.CalculateActionPass {
+		// actionがpassの場合ステータスをpassにだけ更新してリターン
+		player.AnswerAction.Action = action.String()
 		player, e = db.AddPlayer(roomId, player)
 		if e != nil {
 			return nil, e
@@ -104,6 +73,65 @@ func CalculateSubmits(roomId, playerId string, action consts.CalculateAction, su
 			Coin:            player.Coin,
 			Cards:           player.Cards,
 		}, nil
+	} else {
+		// actionがanswerの場合
+
+		// カードが正しいかバリデーション
+		validateCards := make([]string, len(player.Cards))
+		copy(validateCards, player.Cards)
+		for _, s := range submits {
+			if i := utils.ContainsStringWithIndex(validateCards, s); i != -1 {
+				validateCards = utils.DeleteSliceElement(validateCards, i)
+			} else {
+				return nil, orgerrors.NewValidationError("player is not have submitted cards")
+			}
+		}
+
+		// 計算
+		calculated, e := calculate(submits)
+		if e != nil {
+			return nil, e
+		}
+
+		player.AnswerAction.Action = action.String()
+		player.AnswerAction.AnswerTime = time.Now().Format(time.RFC3339)
+
+		// 結果の判定
+		if game.State.Answer == strconv.Itoa(calculated) {
+			// 正解した時、正解者のコイン数とカード情報を更新する
+			player.Coin += calculated
+			player.AnswerAction.Correct = true
+			var updatedCards []string
+			for _, s := range submits {
+				if !utils.ContainsString(player.Cards, s) {
+					updatedCards = append(updatedCards, s)
+				}
+			}
+			player.Cards = updatedCards
+			player, e = db.AddPlayer(roomId, player)
+			if e != nil {
+				return nil, e
+			}
+			return &responses.CalculateResponse{
+				IsCorrectAnswer: true,
+				PlayerID:        playerId,
+				Coin:            player.Coin,
+				Cards:           player.Cards,
+			}, nil
+		} else {
+			// 不正解の時
+			player.AnswerAction.Correct = false
+			player, e = db.AddPlayer(roomId, player)
+			if e != nil {
+				return nil, e
+			}
+			return &responses.CalculateResponse{
+				IsCorrectAnswer: false,
+				PlayerID:        playerId,
+				Coin:            player.Coin,
+				Cards:           player.Cards,
+			}, nil
+		}
 	}
 }
 
