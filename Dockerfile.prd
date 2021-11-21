@@ -1,0 +1,8 @@
+FROM golang:latest
+RUN mkdir /go/src/work && \
+    go env -w GO111MODULE=on
+    
+WORKDIR /go/src/work
+ADD . /go/src/work
+
+ENTRYPOINT go run main.go
