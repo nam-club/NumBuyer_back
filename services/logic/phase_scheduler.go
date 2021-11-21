@@ -192,7 +192,7 @@ func (o *PhaseSheduler) auctionFinishAction(next consts.Phase) {
 		resp := &responses.BuyNotifyResponse{
 			PlayerName: buyer.PlayerName,
 			PlayerID:   buyer.PlayerID,
-			Coin:       buyer.Coin}
+			Coin:       subtract}
 
 		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameBuyNotify, utils.Response(resp))
 	}
