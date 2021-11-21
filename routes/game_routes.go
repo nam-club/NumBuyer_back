@@ -215,7 +215,7 @@ func RoutesGame(server *socketio.Server) {
 			return
 		}
 
-		server.BroadcastToRoom("/", s.Rooms()[0], consts.FSGameCalculateResult, utils.Response(resp))
+		s.Emit(s.Rooms()[0], consts.FSGameCalculateResult, utils.Response(resp))
 	})
 }
 
