@@ -18,4 +18,4 @@ RUN mkdir /go/src/work && \
 WORKDIR /go/src/work
 ADD . /go/src/work
 
-ENTRYPOINT go run main.go
+# ENTRYPOINT go run main.go
