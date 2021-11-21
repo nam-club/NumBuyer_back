@@ -15,6 +15,7 @@ var (
 	PhaseAuctionResult   = Phase{"AUCTION_RESULT", 5}
 	PhaseCalculate       = Phase{"CALCULATE", 20}
 	PhaseCalculateResult = Phase{"CALCULATE_RESULT", 5}
+	PhaseNextTurn        = Phase{"NEXT_TURN", 2}
 	PhaseEnd             = Phase{"END", PhaseTimeValueInfinite}
 )
 
@@ -42,6 +43,8 @@ func ParsePhase(s string) (v Phase, err error) {
 		return PhaseCalculate, nil
 	case PhaseCalculateResult.Value:
 		return PhaseCalculateResult, nil
+	case PhaseNextTurn.Value:
+		return PhaseNextTurn, nil
 	case PhaseEnd.Value:
 		return PhaseEnd, nil
 	default:

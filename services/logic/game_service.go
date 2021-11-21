@@ -64,7 +64,7 @@ func FetchNextTurnInfo(roomId, playerId string) (*responses.NextTurnResponse, er
 	}
 
 	player.Ready = true
-	player, e = db.AddPlayer(roomId, player)
+	player, e = db.SetPlayer(roomId, player)
 	if e != nil {
 		return nil, e
 	}
@@ -87,7 +87,7 @@ func NextPhase(nextPhase consts.Phase, roomId string) (*responses.NextPhaseRespo
 	}
 	for _, p := range players {
 		p.Ready = false
-		db.AddPlayer(roomId, &p)
+		db.SetPlayer(roomId, &p)
 	}
 
 	return responses.GenerateNextPhaseResponse(players, nextPhase), nil
@@ -123,7 +123,7 @@ func StartGame(roomId string) error {
 		for i := 0; i < consts.InitialCardsNum; i++ {
 			player.Cards = append(player.Cards, utils.GenerateRandomCard())
 		}
-		db.AddPlayer(roomId, &player)
+		db.SetPlayer(roomId, &player)
 	}
 
 	return nil

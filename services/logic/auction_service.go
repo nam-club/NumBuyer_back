@@ -20,7 +20,7 @@ func Bid(roomId, playerId string, bidAction consts.BidAction, coin int) (*respon
 	if bidAction == consts.BidActionBid {
 		player.BuyAction.Value = strconv.Itoa(coin)
 	}
-	player, e = db.AddPlayer(roomId, player)
+	player, e = db.SetPlayer(roomId, player)
 	if e != nil {
 		return nil, e
 	}
@@ -83,7 +83,7 @@ func ClearAuction(roomId string) error {
 
 	for _, player := range players {
 		player.BuyAction = db.BuyAction{}
-		db.AddPlayer(roomId, &player)
+		db.SetPlayer(roomId, &player)
 	}
 
 	return nil

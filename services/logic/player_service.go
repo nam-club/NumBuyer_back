@@ -4,6 +4,7 @@ import (
 	"nam-club/NumBuyer_back/db"
 	"nam-club/NumBuyer_back/models/orgerrors"
 	"nam-club/NumBuyer_back/models/responses"
+	"nam-club/NumBuyer_back/utils"
 
 	"github.com/google/uuid"
 )
@@ -24,7 +25,7 @@ func CreateNewPlayer(playerName, roomId string, isOwner bool) (*db.Player, error
 
 	var ret *db.Player
 	var e error
-	ret, e = db.AddPlayer(roomId, p)
+	ret, e = db.SetPlayer(roomId, p)
 	if e != nil {
 		return nil, e
 	}
@@ -51,7 +52,22 @@ func SetAllPlayersReady(roomId string) error {
 
 	for _, p := range players {
 		p.Ready = true
-		db.AddPlayer(roomId, &p)
+		db.SetPlayer(roomId, &p)
+	}
+
+	return nil
+}
+
+// 全プレイヤーにランダムにカードを一枚付与する
+func AddCardToAllPlayers(roomId string) error {
+	players, e := db.GetPlayers(roomId)
+	if e != nil {
+		return e
+	}
+
+	for _, p := range players {
+		p.Cards = append(p.Cards, utils.GenerateRandomCard())
+		db.SetPlayer(roomId, &p)
 	}
 
 	return nil
@@ -83,7 +99,7 @@ func AppendCard(roomId, playerId, appendCard string) (*db.Player, error) {
 	}
 
 	player.Cards = append(player.Cards, appendCard)
-	player, e = db.AddPlayer(roomId, player)
+	player, e = db.SetPlayer(roomId, player)
 	if e != nil {
 		return nil, e
 	}
@@ -104,7 +120,7 @@ func SubtractCoin(roomId, playerId string, subtract int) (*db.Player, error) {
 	}
 
 	player.Coin = subtracted
-	player, e = db.AddPlayer(roomId, player)
+	player, e = db.SetPlayer(roomId, player)
 	if e != nil {
 		return nil, e
 	}

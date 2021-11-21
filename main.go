@@ -29,6 +29,9 @@ func GinMiddleware(allowOrigin string) gin.HandlerFunc {
 }
 
 func main() {
+	// 設定初期化
+	config.InitConfig()
+
 	// サーバーセットアップ
 	router := gin.New()
 	server := socketio.NewServer(nil)

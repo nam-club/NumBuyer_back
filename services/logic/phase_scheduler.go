@@ -87,6 +87,9 @@ func (o *PhaseSheduler) monitor() {
 			next = consts.PhaseCalculateResult
 		case consts.PhaseCalculateResult:
 			threshold = consts.PhaseCalculateResult.Duration
+			next = consts.PhaseNextTurn
+		case consts.PhaseNextTurn:
+			threshold = consts.PhaseNextTurn.Duration
 			next = consts.PhaseReady
 		case consts.PhaseEnd:
 			o.clean()
@@ -131,6 +134,8 @@ func (o *PhaseSheduler) phaseFinishAction(current, next consts.Phase) {
 		o.calculateFinishAction(next)
 	case consts.PhaseCalculateResult:
 		o.nextPhase(next)
+	case consts.PhaseNextTurn:
+		o.setUpNextTurn(next)
 	}
 }
 func (o *PhaseSheduler) nextPhase(next consts.Phase) error {
@@ -187,7 +192,7 @@ func (o *PhaseSheduler) auctionFinishAction(next consts.Phase) {
 		resp := &responses.BuyNotifyResponse{
 			PlayerName: buyer.PlayerName,
 			PlayerID:   buyer.PlayerID,
-			Coin:       buyer.Coin}
+			Coin:       subtract}
 
 		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameBuyNotify, utils.Response(resp))
 	}
@@ -238,6 +243,12 @@ func (o *PhaseSheduler) calculateFinishAction(next consts.Phase) {
 		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameCorrectPlayers, utils.Response(resp))
 		o.nextPhase(next)
 	}
+}
+
+// 次ターンに移るときの準備をする
+func (o *PhaseSheduler) setUpNextTurn(next consts.Phase) {
+	AddCardToAllPlayers(o.roomId)
+	o.nextPhase(next)
 }
 
 func (o *PhaseSheduler) finishGame() {
