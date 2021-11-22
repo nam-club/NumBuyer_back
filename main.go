@@ -5,10 +5,12 @@ import (
 	"nam-club/NumBuyer_back/config"
 	"nam-club/NumBuyer_back/routes"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 
 	socketio "github.com/googollee/go-socket.io"
+	"github.com/googollee/go-socket.io/engineio"
 )
 
 func GinMiddleware(allowOrigin string) gin.HandlerFunc {
@@ -35,7 +37,8 @@ func main() {
 
 	// サーバーセットアップ
 	router := gin.New()
-	server := socketio.NewServer(nil)
+	opt := engineio.Options{PingTimeout: time.Minute * 3, PingInterval: time.Second * 25}
+	server := socketio.NewServer(&opt)
 
 	server.OnConnect("/", func(s socketio.Conn) error {
 		s.SetContext("")
