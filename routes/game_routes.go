@@ -205,7 +205,7 @@ func RoutesGame(server *socketio.Server) {
 
 		action, e := consts.ParseCalculateAction(req.Action)
 		if e != nil {
-			s.Emit(consts.FSGameBuyUpdate, utils.ResponseError(e))
+			s.Emit(consts.FSGameCalculateResult, utils.ResponseError(e))
 			return
 		}
 
