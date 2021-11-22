@@ -217,7 +217,7 @@ func RoutesGame(server *socketio.Server) {
 
 		// Answer時のみレスポンスを返却
 		if action == consts.CalculateActionAnswer {
-			s.Emit(s.Rooms()[0], consts.FSGameCalculateResult, utils.Response(resp))
+			s.Emit(consts.FSGameCalculateResult, utils.Response(resp))
 			return
 		}
 
