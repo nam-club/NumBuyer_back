@@ -1,7 +1,7 @@
 FROM golang:latest
 RUN mkdir /go/src/work && \
     go env -w GO111MODULE=on && \
-    # 以下、ローカルでのデバッグ用リポジトリ
+    # 以下、ローカルでのデバッグの設定
     go get golang.org/x/tools/gopls@latest && \
     go get github.com/uudashr/gopkgs/v2/cmd/gopkgs@latest && \
     go get github.com/ramya-rao-a/go-outline@latest && \
@@ -13,9 +13,11 @@ RUN mkdir /go/src/work && \
     go get github.com/go-delve/delve/cmd/dlv@master && \
     go get honnef.co/go/tools/cmd/staticcheck@latest && \
     go get golang.org/x/tools/gopls@latest && \
-    go get github.com/golang/vscode-go
+    go get github.com/golang/vscode-go && \
+    # ホットリロードの設定
+    go get -u github.com/cosmtrek/air
     
 WORKDIR /go/src/work
 ADD . /go/src/work
 
-# ENTRYPOINT go run main.go
+CMD ["air", "-c", ".air.toml"]
