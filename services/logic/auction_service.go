@@ -58,8 +58,11 @@ func DetermineBuyer(roomId string) (*db.Player, error) {
 			}
 		}
 	}
-
-	return &buyer, nil
+	if maxBidCoin > 0 {
+		return &buyer, nil
+	} else {
+		return nil, nil
+	}
 }
 
 // オークションの状態をクリアする
