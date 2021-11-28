@@ -154,18 +154,19 @@ func (o *PhaseSheduler) nextPhase(next consts.Phase) error {
 func (o *PhaseSheduler) auctionFinishAction(next consts.Phase) {
 
 	resp, e := DetermineBuyer(o.roomId)
-
 	if e != nil {
-		// エラー発生時
 		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameBuyNotify, utils.ResponseError(e))
-	} else if resp != nil {
-		// 落札者が決まった時の制御
+		return
+	}
 
-		game, e := db.GetGame(o.roomId)
-		if e != nil {
-			o.server.BroadcastToRoom("/", o.roomId, consts.FSGameBuyNotify, utils.ResponseError(e))
-			return
-		}
+	game, e := db.GetGame(o.roomId)
+	if e != nil {
+		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameBuyNotify, utils.ResponseError(e))
+		return
+	}
+	currentAuction := game.State.Auction
+	if resp != nil {
+		// 落札者が決まった時
 
 		// 落札者にカードを追加
 		buyer, e := AppendCard(o.roomId, resp.PlayerID, game.State.Auction)
@@ -190,10 +191,19 @@ func (o *PhaseSheduler) auctionFinishAction(next consts.Phase) {
 		}
 
 		resp := &responses.BuyNotifyResponse{
-			PlayerName: buyer.PlayerName,
-			PlayerID:   buyer.PlayerID,
-			Coin:       subtract}
+			PlayerName:  buyer.PlayerName,
+			Coin:        subtract,
+			AuctionCard: currentAuction,
+			IsPassAll:   false,
+		}
+		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameBuyNotify, utils.Response(resp))
+	} else {
+		// 全員passした時
 
+		resp := &responses.BuyNotifyResponse{
+			AuctionCard: currentAuction,
+			IsPassAll:   false,
+		}
 		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameBuyNotify, utils.Response(resp))
 	}
 
