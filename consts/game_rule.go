@@ -12,7 +12,11 @@ const (
 
 	// 数字の最小値(以上)、最小値(未満)
 	TermMin = 1
-	TermMax = 100
+	TermMax = 10
+
+	// ターゲットカードの最小値(以上)、最小値(未満)
+	TargetMin = 1
+	TargetMax = 20
 
 	// 符号
 	CodePlus   = "+"
@@ -23,5 +27,7 @@ const (
 
 var (
 	// 符号のslice
-	Codes = []string{CodePlus, CodeMinus, CodeTimes, CodeDivide}
+	// 乗算、除算カードを生成したい場合はコメントアウトを代わりに使う
+	//	Codes = []string{CodePlus, CodeMinus, CodeTimes, CodeDivide}
+	Codes = []string{CodePlus, CodeMinus}
 )
