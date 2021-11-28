@@ -53,10 +53,10 @@ func ShuffleAnswer(roomId string) (string, error) {
 	if e != nil {
 		return "", e
 	}
-	newAnswer := strconv.Itoa(rand.Intn(consts.TermMax-consts.TermMin) + consts.TermMin)
+	newAnswer := strconv.Itoa(rand.Intn(consts.TargetMax-consts.TargetMin) + consts.TargetMin)
 
 	game.State.Answer = newAnswer
-	game, e = db.SetGame(roomId, game)
+	_, e = db.SetGame(roomId, game)
 	if e != nil {
 		return "", e
 	}
