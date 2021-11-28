@@ -44,24 +44,25 @@ func (o *PhaseSheduler) Start() {
 }
 
 func (o *PhaseSheduler) monitor() {
+LOOP:
 	for {
 		time.Sleep(2 * time.Second)
 
 		game, e := db.GetGame(o.roomId)
 		if e != nil {
 			o.clean()
-			break
+			break LOOP
 		}
 		startTime, e := time.Parse(time.RFC3339, game.State.ChangedTime)
 		if e != nil {
 			o.clean()
-			break
+			break LOOP
 		}
 
 		phase, e := consts.ParsePhase(game.State.Phase)
 		if e != nil {
 			o.clean()
-			break
+			break LOOP
 		}
 
 		var threshold int
@@ -93,18 +94,18 @@ func (o *PhaseSheduler) monitor() {
 			next = consts.PhaseReady
 		case consts.PhaseEnd:
 			o.clean()
-			break
+			break LOOP
 		default:
 			// 呼び出されないケース
 			o.clean()
-			break
+			break LOOP
 		}
 
 		fmt.Printf("thredhold: %v, current: %v, next: %v\n", threshold, phase, next)
 
 		if startTime.Add(time.Duration(consts.TimeAutoEnd) * time.Second).Before(time.Now()) {
 			o.clean()
-			break
+			break LOOP
 		}
 
 		if threshold != consts.PhaseTimeValueInfinite {
@@ -202,7 +203,7 @@ func (o *PhaseSheduler) auctionFinishAction(next consts.Phase) {
 
 		resp := &responses.BuyNotifyResponse{
 			AuctionCard: currentAuction,
-			IsPassAll:   false,
+			IsPassAll:   true,
 		}
 		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameBuyNotify, utils.Response(resp))
 	}
