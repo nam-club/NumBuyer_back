@@ -10,7 +10,6 @@ type NextPhaseResponse struct {
 	Players []NextPhasePlayers `json:"players"`
 }
 type NextPhasePlayers struct {
-	PlayerID   string `json:"playerId"`
 	PlayerName string `json:"playerName"`
 	Coin       int    `json:"coin"`
 	CardNum    int    `json:"cardNum"`
@@ -24,7 +23,6 @@ func GenerateNextPhaseResponse(players []db.Player, phase consts.Phase) *NextPha
 	for _, v := range players {
 		ret.Players = append(ret.Players,
 			NextPhasePlayers{
-				PlayerID:   v.PlayerID,
 				PlayerName: v.PlayerName,
 				Coin:       v.Coin,
 				CardNum:    len(v.Cards),
