@@ -133,9 +133,9 @@ func (o *PhaseSheduler) phaseFinishAction(current, next consts.Phase) {
 	case consts.PhaseCalculate:
 		o.calculateFinishAction(next)
 	case consts.PhaseCalculateResult:
-		o.nextPhase(next)
-	case consts.PhaseNextTurn:
 		o.setUpNextTurn(next)
+	case consts.PhaseNextTurn:
+		o.nextPhase(next)
 	}
 }
 func (o *PhaseSheduler) nextPhase(next consts.Phase) error {
