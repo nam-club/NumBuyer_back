@@ -168,12 +168,12 @@ func FinishGame(roomId string) (*responses.FinishGameResponse, error) {
 	// Coin数でsort (降順）
 	sort.Slice(players, func(i, j int) bool { return players[i].Coin > players[j].Coin })
 
-	resp := &responses.FinishGameResponse{}
+	resp := &responses.FinishGameResponse{Players: make([]responses.FinishGamePlayers, len(players))}
 	for i, player := range players {
 		resp.Players[i].PlayerName = player.PlayerName
 		isSameRank := false // 同立順位か
 		if i > 0 {
-			if players[i-1].Coin == players[i-1].Coin &&
+			if players[i-1].Coin == players[i].Coin &&
 				players[i-1].AnswerAction.AnswerTime == players[i].AnswerAction.AnswerTime {
 				isSameRank = true
 			}
@@ -212,7 +212,7 @@ func generateRoomId() (string, error) {
 			// index が letters の長さに収まるように調整
 			result += string(letters[int(v)%len(letters)])
 		}
-		if b, _ := db.ExistsGame(result); b == false {
+		if b, _ := db.ExistsGame(result); !b {
 			return result, nil
 		}
 	}
