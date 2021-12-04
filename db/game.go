@@ -14,10 +14,11 @@ type Game struct {
 	State  State  `json:"state"`
 }
 type State struct {
-	Phase       string `json:"phase"`
-	Auction     string `json:"auction"`
-	Answer      string `json:"answer"`
-	ChangedTime string `json:"changedTime"`
+	Phase         string `json:"phase"`
+	Auction       string `json:"auction"`
+	AuctionMaxBid string `json:"auctionMaxBid"`
+	Answer        string `json:"answer"`
+	ChangedTime   string `json:"changedTime"`
 }
 
 var rg *RedisHandler
