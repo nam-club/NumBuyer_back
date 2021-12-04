@@ -108,11 +108,10 @@ LOOP:
 			break LOOP
 		}
 
-		if threshold != consts.PhaseTimeValueInfinite {
-			if startTime.Add(time.Duration(threshold) * time.Second).Before(time.Now()) {
-				o.phaseFinishAction(phase, next)
-			}
-		} else if ready, _ := IsAllPlayersReady(o.roomId); ready {
+		if ready, _ := IsAllPlayersReady(o.roomId); ready {
+			o.phaseFinishAction(phase, next)
+		} else if threshold != consts.PhaseTimeValueInfinite &&
+			startTime.Add(time.Duration(threshold)*time.Second).Before(time.Now()) {
 			o.phaseFinishAction(phase, next)
 		}
 	}
@@ -261,10 +260,6 @@ func (o *PhaseSheduler) setUpNextTurn(next consts.Phase) {
 	ClearCalculateAction(o.roomId)
 	AddCardToAllPlayers(o.roomId)
 	o.nextPhase(next)
-}
-
-func (o *PhaseSheduler) finishGame() {
-	FinishGame(o.roomId)
 }
 
 func (o *PhaseSheduler) clean() {
