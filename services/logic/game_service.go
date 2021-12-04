@@ -33,6 +33,11 @@ func CreateNewGame(owner string) (*responses.JoinResponse, error) {
 	if _, e = db.SetGame(id, g); e != nil {
 		return nil, e
 	}
+
+	if e = db.SetJoinableGame(id); e != nil {
+		return nil, e
+	}
+
 	player, e := CreateNewPlayer(owner, id, true)
 	if e != nil {
 		return nil, e
@@ -95,22 +100,24 @@ func NextPhase(nextPhase consts.Phase, roomId string) (*responses.NextPhaseRespo
 
 // ゲームを開始する
 func StartGame(roomId string) error {
+	joinable := CheckPhase(roomId, consts.PhaseWaiting)
+	if !joinable {
+		return orgerrors.NewValidationError("game status is not waiting")
+	}
 
-	// 全てのプレイヤーを準備完了にする
-	e := SetAllPlayersReady(roomId)
-	if e != nil {
+	if _, e := db.DeleteJoinableGame(roomId); e != nil {
+		return e
+	}
+
+	if e := SetAllPlayersReady(roomId); e != nil {
 		return orgerrors.NewInternalServerError("set players status ready failed.")
 	}
 
-	// 解答をシャッフル
-	_, e = ShuffleAnswer(roomId)
-	if e != nil {
+	if _, e := ShuffleAnswer(roomId); e != nil {
 		return orgerrors.NewInternalServerError("failed to shuffle answer.")
 	}
 
-	// オークションカードをシャッフル
-	_, e = ShuffleAuctionCard(roomId)
-	if e != nil {
+	if _, e := ShuffleAuctionCard(roomId); e != nil {
 		return orgerrors.NewInternalServerError("failed to shuffle auction.")
 	}
 
@@ -141,6 +148,14 @@ func IsMeetClearCondition(roomId string) (bool, error) {
 		}
 	}
 	return false, nil
+}
+
+func CheckPhase(roomId string, phase consts.Phase) bool {
+	game, err := db.GetGame(roomId)
+	if err != nil {
+		return false
+	}
+	return game.State.Phase == phase.Value
 }
 
 // ゲームを終了する（ゲーム終了条件のチェックは行わない）

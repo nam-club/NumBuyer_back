@@ -34,7 +34,7 @@ type AnswerAction struct {
 var rp *RedisHandler
 
 func init() {
-	rp = NewRedisHandler(1)
+	rp = NewRedisHandler( /*index=*/ 1)
 }
 
 // プレイヤー情報一覧を取得
