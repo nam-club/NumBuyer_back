@@ -53,7 +53,7 @@ func RoutesGame(server *socketio.Server) {
 			}
 		} else {
 			// ゲームに参加可能かチェック
-			joinable := logic.IsGameJoinable(roomId)
+			joinable := logic.CheckPhase(roomId, consts.PhaseWaiting)
 			if !joinable {
 				s.Emit(consts.FSGameJoin, orgerrors.NewValidationError("can not join game"))
 				return
@@ -79,6 +79,13 @@ func RoutesGame(server *socketio.Server) {
 		req := &requests.JoinFriendMatch{}
 		if e := valid(msg, req); e != nil {
 			s.Emit(consts.FSGameJoin, utils.ResponseError(e))
+			return
+		}
+
+		// ゲームに参加可能かチェック
+		joinable := logic.CheckPhase(req.RoomID, consts.PhaseWaiting)
+		if !joinable {
+			s.Emit(consts.FSGameJoin, orgerrors.NewValidationError("can not join game"))
 			return
 		}
 

@@ -100,6 +100,11 @@ func NextPhase(nextPhase consts.Phase, roomId string) (*responses.NextPhaseRespo
 
 // ゲームを開始する
 func StartGame(roomId string) error {
+	joinable := CheckPhase(roomId, consts.PhaseWaiting)
+	if !joinable {
+		return orgerrors.NewValidationError("game status is not waiting")
+	}
+
 	if _, e := db.DeleteJoinableGame(roomId); e != nil {
 		return e
 	}
@@ -145,12 +150,12 @@ func IsMeetClearCondition(roomId string) (bool, error) {
 	return false, nil
 }
 
-func IsGameJoinable(roomId string) bool {
+func CheckPhase(roomId string, phase consts.Phase) bool {
 	game, err := db.GetGame(roomId)
 	if err != nil {
 		return false
 	}
-	return game.State.Phase == consts.PhaseWaiting.Value
+	return game.State.Phase == phase.Value
 }
 
 // ゲームを終了する（ゲーム終了条件のチェックは行わない）

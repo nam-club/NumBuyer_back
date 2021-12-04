@@ -11,6 +11,9 @@ import (
 
 // 入札する
 func Bid(roomId, playerId string, bidAction consts.BidAction, coin int) (*responses.BidResponse, error) {
+	if !CheckPhase(roomId, consts.PhaseAuction) {
+		return nil, orgerrors.NewValidationError("not auction phase")
+	}
 
 	player, e := db.GetPlayer(roomId, playerId)
 	if e != nil {

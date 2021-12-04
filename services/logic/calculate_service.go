@@ -65,6 +65,10 @@ func ShuffleAnswer(roomId string) (string, error) {
 }
 
 func CalculateSubmits(roomId, playerId string, action consts.CalculateAction, submits []string) (*responses.CalculateResponse, error) {
+	if !CheckPhase(roomId, consts.PhaseCalculate) {
+		return nil, orgerrors.NewValidationError("not calculate phase")
+	}
+
 	game, e := db.GetGame(roomId)
 	if e != nil {
 		return nil, e
