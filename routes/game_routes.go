@@ -52,6 +52,13 @@ func RoutesGame(server *socketio.Server) {
 				return
 			}
 		} else {
+			// ゲームに参加可能かチェック
+			joinable := logic.IsGameJoinable(roomId)
+			if !joinable {
+				s.Emit(consts.FSGameJoin, orgerrors.NewValidationError("can not join game"))
+				return
+			}
+
 			// 部屋が見つかった場合はその部屋に参加
 			player, e := logic.CreateNewPlayer(req.PlayerName, roomId, false)
 			if e != nil {

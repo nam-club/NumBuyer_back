@@ -3,7 +3,6 @@ package db
 
 import (
 	"encoding/json"
-	"nam-club/NumBuyer_back/models/orgerrors"
 	"time"
 	"unsafe"
 
@@ -24,7 +23,7 @@ type State struct {
 var rg *RedisHandler
 
 func init() {
-	rg = NewRedisHandler(0)
+	rg = NewRedisHandler( /*index=*/ 0)
 }
 
 // ゲーム情報をセット
@@ -63,24 +62,6 @@ func GetGame(id string) (*Game, error) {
 // ゲーム情報を削除
 func DeleteGame(id string) (int, error) {
 	return rg.Delete(id)
-}
-
-//ランダムな部屋IDを取得
-func GetRandomRoomId() (string, error) {
-	l, e := rg.DBSize()
-	if e != nil {
-		return "", e
-	}
-	if l < 1 {
-		return "", orgerrors.NewGameNotFoundError("")
-	}
-
-	r, e := rg.RandomKey()
-	if e != nil {
-		return "", e
-	}
-
-	return r, nil
 }
 
 // ゲームが存在するかをチェック
