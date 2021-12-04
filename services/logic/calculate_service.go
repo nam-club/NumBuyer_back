@@ -79,6 +79,10 @@ func CalculateSubmits(roomId, playerId string, action consts.CalculateAction, su
 		return nil, e
 	}
 
+	if player.AnswerAction.Correct {
+		return nil, orgerrors.NewValidationError("player already correctly answered")
+	}
+
 	if action == consts.CalculateActionPass {
 		// actionがpassの場合ステータスをpassに更新してリターン
 		player.AnswerAction.Action = action.String()
