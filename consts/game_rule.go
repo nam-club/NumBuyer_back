@@ -5,7 +5,7 @@ const (
 	InitialCardsNum = 5
 
 	// コイン数のクリア条件
-	CoinClearNum = 3000
+	CoinClearNum = 200
 
 	// オークンションカードで符号が出る確率（パーセント）
 	AuctionCodeProbability = 33

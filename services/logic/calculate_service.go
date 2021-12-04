@@ -76,8 +76,9 @@ func CalculateSubmits(roomId, playerId string, action consts.CalculateAction, su
 	}
 
 	if action == consts.CalculateActionPass {
-		// actionがpassの場合ステータスをpassにだけ更新してリターン
+		// actionがpassの場合ステータスをpassに更新してリターン
 		player.AnswerAction.Action = action.String()
+		player.Ready = true
 		player, e = db.SetPlayer(roomId, player)
 		if e != nil {
 			return nil, e

@@ -3,6 +3,7 @@ package logic
 import (
 	"nam-club/NumBuyer_back/consts"
 	"nam-club/NumBuyer_back/db"
+	"nam-club/NumBuyer_back/models/orgerrors"
 	"nam-club/NumBuyer_back/models/responses"
 	"nam-club/NumBuyer_back/utils"
 	"strconv"
@@ -15,10 +16,15 @@ func Bid(roomId, playerId string, bidAction consts.BidAction, coin int) (*respon
 	if e != nil {
 		return nil, e
 	}
+	if player.BuyAction.Value == consts.BidActionPass {
+		return nil, orgerrors.NewValidationError("player already passed")
+	}
 
 	player.BuyAction.Action = bidAction.String()
 	if bidAction == consts.BidActionBid {
 		player.BuyAction.Value = strconv.Itoa(coin)
+	} else if bidAction == consts.BidActionPass {
+		player.Ready = true
 	}
 	player, e = db.SetPlayer(roomId, player)
 	if e != nil {

@@ -9,6 +9,7 @@ import (
 	"nam-club/NumBuyer_back/models/responses"
 	"nam-club/NumBuyer_back/services/logic"
 	"nam-club/NumBuyer_back/utils"
+	"strconv"
 
 	socketio "github.com/googollee/go-socket.io"
 	"gopkg.in/go-playground/validator.v9"
@@ -139,7 +140,7 @@ func RoutesGame(server *socketio.Server) {
 			return
 		}
 
-		resp := &responses.GameStartResponse{RoomID: req.RoomID}
+		resp := &responses.GameStartResponse{RoomID: req.RoomID, GoalCoin: strconv.Itoa(consts.CoinClearNum)}
 		server.BroadcastToRoom("/", s.Rooms()[0], consts.FSGameStart, utils.Response(resp))
 	})
 
