@@ -62,7 +62,7 @@ func main() {
 		log.Println("closed", msg)
 	})
 
-	routes.RoutesGame(server)
+	routes.RoutesGame(routes.NewRouteBase(server))
 
 	go func() {
 		if err := server.Serve(); err != nil {
