@@ -2,10 +2,11 @@ package routes
 
 import (
 	"encoding/json"
-	"fmt"
 	"nam-club/NumBuyer_back/models/orgerrors"
+	"nam-club/NumBuyer_back/utils"
 
 	socketio "github.com/googollee/go-socket.io"
+	"go.uber.org/zap"
 	"gopkg.in/go-playground/validator.v9"
 )
 
@@ -19,10 +20,8 @@ func NewRouteBase(server *socketio.Server) *RouteBase {
 
 func (o *RouteBase) path(path string, f func(socketio.Conn, string)) {
 	wrapFunc := func(s socketio.Conn, msg string) {
-		fmt.Printf("[START REQUEST]%v\n", path)
-		fmt.Printf("msg=%v\n", msg)
+		utils.Log.Debug("request start", zap.String("msg", msg))
 		f(s, msg)
-		fmt.Printf("[END REQUEST]%v\n", path)
 	}
 	o.server.OnEvent("/", path, wrapFunc)
 }
