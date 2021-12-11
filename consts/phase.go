@@ -10,7 +10,7 @@ type Phase struct {
 var (
 	PhaseBeforeStart     = Phase{"BEFORE_START", PhaseTimeValueInfinite} // DEPRECATED
 	PhaseWaiting         = Phase{"WAITING", PhaseTimeValueInfinite}
-	PhaseReady           = Phase{"READY", 14}
+	PhaseReady           = Phase{"READY", 11}
 	PhaseAuction         = Phase{"AUCTION", 30}
 	PhaseAuctionResult   = Phase{"AUCTION_RESULT", 5}
 	PhaseCalculate       = Phase{"CALCULATE", 20}

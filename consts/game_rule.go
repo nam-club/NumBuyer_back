@@ -12,7 +12,7 @@ const (
 
 	// 数字の最小値(以上)、最小値(未満)
 	TermMin = 1
-	TermMax = 10
+	TermMax = 20
 
 	// ターゲットカードの最小値(以上)、最小値(未満)
 	TargetMin = 1
