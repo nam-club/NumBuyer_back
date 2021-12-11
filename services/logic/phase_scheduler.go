@@ -53,7 +53,7 @@ LOOP:
 			o.clean()
 			break LOOP
 		}
-		startTime, e := time.Parse(time.RFC3339, game.State.ChangedTime)
+		startTime, e := time.Parse(time.RFC3339, game.State.PhaseChangedTime)
 		if e != nil {
 			o.clean()
 			break LOOP

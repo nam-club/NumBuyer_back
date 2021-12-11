@@ -23,10 +23,11 @@ func CreateNewGame(owner string) (*responses.JoinResponse, error) {
 	g := &db.Game{
 		RoomID: id,
 		State: db.State{
-			Phase:       consts.PhaseWaiting.Value,
-			Auction:     "",
-			Answer:      "",
-			ChangedTime: time.Now().Format(time.RFC3339),
+			Phase:            consts.PhaseWaiting.Value,
+			Auction:          "",
+			Answer:           "",
+			PhaseChangedTime: time.Now().Format(time.RFC3339),
+			ChangedTime:      time.Now().Format(time.RFC3339),
 		},
 	}
 
