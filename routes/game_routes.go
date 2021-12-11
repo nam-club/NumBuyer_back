@@ -8,7 +8,6 @@ import (
 	"nam-club/NumBuyer_back/models/responses"
 	"nam-club/NumBuyer_back/services/logic"
 	"nam-club/NumBuyer_back/utils"
-	"strconv"
 
 	socketio "github.com/googollee/go-socket.io"
 )
@@ -152,8 +151,8 @@ func RoutesGame(r *RouteBase) {
 			return
 		}
 
-		resp := &responses.GameStartResponse{RoomID: req.RoomID, GoalCoin: strconv.Itoa(consts.CoinClearNum)}
-		r.server.BroadcastToRoom("/", s.Rooms()[0], consts.FSGameStart, utils.Response(resp))
+		resp := &responses.GameStartResponse{RoomID: req.RoomID, GoalCoin: consts.CoinClearNum}
+		server.BroadcastToRoom("/", s.Rooms()[0], consts.FSGameStart, utils.Response(resp))
 	})
 
 	r.path(consts.TSGameNextTurn, func(s socketio.Conn, msg string) {
