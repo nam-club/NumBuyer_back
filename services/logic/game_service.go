@@ -84,6 +84,7 @@ func NextPhase(nextPhase consts.Phase, roomId string) (*responses.NextPhaseRespo
 		return nil, orgerrors.NewGameNotFoundError("")
 	}
 	game.State.Phase = nextPhase.Value
+	game.State.PhaseChangedTime = time.Now().Format(time.RFC3339)
 	db.SetGame(roomId, game)
 
 	players, e := db.GetPlayers(roomId)
