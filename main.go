@@ -1,13 +1,16 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"nam-club/NumBuyer_back/config"
 	"nam-club/NumBuyer_back/routes"
+	"nam-club/NumBuyer_back/utils"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 
 	socketio "github.com/googollee/go-socket.io"
 	"github.com/googollee/go-socket.io/engineio"
@@ -43,7 +46,7 @@ func main() {
 	server.OnConnect("/", func(s socketio.Conn) error {
 		s.SetContext("")
 		s.LeaveAll()
-		log.Println("connected:", s.ID())
+		utils.Log.Debug("connected", zap.String("id", s.ID()))
 		return nil
 	})
 
@@ -55,14 +58,14 @@ func main() {
 	})
 
 	server.OnError("/", func(s socketio.Conn, e error) {
-		log.Println("meet error:", e)
+		utils.Log.Info("meet error", zap.String("error", fmt.Sprintf("%v", e)))
 	})
 
 	server.OnDisconnect("/", func(s socketio.Conn, msg string) {
-		log.Println("closed", msg)
+		utils.Log.Debug("closed", zap.String("msg", msg))
 	})
 
-	routes.RoutesGame(server)
+	routes.RoutesGame(routes.NewRouteBase(server))
 
 	go func() {
 		if err := server.Serve(); err != nil {

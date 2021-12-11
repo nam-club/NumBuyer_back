@@ -21,15 +21,16 @@ func ResponseError(err error) string {
 	switch e := errUnwrap.(type) {
 	case *orgerrors.ValidationError, *orgerrors.GameNotFoundError:
 		retJson, _ = json.Marshal(e)
-		break
 	case *orgerrors.InternalServerError:
+		// stacktraceを吐きたいためzapでないloggerを使用
+		// TODO zapでstacktrace吐けそうだったらそっちを使う
 		log.Printf("[ERROR] %+v\n", e)
 		retJson, _ = json.Marshal(e)
-		break
 	default:
+		// stacktraceを吐きたいためzapでないloggerを使用
+		// TODO zapでstacktrace吐けそうだったらそっちを使う
 		log.Printf("[ERROR] %+v\n", err)
 		retJson, _ = json.Marshal(errors.Unwrap(orgerrors.NewInternalServerError("")))
-		break
 	}
 
 	return string(retJson)

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	socketio "github.com/googollee/go-socket.io"
+	"go.uber.org/zap"
 )
 
 type PhaseSheduler struct {
@@ -101,8 +102,6 @@ LOOP:
 			break LOOP
 		}
 
-		fmt.Printf("thredhold: %v, current: %v, next: %v\n", threshold, phase, next)
-
 		if startTime.Add(time.Duration(consts.TimeAutoEnd) * time.Second).Before(time.Now()) {
 			o.clean()
 			break LOOP
@@ -118,6 +117,10 @@ LOOP:
 }
 
 func (o *PhaseSheduler) phaseFinishAction(current, next consts.Phase) {
+	utils.Log.Debug("phase finishing",
+		zap.String("roomId", o.roomId),
+		zap.String("current", fmt.Sprintf("%v", current)),
+		zap.String("next", fmt.Sprintf("%v", next)))
 
 	switch current {
 	case consts.PhaseBeforeStart:
@@ -142,11 +145,11 @@ func (o *PhaseSheduler) nextPhase(next consts.Phase) error {
 
 	resp, e := NextPhase(next, o.roomId)
 	if e != nil {
-		fmt.Printf("error broadcast: %v\n", next)
+		utils.Log.Debug("error broadcast", zap.String("roomId", o.roomId), zap.String("next", fmt.Sprintf("%v", next)))
 		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameUpdateState, utils.ResponseError(e))
 		return e
 	}
-	fmt.Printf("broadcast: %v\n", next)
+	utils.Log.Debug("broadcast", zap.String("roomId", o.roomId), zap.String("next", fmt.Sprintf("%v", next)))
 	o.server.BroadcastToRoom("/", o.roomId, consts.FSGameUpdateState, utils.Response(resp))
 	return nil
 }

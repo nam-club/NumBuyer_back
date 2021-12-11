@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"encoding/json"
 	"errors"
 	"nam-club/NumBuyer_back/consts"
 	"nam-club/NumBuyer_back/models/orgerrors"
@@ -11,14 +10,13 @@ import (
 	"nam-club/NumBuyer_back/utils"
 
 	socketio "github.com/googollee/go-socket.io"
-	"gopkg.in/go-playground/validator.v9"
 )
 
-func RoutesGame(server *socketio.Server) {
+func RoutesGame(r *RouteBase) {
 
-	server.OnEvent("/", consts.TSJoinQuickMatch, func(s socketio.Conn, msg string) {
+	r.path(consts.TSJoinQuickMatch, func(s socketio.Conn, msg string) {
 		req := &requests.JoinQuickMatch{}
-		if e := valid(msg, req); e != nil {
+		if e := Valid(msg, req); e != nil {
 			s.Emit(consts.FSGameJoin, utils.ResponseError(e))
 			return
 		}
@@ -39,7 +37,7 @@ func RoutesGame(server *socketio.Server) {
 					s.Emit(consts.FSGameJoin, utils.ResponseError(e))
 					return
 				}
-				logic.NewPhaseScheduler(resp.RoomID, server).Start()
+				logic.NewPhaseScheduler(resp.RoomID, r.server).Start()
 
 				s.LeaveAll()
 				s.Join(resp.RoomID)
@@ -74,9 +72,9 @@ func RoutesGame(server *socketio.Server) {
 		}
 	})
 
-	server.OnEvent("/", consts.TSJoinFriendMatch, func(s socketio.Conn, msg string) {
+	r.path(consts.TSJoinFriendMatch, func(s socketio.Conn, msg string) {
 		req := &requests.JoinFriendMatch{}
-		if e := valid(msg, req); e != nil {
+		if e := Valid(msg, req); e != nil {
 			s.Emit(consts.FSGameJoin, utils.ResponseError(e))
 			return
 		}
@@ -102,9 +100,9 @@ func RoutesGame(server *socketio.Server) {
 		s.Emit(consts.FSGameJoin, utils.Response(resp))
 	})
 
-	server.OnEvent("/", consts.TSCreateMatch, func(s socketio.Conn, msg string) {
+	r.path(consts.TSCreateMatch, func(s socketio.Conn, msg string) {
 		req := &requests.CreateMatch{}
-		if e := valid(msg, req); e != nil {
+		if e := Valid(msg, req); e != nil {
 			s.Emit(consts.FSGameJoin, utils.ResponseError(e))
 			return
 		}
@@ -120,16 +118,16 @@ func RoutesGame(server *socketio.Server) {
 			s.Emit(consts.FSGameJoin, utils.ResponseError(e))
 			return
 		}
-		logic.NewPhaseScheduler(resp.RoomID, server).Start()
+		logic.NewPhaseScheduler(resp.RoomID, r.server).Start()
 
 		s.LeaveAll()
 		s.Join(resp.RoomID)
 		s.Emit(consts.FSGameJoin, utils.Response(resp))
 	})
 
-	server.OnEvent("/", consts.TSGamePlayersInfo, func(s socketio.Conn, msg string) {
+	r.path(consts.TSGamePlayersInfo, func(s socketio.Conn, msg string) {
 		req := &requests.GamePlayerInfo{}
-		if e := valid(msg, req); e != nil {
+		if e := Valid(msg, req); e != nil {
 			s.Emit(consts.FSGamePlayersInfo, utils.ResponseError(e))
 			return
 		}
@@ -138,12 +136,12 @@ func RoutesGame(server *socketio.Server) {
 			s.Emit(consts.FSGamePlayersInfo, utils.ResponseError(e))
 			return
 		}
-		server.BroadcastToRoom("/", s.Rooms()[0], consts.FSGamePlayersInfo, utils.Response(resp))
+		r.server.BroadcastToRoom("/", s.Rooms()[0], consts.FSGamePlayersInfo, utils.Response(resp))
 	})
 
-	server.OnEvent("/", consts.TSGameStart, func(s socketio.Conn, msg string) {
+	r.path(consts.TSGameStart, func(s socketio.Conn, msg string) {
 		req := &requests.GameStart{}
-		if e := valid(msg, req); e != nil {
+		if e := Valid(msg, req); e != nil {
 			s.Emit(consts.FSGameStart, utils.ResponseError(e))
 			return
 		}
@@ -154,12 +152,12 @@ func RoutesGame(server *socketio.Server) {
 		}
 
 		resp := &responses.GameStartResponse{RoomID: req.RoomID, GoalCoin: consts.CoinClearNum}
-		server.BroadcastToRoom("/", s.Rooms()[0], consts.FSGameStart, utils.Response(resp))
+		r.server.BroadcastToRoom("/", s.Rooms()[0], consts.FSGameStart, utils.Response(resp))
 	})
 
-	server.OnEvent("/", consts.TSGameNextTurn, func(s socketio.Conn, msg string) {
+	r.path(consts.TSGameNextTurn, func(s socketio.Conn, msg string) {
 		req := &requests.GameNextTurn{}
-		if e := valid(msg, req); e != nil {
+		if e := Valid(msg, req); e != nil {
 			s.Emit(consts.FSGameNextTurn, utils.ResponseError(e))
 			return
 		}
@@ -171,9 +169,9 @@ func RoutesGame(server *socketio.Server) {
 		s.Emit(consts.FSGameNextTurn, utils.Response(resp))
 	})
 
-	server.OnEvent("/", consts.TSGameBid, func(s socketio.Conn, msg string) {
+	r.path(consts.TSGameBid, func(s socketio.Conn, msg string) {
 		req := &requests.GameBid{}
-		if e := valid(msg, req); e != nil {
+		if e := Valid(msg, req); e != nil {
 			s.Emit(consts.FSGameBid, utils.ResponseError(e))
 			return
 		}
@@ -191,14 +189,14 @@ func RoutesGame(server *socketio.Server) {
 
 		// Bid時のみレスポンスを返却
 		if bidAction == consts.BidActionBid {
-			server.BroadcastToRoom("/", s.Rooms()[0], consts.FSGameBid, utils.Response(resp))
+			r.server.BroadcastToRoom("/", s.Rooms()[0], consts.FSGameBid, utils.Response(resp))
 			return
 		}
 	})
 
-	server.OnEvent("/", consts.TSGameBuy, func(s socketio.Conn, msg string) {
+	r.path(consts.TSGameBuy, func(s socketio.Conn, msg string) {
 		req := &requests.GameBuy{}
-		if e := valid(msg, req); e != nil {
+		if e := Valid(msg, req); e != nil {
 			s.Emit(consts.FSGameBuyUpdate, utils.ResponseError(e))
 			return
 		}
@@ -210,9 +208,9 @@ func RoutesGame(server *socketio.Server) {
 		s.Emit(consts.FSGameBuyUpdate, utils.Response(resp))
 	})
 
-	server.OnEvent("/", consts.TSGameCalculate, func(s socketio.Conn, msg string) {
+	r.path(consts.TSGameCalculate, func(s socketio.Conn, msg string) {
 		req := &requests.GameCalculate{}
-		if e := valid(msg, req); e != nil {
+		if e := Valid(msg, req); e != nil {
 			s.Emit(consts.FSGameCalculateResult, utils.ResponseError(e))
 			return
 		}
@@ -236,18 +234,4 @@ func RoutesGame(server *socketio.Server) {
 		}
 
 	})
-}
-
-// リクエストメッセージの構造体への変換 & バリデーション
-func valid(reqBody string, result interface{}) error {
-	if e := json.Unmarshal([]byte(reqBody), result); e != nil {
-		return orgerrors.NewValidationError(e.Error())
-	}
-
-	v := validator.New()
-	if e := v.Struct(result); e != nil {
-		return orgerrors.NewValidationError(e.Error())
-	}
-
-	return nil
 }
