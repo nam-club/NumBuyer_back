@@ -96,8 +96,8 @@ func ClearAuction(roomId string) error {
 	}
 
 	game.State.Auction = ""
-	game, e = db.SetGame(roomId, game)
-	if e != nil {
+	game.State.AuctionMaxBid = ""
+	if _, e = db.SetGame(roomId, game); e != nil {
 		return e
 	}
 
