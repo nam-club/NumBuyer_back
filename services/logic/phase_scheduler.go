@@ -47,7 +47,7 @@ func (o *PhaseSheduler) Start() {
 func (o *PhaseSheduler) monitor() {
 LOOP:
 	for {
-		time.Sleep(2 * time.Second)
+		time.Sleep(1 * time.Second)
 
 		game, e := db.GetGame(o.roomId)
 		if e != nil {
