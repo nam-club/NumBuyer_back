@@ -69,9 +69,6 @@ LOOP:
 		var threshold int
 		var next consts.Phase
 		switch phase {
-		case consts.PhaseBeforeStart:
-			threshold = consts.PhaseBeforeStart.Duration
-			next = consts.PhaseWaiting
 		case consts.PhaseWaiting:
 			threshold = consts.PhaseWaiting.Duration
 			next = consts.PhaseReady
@@ -123,8 +120,6 @@ func (o *PhaseSheduler) phaseFinishAction(current, next consts.Phase) {
 		zap.String("next", fmt.Sprintf("%v", next)))
 
 	switch current {
-	case consts.PhaseBeforeStart:
-		o.nextPhase(next)
 	case consts.PhaseWaiting:
 		o.nextPhase(next)
 	case consts.PhaseReady:

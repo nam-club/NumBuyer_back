@@ -8,7 +8,6 @@ type Phase struct {
 }
 
 var (
-	PhaseBeforeStart     = Phase{"BEFORE_START", PhaseTimeValueInfinite} // DEPRECATED
 	PhaseWaiting         = Phase{"WAITING", PhaseTimeValueInfinite}
 	PhaseReady           = Phase{"READY", 11}
 	PhaseAuction         = Phase{"AUCTION", 30}
@@ -29,8 +28,6 @@ const (
 
 func ParsePhase(s string) (v Phase, err error) {
 	switch s {
-	case PhaseBeforeStart.Value:
-		return PhaseBeforeStart, nil
 	case PhaseWaiting.Value:
 		return PhaseWaiting, nil
 	case PhaseReady.Value:
@@ -48,6 +45,6 @@ func ParsePhase(s string) (v Phase, err error) {
 	case PhaseEnd.Value:
 		return PhaseEnd, nil
 	default:
-		return PhaseBeforeStart, orgerrors.NewInternalServerError("invalid phase type")
+		return PhaseWaiting, orgerrors.NewInternalServerError("invalid phase type")
 	}
 }
