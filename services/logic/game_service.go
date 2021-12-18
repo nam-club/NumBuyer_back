@@ -152,13 +152,13 @@ func IsMeetClearCondition(roomId string) (bool, error) {
 	return false, nil
 }
 
-// 計算正答者存在フラグをセットする
-func SetIsExistsCorrectorFlag(roomId string, isExistsCorrector bool) error {
+// ターゲット表示フェーズスキップフラグをセットする
+func SetSkipShowTarget(roomId string, skip bool) error {
 	game, err := db.GetGame(roomId)
 	if err != nil {
 		return err
 	}
-	game.State.IsExistsCorrector = isExistsCorrector
+	game.State.SkipShowTarget = skip
 	if _, err := db.SetGame(roomId, game); err != nil {
 		return err
 	}

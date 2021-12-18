@@ -80,7 +80,7 @@ LOOP:
 		} else if phase.Duration != consts.PhaseTimeValueInfinite &&
 			startTime.Add(time.Duration(timeLimit)*time.Second).Before(time.Now()) {
 			// 前ターンの計算フェーズで正答者がいなかった場合、ターゲットカード更新フェーズをスキップ
-			if phase == consts.PhaseGiveCards && !game.State.IsExistsCorrector {
+			if phase == consts.PhaseGiveCards && game.State.SkipShowTarget {
 				nextPhase = consts.PhaseShowAuction
 			}
 			o.phaseFinishAction(phase, nextPhase)
@@ -220,10 +220,11 @@ func (o *PhaseSheduler) calculateFinishAction(next consts.Phase) {
 		for _, corrector := range correctors {
 			resp.AnsPlayers = append(resp.AnsPlayers, corrector.PlayerName)
 		}
+		existsCorrector := len(resp.AnsPlayers) > 0
+		resp.ExistsCorrect = existsCorrector
 
-		isExistsCorrector := len(resp.AnsPlayers) > 0
 		// 正答者が一人でもいれば解答をシャッフル
-		if isExistsCorrector {
+		if existsCorrector {
 			_, e := ShuffleAnswer(o.roomId)
 			if e != nil {
 				o.server.BroadcastToRoom("/", o.roomId, consts.FSGameCorrectPlayers, utils.ResponseError(e))
@@ -231,8 +232,9 @@ func (o *PhaseSheduler) calculateFinishAction(next consts.Phase) {
 			}
 		}
 
-		// 正答者有無フラグをセット
-		if e = SetIsExistsCorrectorFlag(o.roomId, isExistsCorrector); e != nil {
+		// ターゲット表示フェーズをスキップするフラグをセット
+		// 正答者が一人もいなければスキップ
+		if e = SetSkipShowTarget(o.roomId, !existsCorrector); e != nil {
 			o.server.BroadcastToRoom("/", o.roomId, consts.FSGameBuyNotify, utils.ResponseError(e))
 			return
 		}
