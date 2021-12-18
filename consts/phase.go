@@ -40,7 +40,7 @@ func init() {
 	PhaseAuctionResult = Phase{"AUCTION_RESULT", 5, &PhaseCalculate}
 	PhaseCalculate = Phase{"CALCULATE", 20, &PhaseCalculateResult}
 	PhaseCalculateResult = Phase{"CALCULATE_RESULT", 5, &PhaseNextTurn}
-	PhaseNextTurn = Phase{"NEXT_TURN", 2, &PhaseWaiting}
+	PhaseNextTurn = Phase{"NEXT_TURN", 2, &PhaseReady}
 	PhaseEnd = Phase{"END", PhaseTimeValueInfinite, nil}
 }
 func ParsePhase(s string) (v Phase, err error) {
