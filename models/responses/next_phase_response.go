@@ -5,11 +5,11 @@ import (
 	"nam-club/NumBuyer_back/db"
 )
 
-type NextPhaseResponse struct {
-	Phase   string             `json:"phase"`
-	Players []NextPhasePlayers `json:"players"`
+type UpdateStateResponse struct {
+	Phase   string                       `json:"phase"`
+	Players []UpdateStateResponsePlayers `json:"players"`
 }
-type NextPhasePlayers struct {
+type UpdateStateResponsePlayers struct {
 	PlayerName string `json:"playerName"`
 	Coin       int    `json:"coin"`
 	CardNum    int    `json:"cardNum"`
@@ -17,12 +17,12 @@ type NextPhasePlayers struct {
 
 // レスポンスを生成
 // DB接続、分岐などのビジネスロジックは書かないこと
-func GenerateNextPhaseResponse(players []db.Player, phase consts.Phase) *NextPhaseResponse {
-	ret := &NextPhaseResponse{}
+func GenerateUpdateStateResponse(players []db.Player, phase consts.Phase) *UpdateStateResponse {
+	ret := &UpdateStateResponse{}
 	ret.Phase = phase.Value
 	for _, v := range players {
 		ret.Players = append(ret.Players,
-			NextPhasePlayers{
+			UpdateStateResponsePlayers{
 				PlayerName: v.PlayerName,
 				Coin:       v.Coin,
 				CardNum:    len(v.Cards),

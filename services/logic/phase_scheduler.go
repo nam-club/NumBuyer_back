@@ -201,13 +201,22 @@ func (o *PhaseSheduler) auctionFinishAction(next consts.Phase) {
 func (o *PhaseSheduler) calculateFinishAction(next consts.Phase) {
 
 	if finished, _ := IsMeetClearCondition(o.roomId); finished {
+		// 最新の状態を返却
+		if state, e := GenerateUpdateState(next, o.roomId); e != nil {
+			o.server.BroadcastToRoom("/", o.roomId, consts.FSGameUpdateState, utils.ResponseError(e))
+			return
+		} else {
+			o.server.BroadcastToRoom("/", o.roomId, consts.FSGameUpdateState, utils.Response(state))
+		}
+
 		// ゲーム終了処理
-		resp, e := FinishGame(o.roomId)
-		if e != nil {
+		if resp, e := FinishGame(o.roomId); e != nil {
 			o.server.BroadcastToRoom("/", o.roomId, consts.FSGameFinishGame, utils.ResponseError(e))
 			return
+		} else {
+			o.server.BroadcastToRoom("/", o.roomId, consts.FSGameFinishGame, utils.Response(resp))
 		}
-		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameFinishGame, utils.Response(resp))
+
 	} else {
 		// 正解者一覧を抽出し返却
 		correctors, e := PickAllCorrector(o.roomId)

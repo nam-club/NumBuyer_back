@@ -79,7 +79,7 @@ func FetchNextTurnInfo(roomId, playerId string) (*responses.NextTurnResponse, er
 }
 
 // 次フェーズに移行する
-func NextPhase(nextPhase consts.Phase, roomId string) (*responses.NextPhaseResponse, error) {
+func NextPhase(nextPhase consts.Phase, roomId string) (*responses.UpdateStateResponse, error) {
 	game, err := db.GetGame(roomId)
 	if err != nil {
 		return nil, orgerrors.NewGameNotFoundError("")
@@ -97,7 +97,15 @@ func NextPhase(nextPhase consts.Phase, roomId string) (*responses.NextPhaseRespo
 		db.SetPlayer(roomId, &p)
 	}
 
-	return responses.GenerateNextPhaseResponse(players, nextPhase), nil
+	return responses.GenerateUpdateStateResponse(players, nextPhase), nil
+}
+
+func GenerateUpdateState(nextPhase consts.Phase, roomId string) (*responses.UpdateStateResponse, error) {
+	players, e := db.GetPlayers(roomId)
+	if e != nil {
+		return nil, e
+	}
+	return responses.GenerateUpdateStateResponse(players, nextPhase), nil
 }
 
 // ゲームを開始する
