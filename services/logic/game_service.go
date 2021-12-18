@@ -152,6 +152,20 @@ func IsMeetClearCondition(roomId string) (bool, error) {
 	return false, nil
 }
 
+// 計算正答者存在フラグをセットする
+func SetIsExistsCorrectorFlag(roomId string, isExistsCorrector bool) error {
+	game, err := db.GetGame(roomId)
+	if err != nil {
+		return err
+	}
+	game.State.IsExistsCorrector = isExistsCorrector
+	if _, err := db.SetGame(roomId, game); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func CheckPhase(roomId string, phase consts.Phase) bool {
 	game, err := db.GetGame(roomId)
 	if err != nil {

@@ -65,17 +65,26 @@ LOOP:
 			o.clean()
 			break LOOP
 		}
+		timeLimit := phase.Duration
+		nextPhase := *phase.NextPhase
 
+		// フェーズの更新が指定時間以上ない場合強制終了
 		if startTime.Add(time.Duration(consts.TimeAutoEnd) * time.Second).Before(time.Now()) {
 			o.clean()
 			break LOOP
 		}
 
+		// 全プレイヤーが準備済み または 指定時間を経過した場合、次フェーズに移動する
 		if ready, _ := IsAllPlayersReady(o.roomId); ready {
-			o.phaseFinishAction(phase, *phase.NextPhase)
+			o.phaseFinishAction(phase, nextPhase)
 		} else if phase.Duration != consts.PhaseTimeValueInfinite &&
-			startTime.Add(time.Duration(phase.Duration)*time.Second).Before(time.Now()) {
-			o.phaseFinishAction(phase, *phase.NextPhase)
+			startTime.Add(time.Duration(timeLimit)*time.Second).Before(time.Now()) {
+			// 前ターンの計算フェーズで正答者がいなかった場合、ターゲットカード更新フェーズをスキップ
+			if phase == consts.PhaseGiveCards && !game.State.IsExistsCorrector {
+				nextPhase = consts.PhaseShowAuction
+			}
+			o.phaseFinishAction(phase, nextPhase)
+
 		}
 	}
 }
@@ -212,13 +221,20 @@ func (o *PhaseSheduler) calculateFinishAction(next consts.Phase) {
 			resp.AnsPlayers = append(resp.AnsPlayers, corrector.PlayerName)
 		}
 
+		isExistsCorrector := len(resp.AnsPlayers) > 0
 		// 正答者が一人でもいれば解答をシャッフル
-		if len(resp.AnsPlayers) > 0 {
+		if isExistsCorrector {
 			_, e := ShuffleAnswer(o.roomId)
 			if e != nil {
 				o.server.BroadcastToRoom("/", o.roomId, consts.FSGameCorrectPlayers, utils.ResponseError(e))
 				return
 			}
+		}
+
+		// 正答者有無フラグをセット
+		if e = SetIsExistsCorrectorFlag(o.roomId, isExistsCorrector); e != nil {
+			o.server.BroadcastToRoom("/", o.roomId, consts.FSGameBuyNotify, utils.ResponseError(e))
+			return
 		}
 
 		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameCorrectPlayers, utils.Response(resp))
