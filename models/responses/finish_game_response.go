@@ -6,4 +6,5 @@ type FinishGameResponse struct {
 type FinishGamePlayers struct {
 	PlayerName string `json:"playerName"`
 	Rank       int    `json:"rank"`
+	Coin       int    `json:"coin"`
 }

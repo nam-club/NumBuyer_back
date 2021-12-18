@@ -210,6 +210,7 @@ func FinishGame(roomId string) (*responses.FinishGameResponse, error) {
 	resp := &responses.FinishGameResponse{Players: make([]responses.FinishGamePlayers, len(players))}
 	for i, player := range players {
 		resp.Players[i].PlayerName = player.PlayerName
+		resp.Players[i].Coin = player.Coin
 		isSameRank := false // 同立順位か
 		if i > 0 {
 			if players[i-1].Coin == players[i].Coin &&
