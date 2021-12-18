@@ -61,40 +61,7 @@ LOOP:
 		}
 
 		phase, e := consts.ParsePhase(game.State.Phase)
-		if e != nil {
-			o.clean()
-			break LOOP
-		}
-
-		var threshold int
-		var next consts.Phase
-		switch phase {
-		case consts.PhaseWaiting:
-			threshold = consts.PhaseWaiting.Duration
-			next = consts.PhaseReady
-		case consts.PhaseReady:
-			threshold = consts.PhaseReady.Duration
-			next = consts.PhaseAuction
-		case consts.PhaseAuction:
-			threshold = consts.PhaseAuction.Duration
-			next = consts.PhaseAuctionResult
-		case consts.PhaseAuctionResult:
-			threshold = consts.PhaseAuctionResult.Duration
-			next = consts.PhaseCalculate
-		case consts.PhaseCalculate:
-			threshold = consts.PhaseCalculate.Duration
-			next = consts.PhaseCalculateResult
-		case consts.PhaseCalculateResult:
-			threshold = consts.PhaseCalculateResult.Duration
-			next = consts.PhaseNextTurn
-		case consts.PhaseNextTurn:
-			threshold = consts.PhaseNextTurn.Duration
-			next = consts.PhaseReady
-		case consts.PhaseEnd:
-			o.clean()
-			break LOOP
-		default:
-			// 呼び出されないケース
+		if *phase.NextPhase == consts.PhaseEnd || e != nil {
 			o.clean()
 			break LOOP
 		}
@@ -105,10 +72,10 @@ LOOP:
 		}
 
 		if ready, _ := IsAllPlayersReady(o.roomId); ready {
-			o.phaseFinishAction(phase, next)
-		} else if threshold != consts.PhaseTimeValueInfinite &&
-			startTime.Add(time.Duration(threshold)*time.Second).Before(time.Now()) {
-			o.phaseFinishAction(phase, next)
+			o.phaseFinishAction(phase, *phase.NextPhase)
+		} else if phase.Duration != consts.PhaseTimeValueInfinite &&
+			startTime.Add(time.Duration(phase.Duration)*time.Second).Before(time.Now()) {
+			o.phaseFinishAction(phase, *phase.NextPhase)
 		}
 	}
 }
@@ -123,6 +90,12 @@ func (o *PhaseSheduler) phaseFinishAction(current, next consts.Phase) {
 	case consts.PhaseWaiting:
 		o.nextPhase(next)
 	case consts.PhaseReady:
+		o.nextPhase(next)
+	case consts.PhaseGiveCards:
+		o.nextPhase(next)
+	case consts.PhaseShowTarget:
+		o.nextPhase(next)
+	case consts.PhaseShowAuction:
 		o.nextPhase(next)
 	case consts.PhaseAuction:
 		o.auctionFinishAction(next)
