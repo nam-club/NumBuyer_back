@@ -2,23 +2,6 @@ package consts
 
 import "nam-club/NumBuyer_back/models/orgerrors"
 
-type Phase struct {
-	Value    string
-	Duration int
-}
-
-var (
-	PhaseBeforeStart     = Phase{"BEFORE_START", PhaseTimeValueInfinite} // DEPRECATED
-	PhaseWaiting         = Phase{"WAITING", PhaseTimeValueInfinite}
-	PhaseReady           = Phase{"READY", 11}
-	PhaseAuction         = Phase{"AUCTION", 30}
-	PhaseAuctionResult   = Phase{"AUCTION_RESULT", 5}
-	PhaseCalculate       = Phase{"CALCULATE", 20}
-	PhaseCalculateResult = Phase{"CALCULATE_RESULT", 5}
-	PhaseNextTurn        = Phase{"NEXT_TURN", 2}
-	PhaseEnd             = Phase{"END", PhaseTimeValueInfinite}
-)
-
 const (
 	// 自動で部屋を閉じるまでの時間（秒）
 	TimeAutoEnd = 120
@@ -27,14 +10,51 @@ const (
 	PhaseTimeValueInfinite = -1
 )
 
+type Phase struct {
+	Value     string
+	Duration  int
+	NextPhase *Phase
+}
+
+var (
+	PhaseWaiting         Phase
+	PhaseReady           Phase
+	PhaseGiveCards       Phase
+	PhaseShowTarget      Phase
+	PhaseShowAuction     Phase
+	PhaseAuction         Phase
+	PhaseAuctionResult   Phase
+	PhaseCalculate       Phase
+	PhaseCalculateResult Phase
+	PhaseNextTurn        Phase
+	PhaseEnd             Phase
+)
+
+func init() {
+	PhaseWaiting = Phase{"WAITING", PhaseTimeValueInfinite, &PhaseReady}
+	PhaseReady = Phase{"READY", 2, &PhaseGiveCards}
+	PhaseGiveCards = Phase{"GIVE_CARDS", 3, &PhaseShowTarget}
+	PhaseShowTarget = Phase{"SHOW_TARGET", 3, &PhaseShowAuction}
+	PhaseShowAuction = Phase{"SHOW_AUCTION", 3, &PhaseAuction}
+	PhaseAuction = Phase{"AUCTION", 30, &PhaseAuctionResult}
+	PhaseAuctionResult = Phase{"AUCTION_RESULT", 5, &PhaseCalculate}
+	PhaseCalculate = Phase{"CALCULATE", 20, &PhaseCalculateResult}
+	PhaseCalculateResult = Phase{"CALCULATE_RESULT", 5, &PhaseNextTurn}
+	PhaseNextTurn = Phase{"NEXT_TURN", 2, &PhaseReady}
+	PhaseEnd = Phase{"END", PhaseTimeValueInfinite, nil}
+}
 func ParsePhase(s string) (v Phase, err error) {
 	switch s {
-	case PhaseBeforeStart.Value:
-		return PhaseBeforeStart, nil
 	case PhaseWaiting.Value:
 		return PhaseWaiting, nil
 	case PhaseReady.Value:
 		return PhaseReady, nil
+	case PhaseGiveCards.Value:
+		return PhaseGiveCards, nil
+	case PhaseShowTarget.Value:
+		return PhaseShowTarget, nil
+	case PhaseShowAuction.Value:
+		return PhaseShowAuction, nil
 	case PhaseAuction.Value:
 		return PhaseAuction, nil
 	case PhaseAuctionResult.Value:
@@ -48,6 +68,6 @@ func ParsePhase(s string) (v Phase, err error) {
 	case PhaseEnd.Value:
 		return PhaseEnd, nil
 	default:
-		return PhaseBeforeStart, orgerrors.NewInternalServerError("invalid phase type")
+		return PhaseWaiting, orgerrors.NewInternalServerError("invalid phase type")
 	}
 }

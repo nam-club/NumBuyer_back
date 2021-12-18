@@ -152,6 +152,20 @@ func IsMeetClearCondition(roomId string) (bool, error) {
 	return false, nil
 }
 
+// ターゲット表示フェーズスキップフラグをセットする
+func SetSkipShowTarget(roomId string, skip bool) error {
+	game, err := db.GetGame(roomId)
+	if err != nil {
+		return err
+	}
+	game.State.SkipShowTarget = skip
+	if _, err := db.SetGame(roomId, game); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func CheckPhase(roomId string, phase consts.Phase) bool {
 	game, err := db.GetGame(roomId)
 	if err != nil {

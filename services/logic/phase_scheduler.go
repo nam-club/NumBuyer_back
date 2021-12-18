@@ -47,7 +47,7 @@ func (o *PhaseSheduler) Start() {
 func (o *PhaseSheduler) monitor() {
 LOOP:
 	for {
-		time.Sleep(2 * time.Second)
+		time.Sleep(1 * time.Second)
 
 		game, e := db.GetGame(o.roomId)
 		if e != nil {
@@ -61,57 +61,30 @@ LOOP:
 		}
 
 		phase, e := consts.ParsePhase(game.State.Phase)
-		if e != nil {
+		if *phase.NextPhase == consts.PhaseEnd || e != nil {
 			o.clean()
 			break LOOP
 		}
+		timeLimit := phase.Duration
+		nextPhase := *phase.NextPhase
 
-		var threshold int
-		var next consts.Phase
-		switch phase {
-		case consts.PhaseBeforeStart:
-			threshold = consts.PhaseBeforeStart.Duration
-			next = consts.PhaseWaiting
-		case consts.PhaseWaiting:
-			threshold = consts.PhaseWaiting.Duration
-			next = consts.PhaseReady
-		case consts.PhaseReady:
-			threshold = consts.PhaseReady.Duration
-			next = consts.PhaseAuction
-		case consts.PhaseAuction:
-			threshold = consts.PhaseAuction.Duration
-			next = consts.PhaseAuctionResult
-		case consts.PhaseAuctionResult:
-			threshold = consts.PhaseAuctionResult.Duration
-			next = consts.PhaseCalculate
-		case consts.PhaseCalculate:
-			threshold = consts.PhaseCalculate.Duration
-			next = consts.PhaseCalculateResult
-		case consts.PhaseCalculateResult:
-			threshold = consts.PhaseCalculateResult.Duration
-			next = consts.PhaseNextTurn
-		case consts.PhaseNextTurn:
-			threshold = consts.PhaseNextTurn.Duration
-			next = consts.PhaseReady
-		case consts.PhaseEnd:
-			o.clean()
-			break LOOP
-		default:
-			// 呼び出されないケース
-			o.clean()
-			break LOOP
-		}
-
+		// フェーズの更新が指定時間以上ない場合強制終了
 		if startTime.Add(time.Duration(consts.TimeAutoEnd) * time.Second).Before(time.Now()) {
 			o.clean()
 			break LOOP
 		}
 
+		// 全プレイヤーが準備済み または 指定時間を経過した場合、次フェーズに移動する
 		if ready, _ := IsAllPlayersReady(o.roomId); ready {
-			o.phaseFinishAction(phase, next)
-		} else if threshold != consts.PhaseTimeValueInfinite &&
-			startTime.Add(time.Duration(threshold)*time.Second).Before(time.Now()) {
-			o.phaseFinishAction(phase, next)
+			o.phaseFinishAction(phase, nextPhase)
+		} else if phase.Duration != consts.PhaseTimeValueInfinite &&
+			startTime.Add(time.Duration(timeLimit)*time.Second).Before(time.Now()) {
+			// 前ターンの計算フェーズで正答者がいなかった場合、ターゲットカード更新フェーズをスキップ
+			if phase == consts.PhaseGiveCards && game.State.SkipShowTarget {
+				nextPhase = consts.PhaseShowAuction
+			}
+			o.phaseFinishAction(phase, nextPhase)
+
 		}
 	}
 }
@@ -123,11 +96,15 @@ func (o *PhaseSheduler) phaseFinishAction(current, next consts.Phase) {
 		zap.String("next", fmt.Sprintf("%v", next)))
 
 	switch current {
-	case consts.PhaseBeforeStart:
-		o.nextPhase(next)
 	case consts.PhaseWaiting:
 		o.nextPhase(next)
 	case consts.PhaseReady:
+		o.nextPhase(next)
+	case consts.PhaseGiveCards:
+		o.nextPhase(next)
+	case consts.PhaseShowTarget:
+		o.nextPhase(next)
+	case consts.PhaseShowAuction:
 		o.nextPhase(next)
 	case consts.PhaseAuction:
 		o.auctionFinishAction(next)
@@ -243,14 +220,23 @@ func (o *PhaseSheduler) calculateFinishAction(next consts.Phase) {
 		for _, corrector := range correctors {
 			resp.AnsPlayers = append(resp.AnsPlayers, corrector.PlayerName)
 		}
+		existsCorrector := len(resp.AnsPlayers) > 0
+		resp.ExistsCorrect = existsCorrector
 
 		// 正答者が一人でもいれば解答をシャッフル
-		if len(resp.AnsPlayers) > 0 {
+		if existsCorrector {
 			_, e := ShuffleAnswer(o.roomId)
 			if e != nil {
 				o.server.BroadcastToRoom("/", o.roomId, consts.FSGameCorrectPlayers, utils.ResponseError(e))
 				return
 			}
+		}
+
+		// ターゲット表示フェーズをスキップするフラグをセット
+		// 正答者が一人もいなければスキップ
+		if e = SetSkipShowTarget(o.roomId, !existsCorrector); e != nil {
+			o.server.BroadcastToRoom("/", o.roomId, consts.FSGameBuyNotify, utils.ResponseError(e))
+			return
 		}
 
 		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameCorrectPlayers, utils.Response(resp))

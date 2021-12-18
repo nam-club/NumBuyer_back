@@ -17,6 +17,7 @@ type State struct {
 	Phase            string `json:"phase"`
 	Auction          string `json:"auction"`
 	AuctionMaxBid    string `json:"auctionMaxBid"`
+	SkipShowTarget   bool   `json:"skipShowTarget"`
 	Answer           string `json:"answer"`
 	PhaseChangedTime string `json:"phaseChangedTime"`
 	ChangedTime      string `json:"changedTime"`
