@@ -107,6 +107,7 @@ func ClearAuction(roomId string) error {
 	}
 
 	for _, player := range players {
+		player.Ready = false
 		player.BuyAction = db.BuyAction{}
 		db.SetPlayer(roomId, &player)
 	}

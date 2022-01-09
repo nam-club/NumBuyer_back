@@ -38,6 +38,7 @@ func ClearCalculateAction(roomId string) error {
 	}
 
 	for _, player := range players {
+		player.Ready = false
 		player.AnswerAction = db.AnswerAction{}
 		db.SetPlayer(roomId, &player)
 	}
@@ -125,7 +126,7 @@ func CalculateSubmits(roomId, playerId string, action consts.CalculateAction, su
 			// 正解した時、正解者のコイン数とカード情報を更新する
 			player.Coin += calculated
 			player.AnswerAction.Correct = true
-
+			player.Ready = true
 			for _, s := range submits {
 				i := utils.ContainsStringWithIndex(player.Cards, s)
 				player.Cards = utils.DeleteSliceElement(player.Cards, i)
