@@ -35,9 +35,13 @@ func Bid(roomId, playerId string, bidAction consts.BidAction, coin int) (*respon
 		if maxBid, _ := strconv.Atoi(game.State.AuctionMaxBid); maxBid >= coin {
 			return nil, orgerrors.NewValidationError("insufficient bid")
 		}
+		if player.BuyAction.BidCount > consts.AuctionMaxBidCount {
+			return nil, orgerrors.NewValidationError("exceed max bid count")
+		}
 
 		// Bid情報セット処理
 		player.BuyAction.Value = strconv.Itoa(coin)
+		player.BuyAction.BidCount = player.BuyAction.BidCount + 1
 		game.State.AuctionMaxBid = player.BuyAction.Value
 		if _, e := db.SetGame(roomId, game); e != nil {
 			return nil, e
