@@ -151,7 +151,7 @@ func RoutesGame(r *RouteBase) {
 			return
 		}
 
-		resp := &responses.GameStartResponse{RoomID: req.RoomID, GoalCoin: consts.CoinClearNum}
+		resp := responses.GenerateGameStartResponse(req.RoomID, consts.CoinClearNum)
 		r.server.BroadcastToRoom("/", s.Rooms()[0], consts.FSGameStart, utils.Response(resp))
 	})
 
