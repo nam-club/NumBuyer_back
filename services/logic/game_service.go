@@ -189,21 +189,6 @@ func FinishGame(roomId string) (*responses.FinishGameResponse, error) {
 		return nil, err
 	}
 
-	// 回答時刻でsort (昇順）
-	sort.Slice(players, func(i, j int) bool {
-		tiStr := players[i].AnswerAction.AnswerTime
-		tjStr := players[j].AnswerAction.AnswerTime
-		if tiStr == "" {
-			return false
-		}
-		if tjStr == "" {
-			return true
-		}
-		ti, _ := time.Parse(time.RFC3339, tiStr)
-		tj, _ := time.Parse(time.RFC3339, tjStr)
-		return ti.Before(tj)
-	})
-
 	// Coin数でsort (降順）
 	sort.Slice(players, func(i, j int) bool { return players[i].Coin > players[j].Coin })
 
@@ -213,10 +198,7 @@ func FinishGame(roomId string) (*responses.FinishGameResponse, error) {
 		resp.Players[i].Coin = player.Coin
 		isSameRank := false // 同立順位か
 		if i > 0 {
-			if players[i-1].Coin == players[i].Coin &&
-				players[i-1].AnswerAction.AnswerTime == players[i].AnswerAction.AnswerTime {
-				isSameRank = true
-			}
+			isSameRank = players[i-1].Coin == players[i].Coin
 		}
 		if isSameRank {
 			resp.Players[i].Rank = resp.Players[i-1].Rank
