@@ -3,7 +3,6 @@ package db
 
 import (
 	"encoding/json"
-	"time"
 	"unsafe"
 
 	"github.com/pkg/errors"
@@ -20,7 +19,6 @@ type State struct {
 	SkipShowTarget   bool   `json:"skipShowTarget"`
 	Answer           string `json:"answer"`
 	PhaseChangedTime string `json:"phaseChangedTime"`
-	ChangedTime      string `json:"changedTime"`
 }
 
 var rg *RedisHandler
@@ -31,9 +29,6 @@ func init() {
 
 // ゲーム情報をセット
 func SetGame(id string, game *Game) (*Game, error) {
-	// 変更時間を更新する
-	game.State.ChangedTime = time.Now().Format(time.RFC3339)
-
 	j, e := json.Marshal(game)
 	if e != nil {
 		return nil, errors.WithStack(e)

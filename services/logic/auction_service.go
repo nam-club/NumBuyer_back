@@ -31,14 +31,23 @@ func Bid(roomId, playerId string, bidAction consts.BidAction, coin int) (*respon
 
 	player.BuyAction.Action = bidAction.String()
 	if bidAction == consts.BidActionBid {
+		// バリデーション
 		if maxBid, _ := strconv.Atoi(game.State.AuctionMaxBid); maxBid >= coin {
 			return nil, orgerrors.NewValidationError("insufficient bid")
 		}
+
+		// Bid情報セット処理
 		player.BuyAction.Value = strconv.Itoa(coin)
 		game.State.AuctionMaxBid = player.BuyAction.Value
 		if _, e := db.SetGame(roomId, game); e != nil {
 			return nil, e
 		}
+
+		// オークションフェーズ期限更新処理
+		if e = ResetTimer(roomId, consts.AuctionResetTimeRemains); e != nil {
+			return nil, e
+		}
+
 	} else if bidAction == consts.BidActionPass {
 		player.Ready = true
 	}

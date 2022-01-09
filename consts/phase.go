@@ -36,7 +36,7 @@ func init() {
 	PhaseGiveCards = Phase{"GIVE_CARDS", 3, &PhaseShowTarget}
 	PhaseShowTarget = Phase{"SHOW_TARGET", 3, &PhaseShowAuction}
 	PhaseShowAuction = Phase{"SHOW_AUCTION", 3, &PhaseAuction}
-	PhaseAuction = Phase{"AUCTION", 30, &PhaseAuctionResult}
+	PhaseAuction = Phase{"AUCTION", 15, &PhaseAuctionResult}
 	PhaseAuctionResult = Phase{"AUCTION_RESULT", 5, &PhaseCalculate}
 	PhaseCalculate = Phase{"CALCULATE", 20, &PhaseCalculateResult}
 	PhaseCalculateResult = Phase{"CALCULATE_RESULT", 5, &PhaseNextTurn}

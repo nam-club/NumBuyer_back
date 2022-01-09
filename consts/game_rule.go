@@ -23,6 +23,9 @@ const (
 	CodeMinus  = "-"
 	CodeTimes  = "*"
 	CodeDivide = "/"
+
+	// オークションの時間をリセットした時に残す時間
+	AuctionResetTimeRemains = 10
 )
 
 var (
