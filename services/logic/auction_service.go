@@ -56,15 +56,21 @@ func Bid(roomId, playerId string, bidAction consts.BidAction, coin int) (*respon
 			return nil, e
 		}
 
+		if _, e = db.SetPlayer(roomId, player); e != nil {
+			return nil, e
+		}
+		return &responses.BidResponse{
+				PlayerName:    player.PlayerName,
+				Coin:          coin,
+				RemainingTime: consts.AuctionResetTimeRemains},
+			nil
 	} else if bidAction == consts.BidActionPass {
 		player.Ready = true
+		if _, e = db.SetPlayer(roomId, player); e != nil {
+			return nil, e
+		}
 	}
-	player, e = db.SetPlayer(roomId, player)
-	if e != nil {
-		return nil, e
-	}
-
-	return &responses.BidResponse{PlayerName: player.PlayerName, Coin: coin}, nil
+	return nil, nil
 }
 
 // プレイヤーのオークション終了時に必要な情報を取得する
