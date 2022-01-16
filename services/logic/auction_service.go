@@ -52,8 +52,11 @@ func Bid(roomId, playerId string, bidAction consts.BidAction, coin int) (*respon
 		}
 
 		// オークションフェーズ期限更新処理
-		if e = ResetTimer(roomId, consts.AuctionResetTimeRemains); e != nil {
+		remainSeconds := 0 // 0なら更新なし（レスポンスに含めない）
+		if isResetted, e := ResetTimer(roomId, consts.AuctionResetTimeRemains); e != nil {
 			return nil, e
+		} else if isResetted {
+			remainSeconds = consts.AuctionResetTimeRemains
 		}
 
 		if _, e = db.SetPlayer(roomId, player); e != nil {
@@ -62,7 +65,7 @@ func Bid(roomId, playerId string, bidAction consts.BidAction, coin int) (*respon
 		return &responses.BidResponse{
 				PlayerName:    player.PlayerName,
 				Coin:          coin,
-				RemainingTime: consts.AuctionResetTimeRemains},
+				RemainingTime: remainSeconds},
 			nil
 	} else if bidAction == consts.BidActionPass {
 		player.Ready = true
