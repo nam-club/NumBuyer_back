@@ -23,6 +23,12 @@ const (
 	CodeMinus  = "-"
 	CodeTimes  = "*"
 	CodeDivide = "/"
+
+	// オークションの時間をリセットした時に残す時間
+	AuctionResetTimeRemains = 10
+
+	// プレイヤーの最大入札回数
+	AuctionMaxBidCount = 10
 )
 
 var (

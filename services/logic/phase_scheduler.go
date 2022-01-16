@@ -264,3 +264,40 @@ func (o *PhaseSheduler) setUpNextTurn(next consts.Phase) {
 func (o *PhaseSheduler) clean() {
 	db.DeleteGame(o.roomId)
 }
+
+// タイマーを指定した時間を残してリセットする
+func ResetTimer(roomId string, remainSeconds int) (bool, error) {
+	game, e := db.GetGame(roomId)
+	if e != nil {
+		return false, orgerrors.NewInternalServerError("")
+	}
+
+	phase, e := consts.ParsePhase(game.State.Phase)
+	if e != nil {
+		return false, orgerrors.NewInternalServerError("")
+	}
+
+	passed := phase.Duration - remainSeconds
+	if passed <= 0 {
+		return false, orgerrors.NewInternalServerError("")
+	}
+
+	beforeTime, e := time.Parse(time.RFC3339, game.State.PhaseChangedTime)
+	if e != nil {
+		return false, orgerrors.NewInternalServerError("")
+	}
+
+	// 現在時刻が前回のフェーズ変更から指定時間していない場合、何もしない
+	passedThreashold := beforeTime.Add(time.Second * time.Duration(passed))
+	if !time.Now().After(passedThreashold) {
+		return false, nil
+	}
+
+	// 現在自国から指定時間を戻し、残り時間を引数に指定された時間にする
+	game.State.PhaseChangedTime = time.Now().Add(time.Second * -time.Duration(passed)).Format(time.RFC3339)
+	_, e = db.SetGame(roomId, game)
+	if e != nil {
+		return false, orgerrors.NewInternalServerError("")
+	}
+	return true, nil
+}

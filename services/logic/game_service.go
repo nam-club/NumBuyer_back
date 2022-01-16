@@ -27,7 +27,6 @@ func CreateNewGame(owner string) (*responses.JoinResponse, error) {
 			Auction:          "",
 			Answer:           "",
 			PhaseChangedTime: time.Now().Format(time.RFC3339),
-			ChangedTime:      time.Now().Format(time.RFC3339),
 		},
 	}
 

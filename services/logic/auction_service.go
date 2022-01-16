@@ -31,23 +31,49 @@ func Bid(roomId, playerId string, bidAction consts.BidAction, coin int) (*respon
 
 	player.BuyAction.Action = bidAction.String()
 	if bidAction == consts.BidActionBid {
+		// バリデーション
 		if maxBid, _ := strconv.Atoi(game.State.AuctionMaxBid); maxBid >= coin {
 			return nil, orgerrors.NewValidationError("insufficient bid")
 		}
+		if player.BuyAction.BidCount >= consts.AuctionMaxBidCount {
+			return nil, orgerrors.NewValidationError("exceed max bid count")
+		}
+		if game.State.AuctionLastBidPlayerId == playerId {
+			return nil, orgerrors.NewValidationError("cannot bid in a row")
+		}
+
+		// Bid情報セット処理
 		player.BuyAction.Value = strconv.Itoa(coin)
+		player.BuyAction.BidCount = player.BuyAction.BidCount + 1
 		game.State.AuctionMaxBid = player.BuyAction.Value
+		game.State.AuctionLastBidPlayerId = playerId
 		if _, e := db.SetGame(roomId, game); e != nil {
 			return nil, e
 		}
+
+		// オークションフェーズ期限更新処理
+		remainSeconds := 0 // 0なら更新なし（レスポンスに含めない）
+		if isResetted, e := ResetTimer(roomId, consts.AuctionResetTimeRemains); e != nil {
+			return nil, e
+		} else if isResetted {
+			remainSeconds = consts.AuctionResetTimeRemains
+		}
+
+		if _, e = db.SetPlayer(roomId, player); e != nil {
+			return nil, e
+		}
+		return &responses.BidResponse{
+				PlayerName:    player.PlayerName,
+				Coin:          coin,
+				RemainingTime: remainSeconds},
+			nil
 	} else if bidAction == consts.BidActionPass {
 		player.Ready = true
+		if _, e = db.SetPlayer(roomId, player); e != nil {
+			return nil, e
+		}
 	}
-	player, e = db.SetPlayer(roomId, player)
-	if e != nil {
-		return nil, e
-	}
-
-	return &responses.BidResponse{PlayerName: player.PlayerName, Coin: coin}, nil
+	return nil, nil
 }
 
 // プレイヤーのオークション終了時に必要な情報を取得する
@@ -97,6 +123,7 @@ func ClearAuction(roomId string) error {
 
 	game.State.Auction = ""
 	game.State.AuctionMaxBid = ""
+	game.State.AuctionLastBidPlayerId = ""
 	if _, e = db.SetGame(roomId, game); e != nil {
 		return e
 	}
