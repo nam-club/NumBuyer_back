@@ -1,0 +1,42 @@
+on:
+  push:
+    branches:
+      - master
+      - feature/*
+ 
+name: Deploy CloudFormation
+
+jobs:
+  deploy:
+    name: Deploy CloudFormation
+    runs-on: ubuntu-latest
+    outputs:
+      env-name: ${{ steps.env-name.outputs.environment }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Configure AWS credentials
+      id: creds
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ap-northeast-1
+
+    - name: Configure environment name
+      id: env-name
+      env:
+        REPO: ${{ github.repository }}
+      run: |
+        ENVIRONMENT=`echo $REPO | tr "/" "-" | sed s/_/-/`
+        echo "Environment name: $ENVIRONMENT"
+        echo "::set-output name=environment::$ENVIRONMENT"
+        
+    - name: Deploy to AWS CloudFormation
+      id: deploy-cfn
+      uses: aws-actions/aws-cloudformation-github-deploy@v1
+      with:
+        name: ${{ steps.env-name.outputs.environment }}
+        template: .aws/cloudformation-stack.yaml
+        #parameter-overrides: "MyParam1=myValue,MyParam2=${{ secrets.MY_SECRET_VALUE }}"
