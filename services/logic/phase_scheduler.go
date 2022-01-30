@@ -228,7 +228,13 @@ func (o *PhaseSheduler) calculateFinishAction(next consts.Phase) {
 
 		resp := &responses.CorrectPlayersResponse{}
 		for _, corrector := range correctors {
-			resp.AnsPlayers = append(resp.AnsPlayers, corrector.PlayerName)
+			resp.AnsPlayers = append(resp.AnsPlayers,
+				responses.CorrectPlayer{
+					PlayerName: corrector.PlayerName,
+					AddedCoin: responses.AddedCoin{
+						Total:        corrector.Coin,
+						CardNumBonus: len(corrector.AnswerAction.Cards),
+					}})
 		}
 		existsCorrector := len(resp.AnsPlayers) > 0
 		resp.ExistsCorrect = existsCorrector

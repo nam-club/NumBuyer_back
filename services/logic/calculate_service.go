@@ -126,6 +126,7 @@ func CalculateSubmits(roomId, playerId string, action consts.CalculateAction, su
 			// 正解した時、正解者のコイン数とカード情報を更新する
 			player.Coin += calculated + len(submits)
 			player.AnswerAction.Correct = true
+			player.AnswerAction.Cards = submits
 			player.Ready = true
 			for _, s := range submits {
 				i := utils.ContainsStringWithIndex(player.Cards, s)
@@ -140,10 +141,6 @@ func CalculateSubmits(roomId, playerId string, action consts.CalculateAction, su
 				PlayerID:        playerId,
 				Coin:            player.Coin,
 				Cards:           player.Cards,
-				AddedCoin: responses.AddedCoin{
-					Total:        calculated,
-					CardNumBonus: len(submits),
-				},
 			}, nil
 		} else {
 			// 不正解の時
