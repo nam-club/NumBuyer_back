@@ -8,7 +8,7 @@ jobs:
       BUCKET: numbuyer-sources-a
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-    name: Upload to S3
+    name: Initialize infrastracture
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -41,6 +41,7 @@ jobs:
             --lifecycle-configuration file://./.aws/s3-bucket-lifecycle.json
 
       - name: Deploy to AWS CloudFormation infrastracture stack
+        continue-on-error: true
         id: cfn
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
@@ -48,6 +49,7 @@ jobs:
           template: .aws/numbuyer-cfn.yaml
 
       - name: Deploy to AWS CloudFormation deploy stack
+        continue-on-error: true
         id: deploy-cfn
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:

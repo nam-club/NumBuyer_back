@@ -42,7 +42,9 @@ https://hodalog.com/remote-debug-a-containerized-go-application-using-docker-com
 ### 構成
 コードをS3にアップロードし、CodePipelineで変更を検知、EC2にデプロイ、といった構成。
  
-### 手順
+### 初回準備
+awsで新規アカウント作成してからコードが自動でサーバに反映されるようになるまでの手順。
+
 1. IAMユーザからアクセスキーID, シークレットアクセスキーを発行し、GitHubのsecretsに設定する。
 それぞれ変数名は`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`。
 2. GitHubActionsで`Initialize infrastracture`を実行する。

@@ -3,8 +3,7 @@ name: Upload to S3
 on:
   push:
     branches:
-      - master
-      - feature/*
+      - develop
 
 jobs:
   deploy:
@@ -49,12 +48,3 @@ jobs:
       - name: Deploy to S3
         run:
           aws s3 mv --region ap-northeast-1 package.zip s3://${BUCKET}
-
-      # - name: Deploy to AWS CloudFormation
-      #   continue-on-error: true
-      #   id: deploy-cfn
-      #   uses: aws-actions/aws-cloudformation-github-deploy@v1
-      #   with:
-      #     name: ${{ steps.env-name.outputs.environment }}
-      #     template: .aws/numbuyer-cfn.yaml
-      #     parameter-overrides: "S3AccessKey=${{ secrets.AWS_ACCESS_KEY_ID }},S3Secret=${{ secrets.AWS_SECRET_ACCESS_KEY }}"
