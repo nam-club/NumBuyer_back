@@ -1,0 +1,18 @@
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /home/ec2-user/
+hooks:
+  BeforeInstall:
+    - location: codedeploy_scripts/codedeploy_beforeinstall.sh
+      timeout: 300
+      runas: root
+  AfterInstall:
+    - location: codedeploy_scripts/codedeploy_setup.sh
+      timeout: 300
+      runas: root
+  ApplicationStop:
+    - location: codedeploy_scripts/codedeploy_stop.sh
+      timeout: 300
+      runas: root

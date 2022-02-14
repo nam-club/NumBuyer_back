@@ -40,34 +40,11 @@ https://hodalog.com/remote-debug-a-containerized-go-application-using-docker-com
 
 ## デプロイ
 ### 構成
-CloudFormationをGitHubActionsで自動更新、CloudFormationのCodePileLineで自動デプロイ、といった構成。
-対象のGitHubActionsのワークフローは`deploy-cloudformation`、デプロイするCloudFormationスタックは`.aws/cloudformation-stack.yaml`。
-
+コードをS3にアップロードし、CodePipelineで変更を検知、EC2にデプロイ、といった構成。
+ 
 ### 手順
 1. IAMユーザからアクセスキーID, シークレットアクセスキーを発行し、GitHubのsecretsに設定する。
 それぞれ変数名は`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`。
-
-2. 1のIAMユーザに下記のパーミッションを設定する。
-```
-{
-    "Version":"2012-10-17",
-    "Statement":[{
-        "Effect":"Allow",
-        "Action":[
-            "cloudformation:*"
-        ],
-        "Resource":"*"
-    },
-    {
-        "Effect":"Deny",
-        "Action":[
-            "cloudformation:DeleteStack"
-        ],
-        "Resource":"arn:aws:cloudformation:us-east-1:123456789012:stack/MyProductionStack/*"
-    }]
-}
-```
-3. EC2アクセス用のキーペアを作成する
-AWSコンソール -> EC2 -> セキュリティ -> キーペア -> デフォルトの設定で名前は"server-access"
+2. GitHubActionsで`Initialize infrastracture`を実行する。
 
 あとはmasterブランチにpushしたのをトリガーに自動でデプロイされていく。
