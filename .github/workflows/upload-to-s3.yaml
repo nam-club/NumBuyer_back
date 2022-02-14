@@ -1,0 +1,60 @@
+name: Upload to S3
+
+on:
+  push:
+    branches:
+      - master
+      - feature/*
+
+jobs:
+  deploy:
+    env:
+      BUCKET: numbuyer-sources-a
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    name: Upload to S3
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Configure AWS credentials
+        id: creds
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-1
+  
+      - name: Configure environment name
+        id: env-name
+        env:
+          REPO: ${{ github.repository }}
+        run: |
+          ENVIRONMENT=`echo $REPO | tr "/" "-" | sed s/_/-/`
+          echo "Environment name: $ENVIRONMENT"
+          echo "::set-output name=environment::$ENVIRONMENT"
+
+      - name: Create S3 bucket if not exists
+        continue-on-error: true
+        run: |
+          aws s3 mb "s3://${BUCKET}" --region ap-northeast-1
+          aws s3api put-bucket-versioning --bucket "${BUCKET}" --versioning-configuration Status=Enabled
+          aws s3api put-bucket-lifecycle-configuration \
+            --bucket "${BUCKET}" \
+            --lifecycle-configuration file://./.aws/s3-bucket-lifecycle.json
+      - name: Archive
+        run: zip -r package.zip ./*
+
+      - name: Deploy to S3
+        run:
+          aws s3 mv --region ap-northeast-1 package.zip s3://${BUCKET}
+
+      # - name: Deploy to AWS CloudFormation
+      #   continue-on-error: true
+      #   id: deploy-cfn
+      #   uses: aws-actions/aws-cloudformation-github-deploy@v1
+      #   with:
+      #     name: ${{ steps.env-name.outputs.environment }}
+      #     template: .aws/numbuyer-cfn.yaml
+      #     parameter-overrides: "S3AccessKey=${{ secrets.AWS_ACCESS_KEY_ID }},S3Secret=${{ secrets.AWS_SECRET_ACCESS_KEY }}"

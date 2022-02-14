@@ -37,3 +37,14 @@ http://127.0.0.1:8080/index.html
 ### VSCodeでのデバッグ
 下記ブログの手順に従う。必要なファイルは既に用意済み。
 https://hodalog.com/remote-debug-a-containerized-go-application-using-docker-compose/
+
+## デプロイ
+### 構成
+コードをS3にアップロードし、CodePipelineで変更を検知、EC2にデプロイ、といった構成。
+ 
+### 手順
+1. IAMユーザからアクセスキーID, シークレットアクセスキーを発行し、GitHubのsecretsに設定する。
+それぞれ変数名は`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`。
+2. GitHubActionsで`Initialize infrastracture`を実行する。
+
+あとはmasterブランチにpushしたのをトリガーに自動でデプロイされていく。
