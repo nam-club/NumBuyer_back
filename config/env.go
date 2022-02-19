@@ -1,4 +1,4 @@
-package consts
+package config
 
 import (
 	"github.com/kelseyhightower/envconfig"
@@ -18,5 +18,6 @@ var (
 )
 
 type EnvConst struct {
-	RedisUrl string `default:"127.0.0.1:6379"`
+	RedisUrl    string `default:"127.0.0.1:6379"`
+	AllowOrigin string `default:"http://localhost:3000"`
 }

@@ -74,7 +74,7 @@ func main() {
 	}()
 	defer server.Close()
 
-	router.Use(GinMiddleware("http://localhost:3000"))
+	router.Use(GinMiddleware(config.Env.AllowOrigin))
 	router.GET("/socket.io/*any", gin.WrapH(server))
 	router.POST("/socket.io/*any", gin.WrapH(server))
 	router.StaticFS("/public", http.Dir("../asset"))

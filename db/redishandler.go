@@ -2,7 +2,7 @@
 package db
 
 import (
-	"nam-club/NumBuyer_back/consts"
+	"nam-club/NumBuyer_back/config"
 	"time"
 
 	"github.com/gomodule/redigo/redis"
@@ -16,7 +16,7 @@ type RedisHandler struct {
 
 func NewRedisHandler(dbIndex int) (newHandler *RedisHandler) {
 	newHandler = &RedisHandler{DBIndex: dbIndex}
-	newHandler.pool = newPool(consts.Env.RedisUrl, dbIndex)
+	newHandler.pool = newPool(config.Env.RedisUrl, dbIndex)
 	return
 }
 

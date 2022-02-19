@@ -3,11 +3,13 @@ services:
   app:
     environment:
       - REDISURL=redis:6379
-    build: 
+      - ALLOWORIGIN=https://practical-kirch-5024e4.netlify.app
+    build:
       context: .
       dockerfile: Dockerfile.prd
     ports:
         - "80:8001"
+        - "443:8001"
     tty: true
     volumes:
       - .:/go/src/work
