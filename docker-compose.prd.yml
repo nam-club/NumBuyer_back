@@ -8,8 +8,7 @@ services:
       context: .
       dockerfile: Dockerfile.prd
     ports:
-        - "80:8001"
-        - "443:8001"
+        - "8000:8001"
     tty: true
     volumes:
       - .:/go/src/work

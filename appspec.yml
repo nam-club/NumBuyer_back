@@ -5,14 +5,14 @@ files:
     destination: /home/ec2-user/
 hooks:
   BeforeInstall:
-    - location: codedeploy_scripts/codedeploy_beforeinstall.sh
+    - location: codedeploy_scripts/beforeinstall.sh
       timeout: 300
       runas: root
   AfterInstall:
-    - location: codedeploy_scripts/codedeploy_setup.sh
+    - location: codedeploy_scripts/afterinstall.sh
       timeout: 300
       runas: root
   ApplicationStop:
-    - location: codedeploy_scripts/codedeploy_stop.sh
+    - location: codedeploy_scripts/stop.sh
       timeout: 300
       runas: root
