@@ -2,7 +2,7 @@ version: '3'
 services:
   app:
     environment:
-      - REDISURL=redis:6379
+      - REDISURL=numbuyer-elasticache-cluster.d6jx2f.ng.0001.apne1.cache.amazonaws.com:6379
       - ALLOWORIGIN=https://practical-kirch-5024e4.netlify.app
     build:
       context: .

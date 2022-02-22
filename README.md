@@ -48,5 +48,10 @@ awsで新規アカウント作成してからコードが自動でサーバに�
 1. IAMユーザからアクセスキーID, シークレットアクセスキーを発行し、GitHubのsecretsに設定する。
 それぞれ変数名は`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`。
 2. GitHubActionsで`Initialize infrastracture`を実行する。
+3. `numbuyer-cfn.yaml`のOutputからElastiCacheのホスト名を取得、docker-compose.prd.ymlにセットする。
+4. [SSL化対応手順](docs/SSL化対応手順.md)を参考にEC2をhttps対応にする。
 
 あとはmasterブランチにpushしたのをトリガーに自動でデプロイされていく。
+
+### メンテナンス
+- 3ヶ月でSSL証明書の期限が切れるので、ZeroSSLで証明書を再発行、EC2に反映する ※手順後ほど記載

@@ -18,7 +18,7 @@ https://app.zerossl.com/dashboard
 
 - 検証用のtxtファイルを置くフォルダ作成
 ```
-sudo mkdir /usr/share/nginx/html/.well-known/pki-validation/
+sudo mkdir -p /usr/share/nginx/html/.well-known/pki-validation/
 ```
 - 上記フォルダ内に指定されたファイルを用意する
 - ZeroSSLで検証をする
@@ -27,9 +27,9 @@ sudo mkdir /usr/share/nginx/html/.well-known/pki-validation/
 - 下記コマンドでEC2に配置
 ```
 sudo mkdir /etc/sslCA
-aws s3 cp s3://numbuyer-sources-a/certificate.crt /etc/sslCA
-aws s3 cp s3://numbuyer-sources-a/private.key /etc/sslCA
-aws s3 cp s3://numbuyer-sources-a/ca_bundle.crt /etc/sslCA
+sudo aws s3 cp s3://numbuyer-sources-a/certificate.crt /etc/sslCA
+sudo aws s3 cp s3://numbuyer-sources-a/private.key /etc/sslCA
+sudo aws s3 cp s3://numbuyer-sources-a/ca_bundle.crt /etc/sslCA
 ```
 
 3. SSL証明書をnginxにセット
