@@ -90,3 +90,8 @@ func SetPlayer(roomId string, player *Player) (*Player, error) {
 	}
 	return player, nil
 }
+
+// プレイヤー情報を削除
+func DeletePlayers(id string) (int, error) {
+	return rp.Delete(id)
+}

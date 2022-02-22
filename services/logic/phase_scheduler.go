@@ -15,6 +15,11 @@ import (
 	"go.uber.org/zap"
 )
 
+const (
+	// ゲームを強制削除するまでの時間: ゲーム作成から4時間
+	TimeAutoDelete = 14000
+)
+
 type PhaseSheduler struct {
 	roomId string
 	server *socketio.Server
@@ -60,6 +65,12 @@ LOOP:
 			break LOOP
 		}
 
+		createdAt, e := time.Parse(time.RFC3339, game.CreatedAt)
+		if e != nil {
+			o.clean()
+			break LOOP
+		}
+
 		phase, e := consts.ParsePhase(game.State.Phase)
 		if phase.NextPhase == nil || *phase.NextPhase == consts.PhaseEnd || e != nil {
 			o.clean()
@@ -70,6 +81,12 @@ LOOP:
 
 		// フェーズの更新が指定時間以上ない場合強制終了
 		if startTime.Add(time.Duration(consts.TimeAutoEnd) * time.Second).Before(time.Now()) {
+			o.clean()
+			break LOOP
+		}
+
+		// フェーズの更新が指定時間以上ない場合強制終了
+		if createdAt.Add(time.Duration(TimeAutoDelete) * time.Second).Before(time.Now()) {
 			o.clean()
 			break LOOP
 		}
@@ -268,7 +285,11 @@ func (o *PhaseSheduler) setUpNextTurn(next consts.Phase) {
 }
 
 func (o *PhaseSheduler) clean() {
+	utils.Log.Debug("start delete...", zap.String("roomId", o.roomId))
+	db.DeleteJoinableGame(o.roomId)
+	db.DeletePlayers(o.roomId)
 	db.DeleteGame(o.roomId)
+	utils.Log.Debug("complete delete", zap.String("roomId", o.roomId))
 }
 
 // タイマーを指定した時間を残してリセットする
