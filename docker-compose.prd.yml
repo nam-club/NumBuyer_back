@@ -9,7 +9,13 @@ services:
       context: .
       dockerfile: Dockerfile.prd
     ports:
-        - "8000:8001"
+        - "443:8001"
     tty: true
     volumes:
       - .:/go/src/work
+  httpd:
+    image: "httpd:latest"
+    ports:
+        - "80:80"
+    volumes:
+        - "./ssl/docs:/usr/local/apache2/htdocs"
