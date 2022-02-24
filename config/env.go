@@ -18,6 +18,7 @@ var (
 )
 
 type EnvConst struct {
+	Env         string `default:"develop"`
 	RedisUrl    string `default:"127.0.0.1:6379"`
 	AllowOrigin string `default:"http://localhost:3000"`
 }

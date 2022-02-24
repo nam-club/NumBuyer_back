@@ -79,7 +79,14 @@ func main() {
 	router.POST("/socket.io/*any", gin.WrapH(server))
 	router.StaticFS("/public", http.Dir("../asset"))
 
-	if err := router.Run(":8001"); err != nil {
-		log.Fatal("failed run app: ", err)
+	if config.Env.Env == "production" {
+		// 本番ならhttpsサーバとして起動
+		if err := router.RunTLS(":8001", "./resources/cert/certificate.crt", "./resources/cert/private.key"); err != nil {
+			log.Fatal("failed run app: ", err)
+		}
+	} else {
+		if err := router.Run(":8001"); err != nil {
+			log.Fatal("failed run app: ", err)
+		}
 	}
 }
