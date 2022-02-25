@@ -124,9 +124,11 @@ func CalculateSubmits(roomId, playerId string, action consts.CalculateAction, su
 		// 結果の判定
 		if game.State.Answer == strconv.Itoa(calculated) {
 			// 正解した時、正解者のコイン数とカード情報を更新する
-			player.Coin += calculated + len(submits)
+			plus := calculated + len(submits)
+			player.Coin += plus
 			player.AnswerAction.Correct = true
 			player.AnswerAction.Cards = submits
+			player.AnswerAction.PlusCoin = plus
 			player.Ready = true
 			for _, s := range submits {
 				i := utils.ContainsStringWithIndex(player.Cards, s)

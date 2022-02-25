@@ -249,7 +249,7 @@ func (o *PhaseSheduler) calculateFinishAction(next consts.Phase) {
 				responses.CorrectPlayer{
 					PlayerName: corrector.PlayerName,
 					AddedCoin: responses.AddedCoin{
-						Total:        corrector.Coin,
+						Total:        corrector.AnswerAction.PlusCoin,
 						CardNumBonus: len(corrector.AnswerAction.Cards),
 					}})
 		}
