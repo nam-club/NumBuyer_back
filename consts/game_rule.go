@@ -2,21 +2,24 @@ package consts
 
 const (
 	// プレイヤーの初期カード枚数
-	InitialCardsNum = 5
+	InitialCardsNum = 10
 
 	// コイン数のクリア条件
-	CoinClearNum = 200
+	CoinClearNum = 100
+
+	// 初期コイン数
+	InitialCoin = 30
 
 	// オークンションカードで符号が出る確率（パーセント）
-	AuctionCodeProbability = 33
+	AuctionCodeProbability = 35
 
 	// 数字の最小値(以上)、最小値(未満)
 	TermMin = 1
 	TermMax = 20
 
 	// ターゲットカードの最小値(以上)、最小値(未満)
-	TargetMin = 1
-	TargetMax = 20
+	TargetMin = 5
+	TargetMax = 30
 
 	// 符号
 	CodePlus   = "+"

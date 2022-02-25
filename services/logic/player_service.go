@@ -1,6 +1,7 @@
 package logic
 
 import (
+	"nam-club/NumBuyer_back/consts"
 	"nam-club/NumBuyer_back/db"
 	"nam-club/NumBuyer_back/models/orgerrors"
 	"nam-club/NumBuyer_back/models/responses"
@@ -20,7 +21,7 @@ func CreateNewPlayer(playerName, roomId string, isOwner bool) (*db.Player, error
 		PlayerID:   generatePlayerId(roomId),
 		PlayerName: playerName,
 		IsOwner:    isOwner,
-		Coin:       100,
+		Coin:       consts.InitialCoin,
 	}
 
 	var ret *db.Player
