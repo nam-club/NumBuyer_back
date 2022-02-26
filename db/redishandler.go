@@ -128,3 +128,18 @@ func (o *RedisHandler) Exists(key string) (bool, error) {
 
 	return res, nil
 }
+
+func (o *RedisHandler) Scan(iter int) (int, []string, error) {
+	conn := o.pool.Get()
+	defer conn.Close()
+
+	var keys []string
+	if arr, err := redis.Values(conn.Do("SCAN", iter)); err != nil {
+		return 0, nil, errors.WithStack(err)
+	} else {
+		iter, _ = redis.Int(arr[0], nil)
+		keys, _ = redis.Strings(arr[1], nil)
+	}
+
+	return iter, keys, nil
+}

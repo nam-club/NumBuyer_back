@@ -72,3 +72,7 @@ func ExistsGame(id string) (bool, error) {
 	}
 	return r, nil
 }
+
+func ScanGame(iter int) (int, []string, error) {
+	return rg.Scan(iter)
+}

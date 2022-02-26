@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"nam-club/NumBuyer_back/config"
+	"nam-club/NumBuyer_back/cron"
 	"nam-club/NumBuyer_back/routes"
 	"nam-club/NumBuyer_back/utils"
 	"net/http"
@@ -78,6 +79,8 @@ func main() {
 	router.GET("/socket.io/*any", gin.WrapH(server))
 	router.POST("/socket.io/*any", gin.WrapH(server))
 	router.StaticFS("/public", http.Dir("../asset"))
+
+	cron.LaunchCron(server)
 
 	if config.Env.Env == "production" {
 		// 本番ならhttpsサーバとして起動
