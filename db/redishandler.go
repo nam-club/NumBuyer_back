@@ -2,6 +2,7 @@
 package db
 
 import (
+	"fmt"
 	"nam-club/NumBuyer_back/config"
 	"time"
 
@@ -127,4 +128,27 @@ func (o *RedisHandler) Exists(key string) (bool, error) {
 	}
 
 	return res, nil
+}
+
+func (o *RedisHandler) Scan(iter int) (int, []string, error) {
+	conn := o.pool.Get()
+	defer conn.Close()
+
+	var keys []string
+	for {
+
+		if arr, err := redis.Values(conn.Do("SCAN", iter)); err != nil {
+			return 0, nil, errors.WithStack(err)
+		} else {
+			iter, _ = redis.Int(arr[0], nil)
+			keys, _ = redis.Strings(arr[1], nil)
+		}
+
+		fmt.Println(keys)
+
+		if iter == 0 {
+			break
+		}
+	}
+	return iter, keys, nil
 }
