@@ -35,7 +35,17 @@ func CreateNewPlayer(playerName, roomId string, isOwner bool) (*db.Player, error
 }
 
 // プレイヤー情報を取得する
-func GetPlayersInfo(roomId, playerId string) (*responses.PlayersInfoResponse, error) {
+func GetPlayerInfo(roomId, playerId string) (*db.Player, error) {
+	player, e := db.GetPlayer(roomId, playerId)
+	if e != nil {
+		return nil, e
+	}
+
+	return player, nil
+}
+
+// プレイヤー情報を取得する
+func GetPlayersInfo(roomId string) (*responses.PlayersInfoResponse, error) {
 	players, e := db.GetPlayers(roomId)
 	if e != nil {
 		return nil, e

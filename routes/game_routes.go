@@ -100,6 +100,31 @@ func RoutesGame(r *RouteBase) {
 		s.Emit(consts.FSGameJoin, utils.Response(resp))
 	})
 
+	r.path(consts.TSJoinRevive, func(s socketio.Conn, msg string) {
+		req := &requests.JoinRevive{}
+		if e := Valid(msg, req); e != nil {
+			s.Emit(consts.FSGameJoin, utils.ResponseError(e))
+			return
+		}
+
+		player, err := logic.GetPlayerInfo(req.RoomID, req.PlayerID)
+		if err != nil {
+			s.Emit(consts.FSGameJoin, utils.ResponseError(err))
+			return
+		}
+		if player.PlayerID == "" {
+			s.Emit(consts.FSGameJoin, orgerrors.NewValidationError("join retrive: fetch player id failed"))
+			return
+		}
+
+		// 一つの部屋にのみ入室した状態にする
+		s.LeaveAll()
+		s.Join(req.RoomID)
+
+		resp := responses.JoinResponse{RoomID: req.RoomID, PlayerID: player.PlayerID, IsOwner: player.IsOwner}
+		s.Emit(consts.FSGameJoin, utils.Response(resp))
+	})
+
 	r.path(consts.TSCreateMatch, func(s socketio.Conn, msg string) {
 		req := &requests.CreateMatch{}
 		if e := Valid(msg, req); e != nil {
@@ -131,7 +156,7 @@ func RoutesGame(r *RouteBase) {
 			s.Emit(consts.FSGamePlayersInfo, utils.ResponseError(e))
 			return
 		}
-		resp, e := logic.GetPlayersInfo(req.RoomID, req.PlayerID)
+		resp, e := logic.GetPlayersInfo(req.RoomID)
 		if e != nil {
 			s.Emit(consts.FSGamePlayersInfo, utils.ResponseError(e))
 			return
