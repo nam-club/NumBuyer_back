@@ -134,6 +134,7 @@ func CalculateSubmits(roomId, playerId string, action consts.CalculateAction, su
 				i := utils.ContainsStringWithIndex(player.Cards, s)
 				player.Cards = utils.DeleteSliceElement(player.Cards, i)
 			}
+			player.Cards = append(player.Cards, utils.GenerateRandomCard())
 			player, e = db.SetPlayer(roomId, player)
 			if e != nil {
 				return nil, e
