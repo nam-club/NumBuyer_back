@@ -28,9 +28,9 @@ $ npm install -g http-server
 
 1. docker-compose up でサーバを起動しておく。
 2. プロジェクトのルートフォルダへ移動し、以下のコマンドを実行する。
-$ http-server
+$ http-server -p 3000
 
-http://127.0.0.1:8080/index.html
+http://localhost:3000/index.html
 へアクセス
 ```
 
