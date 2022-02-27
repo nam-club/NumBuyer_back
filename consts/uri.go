@@ -8,6 +8,7 @@ const (
 	// サーバへのリクエストエンドポイント
 	TSJoinQuickMatch  = "join/quick_match"
 	TSJoinFriendMatch = "join/friend_match"
+	TSJoinRevive      = "join/revive"
 	TSCreateMatch     = "create/match"
 	TSGamePlayersInfo = "game/players_info"
 	TSGameStart       = "game/start"
