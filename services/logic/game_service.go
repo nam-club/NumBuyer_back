@@ -25,7 +25,7 @@ func CreateNewGame(owner string) (*responses.JoinResponse, error) {
 		CreatedAt: time.Now().Format(time.RFC3339),
 		State: db.State{
 			Phase:            consts.PhaseWaiting.Value,
-			Auction:          "",
+			Auction:          []string{},
 			Answer:           "",
 			PhaseChangedTime: time.Now().Format(time.RFC3339),
 		},
@@ -137,9 +137,7 @@ func StartGame(roomId string) error {
 		return err
 	}
 	for _, player := range players {
-		for i := 0; i < consts.InitialCardsNum; i++ {
-			player.Cards = append(player.Cards, utils.GenerateRandomCard())
-		}
+		player.Cards = utils.GenerateRandomCard(consts.InitialCardsNum)
 		db.SetPlayer(roomId, &player)
 	}
 

@@ -67,7 +67,7 @@ func AddCardToAllPlayers(roomId string) error {
 	}
 
 	for _, p := range players {
-		p.Cards = append(p.Cards, utils.GenerateRandomCard())
+		p.Cards = append(p.Cards, utils.GenerateRandomCard(1)[0])
 		db.SetPlayer(roomId, &p)
 	}
 
@@ -93,13 +93,13 @@ func IsAllPlayersReady(roomId string) (bool, error) {
 }
 
 // プレイヤーにカードを追加する
-func AppendCard(roomId, playerId, appendCard string) (*db.Player, error) {
+func AppendCard(roomId, playerId string, appendCards []string) (*db.Player, error) {
 	player, e := db.GetPlayer(roomId, playerId)
 	if e != nil {
 		return nil, e
 	}
 
-	player.Cards = append(player.Cards, appendCard)
+	player.Cards = append(player.Cards, appendCards...)
 	player, e = db.SetPlayer(roomId, player)
 	if e != nil {
 		return nil, e
