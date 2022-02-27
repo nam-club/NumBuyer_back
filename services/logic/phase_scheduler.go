@@ -171,18 +171,18 @@ func (o *PhaseSheduler) auctionFinishAction(next consts.Phase) {
 		}
 
 		resp := &responses.BuyNotifyResponse{
-			PlayerName:  buyer.PlayerName,
-			Coin:        subtract,
-			AuctionCard: currentAuction,
-			IsPassAll:   false,
+			PlayerName:   buyer.PlayerName,
+			Coin:         subtract,
+			AuctionCards: currentAuction,
+			IsPassAll:    false,
 		}
 		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameBuyNotify, utils.Response(resp))
 	} else {
 		// 全員passした時
 
 		resp := &responses.BuyNotifyResponse{
-			AuctionCard: currentAuction,
-			IsPassAll:   true,
+			AuctionCards: currentAuction,
+			IsPassAll:    true,
 		}
 		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameBuyNotify, utils.Response(resp))
 	}

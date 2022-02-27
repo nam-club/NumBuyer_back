@@ -14,13 +14,13 @@ type Game struct {
 	CreatedAt string `json:"createdAt"`
 }
 type State struct {
-	Phase                  string `json:"phase"`
-	Auction                string `json:"auction"`
-	AuctionMaxBid          string `json:"auctionMaxBid"`
-	AuctionLastBidPlayerId string `json:"auctionLastBidPlayer"`
-	SkipShowTarget         bool   `json:"skipShowTarget"`
-	Answer                 string `json:"answer"`
-	PhaseChangedTime       string `json:"phaseChangedTime"`
+	Phase                  string   `json:"phase"`
+	Auction                []string `json:"auction"`
+	AuctionMaxBid          string   `json:"auctionMaxBid"`
+	AuctionLastBidPlayerId string   `json:"auctionLastBidPlayer"`
+	SkipShowTarget         bool     `json:"skipShowTarget"`
+	Answer                 string   `json:"answer"`
+	PhaseChangedTime       string   `json:"phaseChangedTime"`
 }
 
 var rg *RedisHandler

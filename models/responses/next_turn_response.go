@@ -7,7 +7,7 @@ type NextTurnResponse struct {
 	Cards       []string `json:"cards"`
 	Coin        int      `json:"coin"`
 	TargetCard  string   `json:"targetCard"`
-	AuctionCard string   `json:"auctionCard"`
+	AuctionCard []string `json:"auctionCards"`
 }
 
 // レスポンスを生成

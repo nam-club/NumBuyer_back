@@ -1,6 +1,7 @@
 package logic
 
 import (
+	"math/rand"
 	"nam-club/NumBuyer_back/consts"
 	"nam-club/NumBuyer_back/db"
 	"nam-club/NumBuyer_back/models/orgerrors"
@@ -121,7 +122,7 @@ func ClearAuction(roomId string) error {
 		return e
 	}
 
-	game.State.Auction = ""
+	game.State.Auction = []string{}
 	game.State.AuctionMaxBid = ""
 	game.State.AuctionLastBidPlayerId = ""
 	if _, e = db.SetGame(roomId, game); e != nil {
@@ -143,19 +144,19 @@ func ClearAuction(roomId string) error {
 }
 
 // オークションカードをシャッフルする
-func ShuffleAuctionCard(roomId string) (string, error) {
+func ShuffleAuctionCard(roomId string) ([]string, error) {
 
 	game, e := db.GetGame(roomId)
 	if e != nil {
-		return "", e
+		return []string{}, e
 	}
 
 	// ランダムなオークションカードを生成する
-	game.State.Auction = utils.GenerateRandomCard()
+	game.State.Auction = utils.GenerateRandomCard(rand.Intn(3) + 1)
 
 	game, e = db.SetGame(roomId, game)
 	if e != nil {
-		return "", e
+		return []string{}, e
 	}
 
 	return game.State.Auction, nil
