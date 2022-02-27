@@ -10,6 +10,7 @@ type PlayersInfoPlayers struct {
 	PlayerName string `json:"playerName"`
 	Coin       int    `json:"coin"`
 	CardNum    int    `json:"cardNum"`
+	IsOwner    bool   `json:"isOwner"`
 }
 
 // レスポンスを生成
@@ -23,6 +24,7 @@ func GeneratePlayersInfoResponse(players []db.Player, roomId string) *PlayersInf
 				PlayerName: v.PlayerName,
 				Coin:       v.Coin,
 				CardNum:    len(v.Cards),
+				IsOwner:    v.IsOwner,
 			})
 	}
 	return ret
