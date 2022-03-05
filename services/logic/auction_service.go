@@ -152,7 +152,8 @@ func ShuffleAuctionCard(roomId string) ([]string, error) {
 	}
 
 	// ランダムなオークションカードを生成する
-	game.State.Auction = utils.GenerateRandomCard(rand.Intn(3) + 1)
+	game.State.Auction = utils.GenerateRandomCard(
+		rand.Intn(consts.AuctionCardsNumMax-consts.AuctionCardsNumMin) + consts.AuctionCardsNumMin)
 
 	game, e = db.SetGame(roomId, game)
 	if e != nil {

@@ -21,6 +21,10 @@ const (
 	TargetMin = 5
 	TargetMax = 30
 
+	// ランダムに生成されるオークションカードの枚数
+	AuctionCardsNumMin = 1
+	AuctionCardsNumMax = 3
+
 	// 符号
 	CodePlus   = "+"
 	CodeMinus  = "-"
