@@ -13,6 +13,7 @@ const (
 type Phase struct {
 	Value     string
 	Duration  int
+	Grace     int // 計算フェーズなどでフロントより多く持たせる時間
 	NextPhase *Phase
 }
 
@@ -31,17 +32,17 @@ var (
 )
 
 func init() {
-	PhaseWaiting = Phase{"WAITING", PhaseTimeValueInfinite, &PhaseReady}
-	PhaseReady = Phase{"READY", 2, &PhaseGiveCards}
-	PhaseGiveCards = Phase{"GIVE_CARDS", 3, &PhaseShowTarget}
-	PhaseShowTarget = Phase{"SHOW_TARGET", 3, &PhaseShowAuction}
-	PhaseShowAuction = Phase{"SHOW_AUCTION", 3, &PhaseAuction}
-	PhaseAuction = Phase{"AUCTION", 15, &PhaseAuctionResult}
-	PhaseAuctionResult = Phase{"AUCTION_RESULT", 5, &PhaseCalculate}
-	PhaseCalculate = Phase{"CALCULATE", 20, &PhaseCalculateResult}
-	PhaseCalculateResult = Phase{"CALCULATE_RESULT", 5, &PhaseNextTurn}
-	PhaseNextTurn = Phase{"NEXT_TURN", 2, &PhaseReady}
-	PhaseEnd = Phase{"END", PhaseTimeValueInfinite, nil}
+	PhaseWaiting = Phase{"WAITING", PhaseTimeValueInfinite, 0, &PhaseReady}
+	PhaseReady = Phase{"READY", 2, 0, &PhaseGiveCards}
+	PhaseGiveCards = Phase{"GIVE_CARDS", 3, 0, &PhaseShowTarget}
+	PhaseShowTarget = Phase{"SHOW_TARGET", 3, 0, &PhaseShowAuction}
+	PhaseShowAuction = Phase{"SHOW_AUCTION", 3, 0, &PhaseAuction}
+	PhaseAuction = Phase{"AUCTION", 15, 1, &PhaseAuctionResult}
+	PhaseAuctionResult = Phase{"AUCTION_RESULT", 5, 0, &PhaseCalculate}
+	PhaseCalculate = Phase{"CALCULATE", 20, 1, &PhaseCalculateResult}
+	PhaseCalculateResult = Phase{"CALCULATE_RESULT", 5, 0, &PhaseNextTurn}
+	PhaseNextTurn = Phase{"NEXT_TURN", 2, 0, &PhaseReady}
+	PhaseEnd = Phase{"END", PhaseTimeValueInfinite, 0, nil}
 }
 func ParsePhase(s string) (v Phase, err error) {
 	switch s {

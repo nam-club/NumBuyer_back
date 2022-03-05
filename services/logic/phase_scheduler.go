@@ -65,7 +65,6 @@ LOOP:
 			o.clean()
 			break LOOP
 		}
-		timeLimit := phase.Duration
 		nextPhase := *phase.NextPhase
 
 		// フェーズの更新が指定時間以上ない場合強制終了
@@ -78,7 +77,7 @@ LOOP:
 		if ready, _ := IsAllPlayersReady(o.roomId); ready {
 			o.phaseFinishAction(phase, nextPhase)
 		} else if phase.Duration != consts.PhaseTimeValueInfinite &&
-			startTime.Add(time.Duration(timeLimit)*time.Second).Before(time.Now()) {
+			startTime.Add(time.Duration(phase.Duration+phase.Grace)*time.Second).Before(time.Now()) {
 			// 前ターンの計算フェーズで正答者がいなかった場合、ターゲットカード更新フェーズをスキップ
 			if phase == consts.PhaseGiveCards && game.State.SkipShowTarget {
 				nextPhase = consts.PhaseShowAuction
