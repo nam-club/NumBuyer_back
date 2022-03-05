@@ -10,6 +10,7 @@ type UpdateStateResponse struct {
 	Players []UpdateStateResponsePlayers `json:"players"`
 }
 type UpdateStateResponsePlayers struct {
+	PlayerId   string `json:"playerId"`
 	PlayerName string `json:"playerName"`
 	Coin       int    `json:"coin"`
 	CardNum    int    `json:"cardNum"`
@@ -23,6 +24,7 @@ func GenerateUpdateStateResponse(players []db.Player, phase consts.Phase) *Updat
 	for _, v := range players {
 		ret.Players = append(ret.Players,
 			UpdateStateResponsePlayers{
+				PlayerId:   v.PlayerID,
 				PlayerName: v.PlayerName,
 				Coin:       v.Coin,
 				CardNum:    len(v.Cards),
