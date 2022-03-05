@@ -5,6 +5,7 @@ services:
       - ENV=production
       - REDISURL=numbuyer-elasticache-cluster.d6jx2f.ng.0001.apne1.cache.amazonaws.com:6379
       - ALLOWORIGIN=https://practical-kirch-5024e4.netlify.app
+      - LOGLEVEL=debug
     build:
       context: .
       dockerfile: Dockerfile.prd

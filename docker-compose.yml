@@ -5,6 +5,7 @@ services:
       - ENV=develop
       - REDISURL=redis:6379
       - ALLOWORIGIN=http://localhost:3000
+      - LOGLEVEL=debug
     build: .
     ports:
         - "8000:8001"
