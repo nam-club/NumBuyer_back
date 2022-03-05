@@ -4,7 +4,7 @@ import "nam-club/NumBuyer_back/models/orgerrors"
 
 const (
 	// 自動で部屋を閉じるまでの時間（秒）
-	TimeAutoEnd = 120
+	TimeAutoEnd = 600
 
 	// -1なら無制限
 	PhaseTimeValueInfinite = -1
