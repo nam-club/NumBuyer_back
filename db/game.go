@@ -9,9 +9,11 @@ import (
 )
 
 type Game struct {
-	RoomID    string `json:"roomId"`
-	State     State  `json:"state"`
-	CreatedAt string `json:"createdAt"`
+	RoomID     string `json:"roomId"`
+	PlayersMin int    `json:"playersMin"`
+	PlayersMax int    `json:"playersMax"`
+	State      State  `json:"state"`
+	CreatedAt  string `json:"createdAt"`
 }
 type State struct {
 	Phase                  string   `json:"phase"`

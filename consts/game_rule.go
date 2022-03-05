@@ -32,6 +32,12 @@ const (
 
 	// プレイヤーの最大入札回数
 	AuctionMaxBidCount = 10
+
+	// プレイヤー数の最小・最大
+	QuickMatchPlayersMin  = 4
+	QuickMatchPlayersMax  = 4
+	FriendMatchPlayersMin = 2
+	FriendMatchPlayersMax = 6
 )
 
 var (

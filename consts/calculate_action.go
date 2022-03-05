@@ -9,7 +9,7 @@ type CalculateAction string
 
 const (
 	CalculateActionAnswer CalculateAction = "answer"
-	CalculateActionPass                   = "pass"
+	CalculateActionPass   CalculateAction = "pass"
 )
 
 func (v CalculateAction) String() string {

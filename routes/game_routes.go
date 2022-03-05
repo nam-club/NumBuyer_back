@@ -26,7 +26,10 @@ func RoutesGame(r *RouteBase) {
 			// 部屋が見つからなかった場合は新規作成
 			switch errors.Unwrap(e).(type) {
 			case *orgerrors.GameNotFoundError:
-				resp, e := logic.CreateNewGame(req.PlayerName)
+				resp, e := logic.CreateNewGame(req.PlayerName,
+					consts.QuickMatchPlayersMin,
+					consts.QuickMatchPlayersMax,
+					consts.GameModeQuickMatch)
 				if e != nil {
 					s.Emit(consts.FSGameJoin, utils.ResponseError(e))
 					return
@@ -66,9 +69,29 @@ func RoutesGame(r *RouteBase) {
 			// 一つの部屋にのみ入室した状態にする
 			s.LeaveAll()
 			s.Join(roomId)
-
 			resp := responses.JoinResponse{RoomID: roomId, PlayerID: player.PlayerID}
 			s.Emit(consts.FSGameJoin, utils.Response(resp))
+
+			// 人数が揃っていたらゲームを開始する
+			players, e := logic.GetPlayersInfo(roomId)
+			if e != nil {
+				s.Emit(consts.FSGameJoin, utils.ResponseError(e))
+				return
+			}
+			game, e := logic.GetGame(roomId)
+			if e != nil {
+				s.Emit(consts.FSGameJoin, utils.ResponseError(e))
+				return
+			}
+			if game.PlayersMin <= len(players.Players) {
+				if e := logic.StartGame(roomId); e != nil {
+					s.Emit(consts.FSGameStart, utils.ResponseError(e))
+					return
+				}
+				respStart := responses.GenerateGameStartResponse(roomId, consts.CoinClearNum)
+				r.server.BroadcastToRoom("/", s.Rooms()[0], consts.FSGameStart, utils.Response(respStart))
+			}
+
 		}
 	})
 
@@ -107,7 +130,10 @@ func RoutesGame(r *RouteBase) {
 			return
 		}
 
-		resp, e := logic.CreateNewGame(req.PlayerName)
+		resp, e := logic.CreateNewGame(req.PlayerName,
+			consts.FriendMatchPlayersMin,
+			consts.FriendMatchPlayersMax,
+			consts.GameModeFriendMatch)
 		if e != nil {
 			s.Emit(consts.FSGameJoin, utils.ResponseError(e))
 			return
@@ -131,7 +157,7 @@ func RoutesGame(r *RouteBase) {
 			s.Emit(consts.FSGamePlayersInfo, utils.ResponseError(e))
 			return
 		}
-		resp, e := logic.GetPlayersInfo(req.RoomID, req.PlayerID)
+		resp, e := logic.GetPlayersInfo(req.RoomID)
 		if e != nil {
 			s.Emit(consts.FSGamePlayersInfo, utils.ResponseError(e))
 			return

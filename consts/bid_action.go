@@ -9,7 +9,7 @@ type BidAction string
 
 const (
 	BidActionBid  BidAction = "bid"
-	BidActionPass           = "pass"
+	BidActionPass BidAction = "pass"
 )
 
 func (v BidAction) String() string {

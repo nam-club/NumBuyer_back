@@ -26,7 +26,7 @@ func Bid(roomId, playerId string, bidAction consts.BidAction, coin int) (*respon
 		return nil, e
 	}
 
-	if player.BuyAction.Value == consts.BidActionPass {
+	if player.BuyAction.Value == consts.BidActionPass.String() {
 		return nil, orgerrors.NewValidationError("player already passed")
 	}
 

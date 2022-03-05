@@ -8,11 +8,12 @@ import (
 	"nam-club/NumBuyer_back/models/responses"
 	"nam-club/NumBuyer_back/utils"
 	"sort"
+	"strconv"
 	"time"
 )
 
 // 新規ゲームを生成する
-func CreateNewGame(owner string) (*responses.JoinResponse, error) {
+func CreateNewGame(playerName string, playersMin, playersMax int, gameMode consts.GameMode) (*responses.JoinResponse, error) {
 
 	var id string
 	var e error
@@ -21,8 +22,10 @@ func CreateNewGame(owner string) (*responses.JoinResponse, error) {
 	}
 
 	g := &db.Game{
-		RoomID:    id,
-		CreatedAt: time.Now().Format(time.RFC3339),
+		RoomID:     id,
+		PlayersMin: playersMin,
+		PlayersMax: playersMax,
+		CreatedAt:  time.Now().Format(time.RFC3339),
 		State: db.State{
 			Phase:            consts.PhaseWaiting.Value,
 			Auction:          []string{},
@@ -35,11 +38,15 @@ func CreateNewGame(owner string) (*responses.JoinResponse, error) {
 		return nil, e
 	}
 
-	if e = db.SetJoinableGame(id); e != nil {
-		return nil, e
+	if gameMode == consts.GameModeQuickMatch {
+		if e = db.SetJoinableGame(id); e != nil {
+			return nil, e
+		}
 	}
 
-	player, e := CreateNewPlayer(owner, id, true)
+	// フレンドマッチならゲーム作成者にオーナー権限をつける
+	isOwner := gameMode == consts.GameModeFriendMatch
+	player, e := CreateNewPlayer(playerName, id, isOwner)
 	if e != nil {
 		return nil, e
 	}
@@ -54,6 +61,14 @@ func GetRandomRoomId() (string, error) {
 	r, e := db.GetRandomRoomId()
 	if e != nil {
 		return "", e
+	}
+	return r, nil
+}
+
+func GetGame(roomId string) (*db.Game, error) {
+	r, e := db.GetGame(roomId)
+	if e != nil {
+		return nil, e
 	}
 	return r, nil
 }
@@ -110,15 +125,27 @@ func GenerateUpdateState(nextPhase consts.Phase, roomId string) (*responses.Upda
 
 // ゲームを開始する
 func StartGame(roomId string) error {
-	joinable := CheckPhase(roomId, consts.PhaseWaiting)
-	if !joinable {
+	// ゲーム開始のバリデーション
+	game, err := db.GetGame(roomId)
+	if err != nil {
+		return orgerrors.NewValidationError("get room failed: " + roomId)
+	}
+	if game.State.Phase != consts.PhaseWaiting.Value {
 		return orgerrors.NewValidationError("game status is not waiting")
 	}
 
+	players, err := db.GetPlayers(roomId)
+	if err != nil {
+		return orgerrors.NewValidationError("get players failed: " + roomId)
+	}
+	if len(players) < game.PlayersMin || game.PlayersMax < len(players) {
+		return orgerrors.NewValidationError("players num is not meet. min=" + strconv.Itoa(game.PlayersMin) + ", max=" + strconv.Itoa(game.PlayersMax) + ", current=" + strconv.Itoa(len(players)))
+	}
+
+	// ゲーム開始処理
 	if _, e := db.DeleteJoinableGame(roomId); e != nil {
 		return e
 	}
-
 	if e := SetAllPlayersReady(roomId); e != nil {
 		return orgerrors.NewInternalServerError("set players status ready failed.")
 	}
@@ -130,9 +157,8 @@ func StartGame(roomId string) error {
 	if _, e := ShuffleAuctionCard(roomId); e != nil {
 		return orgerrors.NewInternalServerError("failed to shuffle auction.")
 	}
-
 	// プレイヤーに初期カードを付与する
-	players, err := db.GetPlayers(roomId)
+	players, err = db.GetPlayers(roomId)
 	if err != nil {
 		return err
 	}
