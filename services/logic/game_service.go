@@ -13,7 +13,7 @@ import (
 )
 
 // 新規ゲームを生成する
-func CreateNewGame(playerName string, playersMin, playersMax int, gameMode consts.GameMode) (*responses.JoinResponse, error) {
+func CreateNewGame(playerName string, playersMin, playersMax int, gameMode consts.GameMode, abilities []consts.Ability) (*responses.JoinResponse, error) {
 
 	var id string
 	var e error
@@ -46,7 +46,7 @@ func CreateNewGame(playerName string, playersMin, playersMax int, gameMode const
 
 	// フレンドマッチならゲーム作成者にオーナー権限をつける
 	isOwner := gameMode == consts.GameModeFriendMatch
-	player, e := CreateNewPlayer(playerName, id, isOwner)
+	player, e := CreateNewPlayer(playerName, id, isOwner, abilities)
 	if e != nil {
 		return nil, e
 	}

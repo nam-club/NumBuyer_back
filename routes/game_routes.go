@@ -26,10 +26,12 @@ func RoutesGame(r *RouteBase) {
 			// 部屋が見つからなかった場合は新規作成
 			switch errors.Unwrap(e).(type) {
 			case *orgerrors.GameNotFoundError:
+				abilities := consts.ParseAbilities(req.AbilityIds)
 				resp, e := logic.CreateNewGame(req.PlayerName,
 					consts.QuickMatchPlayersMin,
 					consts.QuickMatchPlayersMax,
-					consts.GameModeQuickMatch)
+					consts.GameModeQuickMatch,
+					abilities)
 				if e != nil {
 					s.Emit(consts.FSGameJoin, utils.ResponseError(e))
 					return
@@ -60,7 +62,8 @@ func RoutesGame(r *RouteBase) {
 			}
 
 			// 部屋が見つかった場合はその部屋に参加
-			player, e := logic.CreateNewPlayer(req.PlayerName, roomId, false)
+			abilities := consts.ParseAbilities(req.AbilityIds)
+			player, e := logic.CreateNewPlayer(req.PlayerName, roomId, false, abilities)
 			if e != nil {
 				s.Emit(consts.FSGameJoin, utils.ResponseError(e))
 				return
@@ -109,7 +112,8 @@ func RoutesGame(r *RouteBase) {
 			return
 		}
 
-		player, e := logic.CreateNewPlayer(req.PlayerName, req.RoomID, false)
+		abilities := consts.ParseAbilities(req.AbilityIds)
+		player, e := logic.CreateNewPlayer(req.PlayerName, req.RoomID, false, abilities)
 		if e != nil {
 			s.Emit(consts.FSGameJoin, utils.ResponseError(e))
 			return
@@ -130,10 +134,12 @@ func RoutesGame(r *RouteBase) {
 			return
 		}
 
+		abilities := consts.ParseAbilities(req.AbilityIds)
 		resp, e := logic.CreateNewGame(req.PlayerName,
 			consts.FriendMatchPlayersMin,
 			consts.FriendMatchPlayersMax,
-			consts.GameModeFriendMatch)
+			consts.GameModeFriendMatch,
+			abilities)
 		if e != nil {
 			s.Emit(consts.FSGameJoin, utils.ResponseError(e))
 			return

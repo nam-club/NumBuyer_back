@@ -11,16 +11,22 @@ import (
 )
 
 // 新規プレイヤー情報を生成する
-func CreateNewPlayer(playerName, roomId string, isOwner bool) (*db.Player, error) {
+func CreateNewPlayer(playerName, roomId string, isOwner bool, abilities []consts.Ability) (*db.Player, error) {
 
 	if b, _ := db.ExistsGame(roomId); b == false {
 		return nil, orgerrors.NewGameNotFoundError("game not found")
+	}
+
+	dbAbilities := []db.Ability{}
+	for _, v := range abilities {
+		dbAbilities = append(dbAbilities, db.Ability{ID: v.ID, Remain: v.UsableNum, Status: string(consts.AbilityStatusActive)})
 	}
 
 	p := &db.Player{
 		PlayerID:   generatePlayerId(roomId),
 		PlayerName: playerName,
 		IsOwner:    isOwner,
+		Abilities:  dbAbilities,
 		Coin:       consts.InitialCoin,
 	}
 
