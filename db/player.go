@@ -15,11 +15,17 @@ type Player struct {
 	IsOwner      bool         `json:"isOwner"`
 	Coin         int          `json:"coin"`
 	Cards        []string     `json:"cards"`
+	Abilities    []Ability    `json:"abilities"`
 	BuyAction    BuyAction    `json:"buyAction"`
 	AnswerAction AnswerAction `json:"answerAction"`
 	Ready        bool         `json:"ready"`
 }
 
+type Ability struct {
+	ID     string `json:"id"`
+	Status string `json:"status"` // 実行状態
+	Remain int    `json:"remain"` // 残使用回数 -1なら無限に実行可能
+}
 type BuyAction struct {
 	Action   string `json:"action"`
 	Value    string `json:"value"`
