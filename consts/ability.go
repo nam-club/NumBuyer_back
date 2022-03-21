@@ -43,6 +43,10 @@ var (
 	}
 )
 
+func GetAbilities() map[string]Ability {
+	return abilities
+}
+
 func ParseAbilities(s []string) []Ability {
 	ret := []Ability{}
 	for _, v := range s {

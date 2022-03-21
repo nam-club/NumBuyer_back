@@ -157,6 +157,15 @@ func RoutesGame(r *RouteBase) {
 		s.Emit(consts.FSGameJoin, utils.Response(resp))
 	})
 
+	r.path(consts.TSGetAbilities, func(s socketio.Conn, msg string) {
+		var abilities []consts.Ability
+		for _, v := range consts.GetAbilities() {
+			abilities = append(abilities, v)
+		}
+		resp := responses.GenerateGetAbilitiesResponse(abilities)
+		s.Emit(consts.FSGetAbilities, utils.Response(resp))
+	})
+
 	r.path(consts.TSGamePlayersInfo, func(s socketio.Conn, msg string) {
 		req := &requests.GamePlayerInfo{}
 		if e := Valid(msg, req); e != nil {

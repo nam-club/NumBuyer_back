@@ -9,6 +9,7 @@ const (
 	TSJoinQuickMatch  = "join/quick_match"
 	TSJoinFriendMatch = "join/friend_match"
 	TSCreateMatch     = "create/match"
+	TSGetAbilities    = "get/abilities"
 	TSGamePlayersInfo = "game/players_info"
 	TSGameStart       = "game/start"
 	TSGameNextTurn    = "game/next_turn"
@@ -17,6 +18,7 @@ const (
 	TSGameCalculate   = "game/calculate"
 
 	// サーバからのレスポンスエンドポイント
+	FSGetAbilities        = "get/abilities"
 	FSGameJoin            = "game/join"
 	FSGamePlayersInfo     = "game/players_info"
 	FSGameNextTurn        = "game/next_turn"
