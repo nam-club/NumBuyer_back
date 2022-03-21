@@ -22,9 +22,9 @@ type Player struct {
 }
 
 type Ability struct {
-	ID     string `json:"id"`
-	Status string `json:"status"` // 実行状態
-	Remain int    `json:"remain"` // 残使用回数 -1なら無限に実行可能
+	ID        string `json:"id"`
+	Status    string `json:"status"`    // 実行状態
+	Remaining int    `json:"remaining"` // 残使用回数 -1なら無限に実行可能
 }
 type BuyAction struct {
 	Action   string `json:"action"`

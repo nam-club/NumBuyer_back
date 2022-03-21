@@ -158,12 +158,24 @@ func RoutesGame(r *RouteBase) {
 	})
 
 	r.path(consts.TSGetAbilities, func(s socketio.Conn, msg string) {
-		var abilities []consts.Ability
-		for _, v := range consts.GetAbilities() {
-			abilities = append(abilities, v)
-		}
-		resp := responses.GenerateGetAbilitiesResponse(abilities)
+		resp := responses.GenerateGetAbilitiesResponse(consts.GetAbilities())
 		s.Emit(consts.FSGetAbilities, utils.Response(resp))
+	})
+
+	r.path(consts.TSGameReadyAbilities, func(s socketio.Conn, msg string) {
+		req := &requests.GameReadyAbilities{}
+		if e := Valid(msg, req); e != nil {
+			s.Emit(consts.FSGameReadyAbilities, utils.ResponseError(e))
+			return
+		}
+
+		status, e := logic.ReadyAbilities(req.RoomID, req.PlayerID, req.AbilityIds)
+		if e != nil {
+			s.Emit(consts.FSGameReadyAbilities, utils.ResponseError(e))
+			return
+		}
+
+		s.Emit(consts.FSGameReadyAbilities, utils.Response(responses.GameReadyAbilitiesResponse{Status: status}))
 	})
 
 	r.path(consts.TSGamePlayersInfo, func(s socketio.Conn, msg string) {

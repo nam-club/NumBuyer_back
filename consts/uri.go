@@ -6,19 +6,21 @@ package consts
 // TODO 仕様書に書いた定義は全部コードに自動で落とし込みたい。websocket版swagger的なツールはないか?
 const (
 	// サーバへのリクエストエンドポイント
-	TSJoinQuickMatch  = "join/quick_match"
-	TSJoinFriendMatch = "join/friend_match"
-	TSCreateMatch     = "create/match"
-	TSGetAbilities    = "get/abilities"
-	TSGamePlayersInfo = "game/players_info"
-	TSGameStart       = "game/start"
-	TSGameNextTurn    = "game/next_turn"
-	TSGameBid         = "game/bid"
-	TSGameBuy         = "game/buy"
-	TSGameCalculate   = "game/calculate"
+	TSJoinQuickMatch     = "join/quick_match"
+	TSJoinFriendMatch    = "join/friend_match"
+	TSCreateMatch        = "create/match"
+	TSGetAbilities       = "get/abilities"
+	TSGameReadyAbilities = "game/ready_abilities"
+	TSGamePlayersInfo    = "game/players_info"
+	TSGameStart          = "game/start"
+	TSGameNextTurn       = "game/next_turn"
+	TSGameBid            = "game/bid"
+	TSGameBuy            = "game/buy"
+	TSGameCalculate      = "game/calculate"
 
 	// サーバからのレスポンスエンドポイント
 	FSGetAbilities        = "get/abilities"
+	FSGameReadyAbilities  = "game/ready_abilities"
 	FSGameJoin            = "game/join"
 	FSGamePlayersInfo     = "game/players_info"
 	FSGameNextTurn        = "game/next_turn"

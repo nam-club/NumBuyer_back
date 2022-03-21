@@ -64,17 +64,21 @@
     <button>Get Abilities</button>
     <input id="ga" autocomplete="off" />
   </form>
+  <form action="" id="form-ready-ablilities">
+    <button>Ready Abilities</button>
+    <input id="ra" value="{&quot;roomId&quot;:&quot;xx&quot;,&quot;playerId&quot;:&quot;junpei&quot;,&quot;abilityIds&quot;:[&quot;boost_prm_001&quot;,&quot;def_tmp_001&quot;]}" autocomplete="off" />
+  </form>
   <form action="" id="form-join-friend">
     <button>Friend Join</button>
-    <input id="jf" value="{&quot;roomId&quot;:&quot;xx&quot;,&quot;playerName&quot;:&quot;junpei&quot;,&quot;abilityIds&quot;:[&quot;boost_prm_001&quot;,&quot;atk_prm_001&quot;]}" autocomplete="off" />
+    <input id="jf" value="{&quot;roomId&quot;:&quot;xx&quot;,&quot;playerName&quot;:&quot;junpei&quot;,&quot;abilityIds&quot;:[&quot;boost_prm_001&quot;,&quot;def_tmp_001&quot;]}" autocomplete="off" />
   </form>
   <form action="" id="form-join-quick">
     <button>Quick Join</button>
-    <input id="jq" value="{&quot;playerName&quot;:&quot;junpei&quot;,&quot;abilityIds&quot;:[&quot;boost_prm_001&quot;,&quot;atk_prm_001&quot;]}" autocomplete="off" />
+    <input id="jq" value="{&quot;playerName&quot;:&quot;junpei&quot;,&quot;abilityIds&quot;:[&quot;boost_prm_001&quot;,&quot;def_tmp_001&quot;]}" autocomplete="off" />
   </form>
   <form action="" id="form-create-game">
     <button>Create Game</button>
-    <input id="cr" value="{&quot;playerName&quot;:&quot;junpei&quot;,&quot;abilityIds&quot;:[&quot;boost_prm_001&quot;,&quot;atk_prm_001&quot;]}" autocomplete="off" />
+    <input id="cr" value="{&quot;playerName&quot;:&quot;junpei&quot;,&quot;abilityIds&quot;:[&quot;boost_prm_001&quot;,&quot;def_tmp_001&quot;]}" autocomplete="off" />
   </form>
   <form action="" id="form-players-info">
     <button>Players Info</button>
@@ -113,6 +117,9 @@
 
     socket.on('get/abilities', function (msg) {
       $('#messages').append($('<li>').text('[get/abilities] ' + msg));
+    });
+    socket.on('game/ready_abilities', function (msg) {
+      $('#messages').append($('<li>').text('[ready/abilities] ' + msg));
     });
     socket.on('game/join', function (msg) {
       $('#messages').append($('<li>').text('[game/join] ' + msg));
@@ -153,6 +160,10 @@
 
     $('#form-get-ablilities').submit(function () {
       socket.emit('get/abilities', $('#ga').val());
+      return false;
+    });
+    $('#form-ready-ablilities').submit(function () {
+      socket.emit('game/ready_abilities', $('#ra').val());
       return false;
     });
     $('#form-join-friend').submit(function () {

@@ -4,10 +4,11 @@ type AbilityStatus string
 type AbilityTrigger string
 type AbilityType string
 type Ability struct {
-	ID        string
-	Trigger   AbilityTrigger
-	Type      AbilityType
-	UsableNum int // -1なら無制限
+	ID            string
+	Trigger       AbilityTrigger
+	Type          AbilityType
+	UsableNum     int // -1なら無制限
+	InitialStatus AbilityStatus
 }
 
 const (
@@ -21,9 +22,9 @@ const (
 	AbilityTypeJam     AbilityType = "jam"
 	AbilityTypeConfuse AbilityType = "confuse"
 	// 実行状態
-	AbilityStatusActive AbilityStatus = "active"
-	AbilityStatusReady  AbilityStatus = "ready"
 	AbilityStatusUnused AbilityStatus = "unused"
+	AbilityStatusReady  AbilityStatus = "ready"
+	AbilityStatusActive AbilityStatus = "active"
 	AbilityStatusUsed   AbilityStatus = "used"
 )
 
@@ -31,20 +32,25 @@ var (
 	// keyにID, valueにアビリティ情報
 	abilities = map[string]Ability{
 		//FiBoost
-		"boost_prm_001": {"boost_prm_001", AbilityTriggerPassive, AbilityTypeBoost, -1},
+		"boost_prm_001": {"boost_prm_001", AbilityTriggerPassive, AbilityTypeBoost, -1, AbilityStatusUnused},
 		// NumViolence
-		"atk_prm_001": {"atk_prm_001", AbilityTriggerPassive, AbilityTypeAttack, -1},
+		"atk_prm_001": {"atk_prm_001", AbilityTriggerPassive, AbilityTypeAttack, -1, AbilityStatusUnused},
 		// BringYourself
-		"def_tmp_001": {"def_tmp_001", AbilityTriggerActive, AbilityTypeDefense, 5},
+		"def_tmp_001": {"def_tmp_001", AbilityTriggerActive, AbilityTypeDefense, 5, AbilityStatusActive},
 		// Shutdown
-		"jam_prm_001": {"jam_prm_001", AbilityTriggerPassive, AbilityTypeJam, -1},
+		"jam_prm_001": {"jam_prm_001", AbilityTriggerPassive, AbilityTypeJam, -1, AbilityStatusUnused},
 		// ShakeShake
-		"cnf_tmp_001": {"cnf_tmp_001", AbilityTriggerActive, AbilityTypeConfuse, 1},
+		"cnf_tmp_001": {"cnf_tmp_001", AbilityTriggerActive, AbilityTypeConfuse, 1, AbilityStatusActive},
 	}
 )
 
-func GetAbilities() map[string]Ability {
-	return abilities
+func GetAbilities() []Ability {
+	ret := []Ability{}
+	for _, v := range abilities {
+		ret = append(ret, v)
+	}
+
+	return ret
 }
 
 func ParseAbilities(s []string) []Ability {
