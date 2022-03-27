@@ -170,20 +170,20 @@ func RoutesGame(r *RouteBase) {
 		s.Emit(consts.FSGetAbilities, utils.Response(resp))
 	})
 
-	r.path(consts.TSGameReadyAbilities, func(s socketio.Conn, msg string) {
-		req := &requests.GameReadyAbilities{}
+	r.path(consts.TSGameReadyAbility, func(s socketio.Conn, msg string) {
+		req := &requests.GameReadyAbility{}
 		if e := Valid(msg, req); e != nil {
-			s.Emit(consts.FSGameReadyAbilities, utils.ResponseError(e))
+			s.Emit(consts.FSGameReadyAbility, utils.ResponseError(e))
 			return
 		}
 
-		status, e := logic.ReadyAbilities(req.RoomID, req.PlayerID, req.AbilityIds)
+		ability, e := logic.ReadyAbility(req.RoomID, req.PlayerID, req.AbilityId)
 		if e != nil {
-			s.Emit(consts.FSGameReadyAbilities, utils.ResponseError(e))
+			s.Emit(consts.FSGameReadyAbility, utils.ResponseError(e))
 			return
 		}
 
-		s.Emit(consts.FSGameReadyAbilities, utils.Response(responses.GameReadyAbilitiesResponse{Status: status}))
+		s.Emit(consts.FSGameReadyAbility, utils.Response(responses.GameReadyAbilityResponse{Status: ability.Status, Remaining: ability.Remaining}))
 	})
 
 	r.path(consts.TSGamePlayersInfo, func(s socketio.Conn, msg string) {

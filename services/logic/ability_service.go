@@ -8,28 +8,32 @@ import (
 )
 
 // アビリティを発動準備状態にする
-func ReadyAbilities(roomId, playerId string, abilityIds []string) (string, error) {
+func ReadyAbility(roomId, playerId string, abilityId string) (*db.Ability, error) {
 
 	player, e := db.GetPlayer(roomId, playerId)
 	if e != nil {
-		return "", e
+		return nil, e
 	}
 
+	var ret *db.Ability
 	for i, v := range player.Abilities {
-		for _, inV := range abilityIds {
-			if v.ID == inV {
-				if v.Status != string(consts.AbilityStatusUnused) {
-					return "", orgerrors.NewValidationError("ability status is not unused")
-				}
-				player.Abilities[i].Status = string(consts.AbilityStatusReady)
+		if v.ID == abilityId {
+			if v.Status != string(consts.AbilityStatusUnused) {
+				return nil, orgerrors.NewValidationError("ability status is not unused")
 			}
+			if player.Abilities[i].Remaining <= 0 {
+				return nil, orgerrors.NewValidationError("exceeded the number of ability usable")
+			}
+			player.Abilities[i].Status = string(consts.AbilityStatusReady)
+			player.Abilities[i].Remaining = player.Abilities[i].Remaining - 1
+			ret = &player.Abilities[i]
 		}
 	}
 	fmt.Printf("%v\n", player)
 
-	_, e = db.SetPlayer(roomId, player)
+	player, e = db.SetPlayer(roomId, player)
 	if e != nil {
-		return "", e
+		return nil, e
 	}
-	return string(consts.AbilityStatusReady), nil
+	return ret, nil
 }
