@@ -10,16 +10,11 @@ type UpdateStateResponse struct {
 	Players []UpdateStateResponsePlayers `json:"players"`
 }
 type UpdateStateResponsePlayers struct {
-	PlayerId   string                       `json:"playerId"`
-	PlayerName string                       `json:"playerName"`
-	Coin       int                          `json:"coin"`
-	CardNum    int                          `json:"cardNum"`
-	Abilities  []UpdateStateResponseAbility `json:"abilities"`
-}
-type UpdateStateResponseAbility struct {
-	AbilityId string `json:"abilityId"`
-	Status    string `json:"status"`
-	Remaining int    `json:"Remaining"`
+	PlayerId        string   `json:"playerId"`
+	PlayerName      string   `json:"playerName"`
+	Coin            int      `json:"coin"`
+	CardNum         int      `json:"cardNum"`
+	FiredAbilityIds []string `json:"firedAbilityIds"`
 }
 
 // レスポンスを生成
@@ -29,18 +24,18 @@ func GenerateUpdateStateResponse(players []db.Player, phase consts.Phase) *Updat
 	ret := &UpdateStateResponse{}
 	ret.Phase = phase.Value
 	for _, p := range players {
-		abilities := []UpdateStateResponseAbility{}
+		abilityIds := []string{}
 		for _, a := range p.Abilities {
-			abilities = append(abilities, UpdateStateResponseAbility{AbilityId: a.ID, Status: a.Status, Remaining: a.Remaining})
+			abilityIds = append(abilityIds, a.ID)
 		}
 
 		ret.Players = append(ret.Players,
 			UpdateStateResponsePlayers{
-				PlayerId:   p.PlayerID,
-				PlayerName: p.PlayerName,
-				Coin:       p.Coin,
-				CardNum:    len(p.Cards),
-				Abilities:  abilities,
+				PlayerId:        p.PlayerID,
+				PlayerName:      p.PlayerName,
+				Coin:            p.Coin,
+				CardNum:         len(p.Cards),
+				FiredAbilityIds: abilityIds,
 			})
 	}
 	return ret
