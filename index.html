@@ -60,13 +60,9 @@
 </head>
 
 <body>
-  <form action="" id="form-get-ablilities">
-    <button>Get Abilities</button>
-    <input id="ga" autocomplete="off" />
-  </form>
-  <form action="" id="form-ready-ablilities">
-    <button>Ready Abilities</button>
-    <input id="ra" value="{&quot;roomId&quot;:&quot;xx&quot;,&quot;playerId&quot;:&quot;junpei&quot;,&quot;abilityIds&quot;:[&quot;boost_prm_001&quot;,&quot;def_tmp_001&quot;]}" autocomplete="off" />
+  <form action="" id="form-ready-ablility">
+    <button>Ready Ability</button>
+    <input id="ra" value="{&quot;roomId&quot;:&quot;xx&quot;,&quot;playerId&quot;:&quot;junpei&quot;,&quot;abilityId&quot;:&quot;boost_prm_001&quot;}" autocomplete="off" />
   </form>
   <form action="" id="form-join-friend">
     <button>Friend Join</button>
@@ -118,7 +114,7 @@
     socket.on('get/abilities', function (msg) {
       $('#messages').append($('<li>').text('[get/abilities] ' + msg));
     });
-    socket.on('game/ready_abilities', function (msg) {
+    socket.on('game/ready_ability', function (msg) {
       $('#messages').append($('<li>').text('[ready/abilities] ' + msg));
     });
     socket.on('game/join', function (msg) {
@@ -158,12 +154,8 @@
       $('#messages').append($('<li>').text('[game/finish_game] ' + msg));
     });
 
-    $('#form-get-ablilities').submit(function () {
-      socket.emit('get/abilities', $('#ga').val());
-      return false;
-    });
-    $('#form-ready-ablilities').submit(function () {
-      socket.emit('game/ready_abilities', $('#ra').val());
+    $('#form-ready-ablility').submit(function () {
+      socket.emit('game/ready_ability', $('#ra').val());
       return false;
     });
     $('#form-join-friend').submit(function () {
