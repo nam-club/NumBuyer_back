@@ -26,21 +26,22 @@ const (
 	AbilityStatusReady  AbilityStatus = "ready"
 	AbilityStatusActive AbilityStatus = "active"
 	AbilityStatusUsed   AbilityStatus = "used"
+	// ID
+	AbilityIdFiBoost       = "boost_prm_001"
+	AbilityIdNumViolence   = "atk_prm_001"
+	AbilityIdBringYourself = "def_tmp_001"
+	AbilityIdShutdown      = "jam_prm_001"
+	AbilityIdShakeShake    = "cnf_tmp_001"
 )
 
 var (
 	// keyにID, valueにアビリティ情報
 	abilities = map[string]Ability{
-		//FiBoost
-		"boost_prm_001": {"boost_prm_001", AbilityTriggerPassive, AbilityTypeBoost, -1, AbilityStatusUnused},
-		// NumViolence
-		"atk_prm_001": {"atk_prm_001", AbilityTriggerPassive, AbilityTypeAttack, -1, AbilityStatusUnused},
-		// BringYourself
-		"def_tmp_001": {"def_tmp_001", AbilityTriggerActive, AbilityTypeDefense, 5, AbilityStatusActive},
-		// Shutdown
-		"jam_prm_001": {"jam_prm_001", AbilityTriggerPassive, AbilityTypeJam, -1, AbilityStatusUnused},
-		// ShakeShake
-		"cnf_tmp_001": {"cnf_tmp_001", AbilityTriggerActive, AbilityTypeConfuse, 1, AbilityStatusActive},
+		AbilityIdFiBoost:       {AbilityIdFiBoost, AbilityTriggerPassive, AbilityTypeBoost, -1, AbilityStatusUnused},
+		AbilityIdNumViolence:   {AbilityIdNumViolence, AbilityTriggerPassive, AbilityTypeAttack, -1, AbilityStatusUnused},
+		AbilityIdBringYourself: {AbilityIdBringYourself, AbilityTriggerActive, AbilityTypeDefense, 5, AbilityStatusActive},
+		AbilityIdShutdown:      {AbilityIdShutdown, AbilityTriggerPassive, AbilityTypeJam, -1, AbilityStatusUnused},
+		AbilityIdShakeShake:    {AbilityIdShakeShake, AbilityTriggerActive, AbilityTypeConfuse, 1, AbilityStatusActive},
 	}
 )
 
