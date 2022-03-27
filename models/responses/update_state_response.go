@@ -26,7 +26,9 @@ func GenerateUpdateStateResponse(players []db.Player, phase consts.Phase) *Updat
 	for _, p := range players {
 		abilityIds := []string{}
 		for _, a := range p.Abilities {
-			abilityIds = append(abilityIds, a.ID)
+			if a.Status == string(consts.AbilityStatusActive) {
+				abilityIds = append(abilityIds, a.ID)
+			}
 		}
 
 		ret.Players = append(ret.Players,

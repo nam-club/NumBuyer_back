@@ -39,11 +39,11 @@ const (
 var (
 	// keyにID, valueにアビリティ情報
 	abilities = map[string]Ability{
-		AbilityIdFiBoost:       {AbilityIdFiBoost, AbilityTriggerPassive, AbilityTypeBoost, -1, AbilityStatusUnused},
-		AbilityIdNumViolence:   {AbilityIdNumViolence, AbilityTriggerPassive, AbilityTypeAttack, -1, AbilityStatusUnused},
-		AbilityIdBringYourself: {AbilityIdBringYourself, AbilityTriggerActive, AbilityTypeDefense, 5, AbilityStatusActive},
-		AbilityIdShutdown:      {AbilityIdShutdown, AbilityTriggerPassive, AbilityTypeJam, -1, AbilityStatusUnused},
-		AbilityIdShakeShake:    {AbilityIdShakeShake, AbilityTriggerActive, AbilityTypeConfuse, 1, AbilityStatusActive},
+		AbilityIdFiBoost:       {AbilityIdFiBoost, AbilityTriggerPassive, AbilityTypeBoost, -1, AbilityStatusReady},
+		AbilityIdNumViolence:   {AbilityIdNumViolence, AbilityTriggerPassive, AbilityTypeAttack, -1, AbilityStatusReady},
+		AbilityIdBringYourself: {AbilityIdBringYourself, AbilityTriggerActive, AbilityTypeDefense, 5, AbilityStatusUnused},
+		AbilityIdShutdown:      {AbilityIdShutdown, AbilityTriggerPassive, AbilityTypeJam, -1, AbilityStatusReady},
+		AbilityIdShakeShake:    {AbilityIdShakeShake, AbilityTriggerActive, AbilityTypeConfuse, 1, AbilityStatusUnused},
 	}
 )
 
