@@ -51,9 +51,7 @@ func CreateNewGame(playerName string, playersMin, playersMax int, gameMode const
 		return nil, e
 	}
 
-	ret := &responses.JoinResponse{RoomID: id, PlayerID: player.PlayerID, IsOwner: player.IsOwner}
-
-	return ret, nil
+	return responses.GenerateJoinResponse(id, player)
 }
 
 // ランダムなゲームIDを一つ取得する

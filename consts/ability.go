@@ -1,5 +1,7 @@
 package consts
 
+import "nam-club/NumBuyer_back/models/orgerrors"
+
 type AbilityStatus string
 type AbilityTrigger string
 type AbilityType string
@@ -52,6 +54,14 @@ func GetAbilities() []Ability {
 	}
 
 	return ret
+}
+
+func ParseAbility(s string) (Ability, error) {
+	if val, ok := abilities[s]; ok {
+		return val, nil
+	} else {
+		return Ability{}, orgerrors.NewValidationError("ability parse error. " + s)
+	}
 }
 
 func ParseAbilities(s []string) []Ability {

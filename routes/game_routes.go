@@ -72,7 +72,11 @@ func RoutesGame(r *RouteBase) {
 			// 一つの部屋にのみ入室した状態にする
 			s.LeaveAll()
 			s.Join(roomId)
-			resp := responses.JoinResponse{RoomID: roomId, PlayerID: player.PlayerID}
+			resp, e := responses.GenerateJoinResponse(roomId, player)
+			if e != nil {
+				s.Emit(consts.FSGameJoin, utils.ResponseError(e))
+				return
+			}
 			s.Emit(consts.FSGameJoin, utils.Response(resp))
 
 			// 人数が揃っていたらゲームを開始する
@@ -123,7 +127,11 @@ func RoutesGame(r *RouteBase) {
 		s.LeaveAll()
 		s.Join(req.RoomID)
 
-		resp := responses.JoinResponse{RoomID: req.RoomID, PlayerID: player.PlayerID}
+		resp, e := responses.GenerateJoinResponse(req.RoomID, player)
+		if e != nil {
+			s.Emit(consts.FSGameJoin, utils.ResponseError(e))
+			return
+		}
 		s.Emit(consts.FSGameJoin, utils.Response(resp))
 	})
 
