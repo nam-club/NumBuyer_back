@@ -7,7 +7,7 @@ import (
 	"nam-club/NumBuyer_back/models/responses"
 	"nam-club/NumBuyer_back/utils"
 
-	"github.com/google/uuid"
+	"github.com/rs/xid"
 )
 
 // 新規プレイヤー情報を生成する
@@ -137,5 +137,5 @@ func SubtractCoin(roomId, playerId string, subtract int) (*db.Player, error) {
 
 // プレイヤーIDを生成する
 func generatePlayerId(roomId string) string {
-	return uuid.Must(uuid.NewUUID()).String()
+	return xid.New().String()
 }
