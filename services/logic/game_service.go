@@ -105,12 +105,22 @@ func NextPhase(nextPhase consts.Phase, roomId string) (*responses.UpdateStateRes
 	if e != nil {
 		return nil, e
 	}
+
+	firedAbilityIds := map[string][]string{}
 	for _, p := range players {
+		// プレイヤーの準備状態をリセット
 		p.Ready = false
 		db.SetPlayer(roomId, &p)
+
+		// アビリティを発動する
+		fired, e := FireAbilityIfPossible(game, &p)
+		if e != nil {
+			return nil, e
+		}
+		firedAbilityIds[p.PlayerID] = fired
 	}
 
-	return responses.GenerateUpdateStateResponse(players, nextPhase), nil
+	return responses.GenerateUpdateStateResponse(players, nextPhase, firedAbilityIds), nil
 }
 
 func GenerateUpdateState(nextPhase consts.Phase, roomId string) (*responses.UpdateStateResponse, error) {
@@ -118,7 +128,7 @@ func GenerateUpdateState(nextPhase consts.Phase, roomId string) (*responses.Upda
 	if e != nil {
 		return nil, e
 	}
-	return responses.GenerateUpdateStateResponse(players, nextPhase), nil
+	return responses.GenerateUpdateStateResponse(players, nextPhase, map[string][]string{}), nil
 }
 
 // ゲームを開始する

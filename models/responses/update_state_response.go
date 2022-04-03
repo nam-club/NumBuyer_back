@@ -19,18 +19,12 @@ type UpdateStateResponsePlayers struct {
 
 // レスポンスを生成
 // DB接続、分岐などのビジネスロジックは書かないこと
-func GenerateUpdateStateResponse(players []db.Player, phase consts.Phase) *UpdateStateResponse {
+func GenerateUpdateStateResponse(players []db.Player, phase consts.Phase, firedAbilityIds map[string][]string) *UpdateStateResponse {
 
 	ret := &UpdateStateResponse{}
 	ret.Phase = phase.Value
 	for _, p := range players {
-		abilityIds := []string{}
-		for _, a := range p.Abilities {
-			if a.Status == string(consts.AbilityStatusActive) {
-				abilityIds = append(abilityIds, a.ID)
-			}
-		}
-
+		abilityIds := firedAbilityIds[p.PlayerID]
 		ret.Players = append(ret.Players,
 			UpdateStateResponsePlayers{
 				PlayerId:        p.PlayerID,

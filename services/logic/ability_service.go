@@ -5,6 +5,15 @@ import (
 	"nam-club/NumBuyer_back/consts"
 	"nam-club/NumBuyer_back/db"
 	"nam-club/NumBuyer_back/models/orgerrors"
+	"nam-club/NumBuyer_back/services/logic/abilities"
+)
+
+var (
+	abilityFiBoost       = new(abilities.AbilityFiBoost)
+	abilityNumViolence   = new(abilities.AbilityNumViolence)
+	abilityBringYourself = new(abilities.AbilityBringYourself)
+	abilityShutdown      = new(abilities.AbilityShutdown)
+	abilityShakeShake    = new(abilities.AbilityShakeShake)
 )
 
 // アビリティを発動準備状態にする
@@ -36,4 +45,30 @@ func ReadyAbility(roomId, playerId string, abilityId string) (*db.Ability, error
 		return nil, e
 	}
 	return ret, nil
+}
+
+func FireAbilityIfPossible(game *db.Game, player *db.Player) ([]string, error) {
+	firedAbilityId := []string{}
+	for _, ab := range player.Abilities {
+		var ability abilities.Ability
+		switch ab.ID {
+		case consts.AbilityIdFiBoost:
+			ability = abilityFiBoost
+		case consts.AbilityIdNumViolence:
+			ability = abilityNumViolence
+		case consts.AbilityIdBringYourself:
+			ability = abilityBringYourself
+		case consts.AbilityIdShutdown:
+			ability = abilityShutdown
+		case consts.AbilityIdShakeShake:
+			ability = abilityShakeShake
+		default:
+			return nil, orgerrors.NewValidationError("ability parse error. " + ab.ID)
+		}
+		if ability.IsFirable(game, player, &ab) {
+			ability.Fire(game, player, &ab)
+			firedAbilityId = append(firedAbilityId, ab.ID)
+		}
+	}
+	return firedAbilityId, nil
 }
