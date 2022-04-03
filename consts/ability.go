@@ -29,7 +29,7 @@ const (
 	AbilityStatusActive AbilityStatus = "active"
 	AbilityStatusUsed   AbilityStatus = "used"
 	// ID
-	AbilityIdFiBoost       = "boost_prm_001"
+	AbilityIdFiBoost       = "bst_prm_001"
 	AbilityIdNumViolence   = "atk_prm_001"
 	AbilityIdBringYourself = "def_tmp_001"
 	AbilityIdShutdown      = "jam_prm_001"
