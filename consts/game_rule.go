@@ -15,11 +15,11 @@ const (
 
 	// 数字の最小値(以上)、最小値(未満)
 	TermMin = 1
-	TermMax = 20
+	TermMax = 2
 
 	// ターゲットカードの最小値(以上)、最小値(未満)
-	TargetMin = 5
-	TargetMax = 30
+	TargetMin = 1
+	TargetMax = 2
 
 	// ランダムに生成されるオークションカードの枚数
 	AuctionCardsNumMin = 1
@@ -40,7 +40,7 @@ const (
 	// プレイヤー数の最小・最大
 	QuickMatchPlayersMin  = 4
 	QuickMatchPlayersMax  = 4
-	FriendMatchPlayersMin = 2
+	FriendMatchPlayersMin = 1
 	FriendMatchPlayersMax = 6
 )
 

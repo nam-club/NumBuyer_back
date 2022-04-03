@@ -1,11 +1,13 @@
 package logic
 
 import (
-	"fmt"
 	"nam-club/NumBuyer_back/consts"
 	"nam-club/NumBuyer_back/db"
 	"nam-club/NumBuyer_back/models/orgerrors"
 	"nam-club/NumBuyer_back/services/logic/abilities"
+	"nam-club/NumBuyer_back/utils"
+
+	"go.uber.org/zap"
 )
 
 var (
@@ -38,18 +40,54 @@ func ReadyAbility(roomId, playerId string, abilityId string) (*db.Ability, error
 			ret = &player.Abilities[i]
 		}
 	}
-	fmt.Printf("%v\n", player)
-
-	player, e = db.SetPlayer(roomId, player)
+	_, e = db.SetPlayer(roomId, player)
 	if e != nil {
 		return nil, e
 	}
 	return ret, nil
 }
 
-func FireAbilityIfPossible(game *db.Game, player *db.Player) ([]string, error) {
+func TryActivateAbilityIfHave(game *db.Game, player *db.Player, abilityId string) (err error) {
+	abilityIndex := -1
+	for i, a := range player.Abilities {
+		if a.ID == abilityId {
+			abilityIndex = i
+			break
+		}
+	}
+	if abilityIndex == -1 {
+		return nil
+	}
+
+	var ability abilities.Ability
+	switch abilityId {
+	case consts.AbilityIdFiBoost:
+		ability = abilityFiBoost
+	case consts.AbilityIdNumViolence:
+		ability = abilityNumViolence
+	case consts.AbilityIdBringYourself:
+		ability = abilityBringYourself
+	case consts.AbilityIdShutdown:
+		ability = abilityShutdown
+	case consts.AbilityIdShakeShake:
+		ability = abilityShakeShake
+	default:
+		return orgerrors.NewValidationError("ability parse error. " + abilityId)
+	}
+
+	enable := false
+	if enable, err = ability.CanActivate(game, player, &player.Abilities[abilityIndex]); enable {
+		player.Abilities[abilityIndex].Status = string(consts.AbilityStatusActive)
+		if _, err = db.SetPlayer(game.RoomID, player); err != nil {
+			return err
+		}
+	}
+	return err
+}
+
+func FireAbility(game *db.Game, player *db.Player) ([]string, error) {
 	firedAbilityId := []string{}
-	for _, ab := range player.Abilities {
+	for i, ab := range player.Abilities {
 		var ability abilities.Ability
 		switch ab.ID {
 		case consts.AbilityIdFiBoost:
@@ -65,9 +103,10 @@ func FireAbilityIfPossible(game *db.Game, player *db.Player) ([]string, error) {
 		default:
 			return nil, orgerrors.NewValidationError("ability parse error. " + ab.ID)
 		}
-		if ability.IsFirable(game, player, &ab) {
-			ability.Fire(game, player, &ab)
+		if fired, err := ability.Fire(game, player, i); fired {
 			firedAbilityId = append(firedAbilityId, ab.ID)
+		} else if err != nil {
+			utils.Log.Error("ability fire failed", zap.String("error", err.Error()))
 		}
 	}
 	return firedAbilityId, nil

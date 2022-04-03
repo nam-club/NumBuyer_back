@@ -139,6 +139,10 @@ func CalculateSubmits(roomId, playerId string, action consts.CalculateAction, su
 			if e != nil {
 				return nil, e
 			}
+			e = TryActivateAbilityIfHave(game, player, consts.AbilityIdFiBoost)
+			if e != nil {
+				return nil, e
+			}
 			return &responses.CalculateResponse{
 				IsCorrectAnswer: true,
 				PlayerID:        playerId,

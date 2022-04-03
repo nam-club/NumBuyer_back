@@ -97,9 +97,6 @@ func NextPhase(nextPhase consts.Phase, roomId string) (*responses.UpdateStateRes
 	if err != nil {
 		return nil, orgerrors.NewGameNotFoundError("")
 	}
-	game.State.Phase = nextPhase.Value
-	game.State.PhaseChangedTime = time.Now().Format(time.RFC3339)
-	db.SetGame(roomId, game)
 
 	players, e := db.GetPlayers(roomId)
 	if e != nil {
@@ -108,17 +105,23 @@ func NextPhase(nextPhase consts.Phase, roomId string) (*responses.UpdateStateRes
 
 	firedAbilityIds := map[string][]string{}
 	for _, p := range players {
-		// プレイヤーの準備状態をリセット
-		p.Ready = false
-		db.SetPlayer(roomId, &p)
-
 		// アビリティを発動する
-		fired, e := FireAbilityIfPossible(game, &p)
+		fired, e := FireAbility(game, &p)
 		if e != nil {
 			return nil, e
 		}
 		firedAbilityIds[p.PlayerID] = fired
+
+		// プレイヤーの準備状態をリセット
+		p.Ready = false
+		db.SetPlayer(roomId, &p)
 	}
+
+	// ゲーム状態を更新する
+	game, err = db.GetGame(roomId)
+	game.State.Phase = nextPhase.Value
+	game.State.PhaseChangedTime = time.Now().Format(time.RFC3339)
+	db.SetGame(roomId, game)
 
 	return responses.GenerateUpdateStateResponse(players, nextPhase, firedAbilityIds), nil
 }
