@@ -103,6 +103,11 @@ func NextPhase(nextPhase consts.Phase, roomId string) (*responses.UpdateStateRes
 		return nil, e
 	}
 
+	// ゲーム状態を更新する
+	game.State.Phase = nextPhase.Value
+	game.State.PhaseChangedTime = time.Now().Format(time.RFC3339)
+	game, _ = db.SetGame(roomId, game)
+
 	firedAbilityIds := map[string][]string{}
 	for _, p := range players {
 		// アビリティを発動する
@@ -116,12 +121,6 @@ func NextPhase(nextPhase consts.Phase, roomId string) (*responses.UpdateStateRes
 		p.Ready = false
 		db.SetPlayer(roomId, &p)
 	}
-
-	// ゲーム状態を更新する
-	game, err = db.GetGame(roomId)
-	game.State.Phase = nextPhase.Value
-	game.State.PhaseChangedTime = time.Now().Format(time.RFC3339)
-	db.SetGame(roomId, game)
 
 	return responses.GenerateUpdateStateResponse(players, nextPhase, firedAbilityIds), nil
 }
