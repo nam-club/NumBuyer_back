@@ -93,36 +93,32 @@ func FetchNextTurnInfo(roomId, playerId string) (*responses.NextTurnResponse, er
 
 // 次フェーズに移行する
 func NextPhase(nextPhase consts.Phase, roomId string) (*responses.UpdateStateResponse, error) {
+	// ゲーム状態を更新する
 	game, err := db.GetGame(roomId)
 	if err != nil {
 		return nil, orgerrors.NewGameNotFoundError("")
 	}
-
-	players, e := db.GetPlayers(roomId)
-	if e != nil {
-		return nil, e
-	}
-
-	// ゲーム状態を更新する
 	game.State.Phase = nextPhase.Value
 	game.State.PhaseChangedTime = time.Now().Format(time.RFC3339)
 	game, _ = db.SetGame(roomId, game)
 
-	firedAbilityIds := map[string][]string{}
-	for _, p := range players {
+	playerIds, _ := db.GetPlayerIds(roomId)
+	firedAbilities := map[string][]*db.Ability{}
+	for _, playerId := range playerIds {
+		// プレイヤーの準備状態をリセット
+		player, _ := db.GetPlayer(roomId, playerId)
+		player.Ready = false
+		db.SetPlayer(roomId, player)
+
 		// アビリティを発動する
-		fired, e := FireAbility(game, &p)
+		fired, e := FireAbility(game, player)
 		if e != nil {
 			return nil, e
 		}
-		firedAbilityIds[p.PlayerID] = fired
-
-		// プレイヤーの準備状態をリセット
-		p.Ready = false
-		db.SetPlayer(roomId, &p)
+		firedAbilities[player.PlayerID] = fired
 	}
-
-	return responses.GenerateUpdateStateResponse(players, nextPhase, firedAbilityIds), nil
+	players, _ := db.GetPlayers(roomId)
+	return responses.GenerateUpdateStateResponse(players, nextPhase, firedAbilities), nil
 }
 
 func GenerateUpdateState(nextPhase consts.Phase, roomId string) (*responses.UpdateStateResponse, error) {
@@ -130,7 +126,7 @@ func GenerateUpdateState(nextPhase consts.Phase, roomId string) (*responses.Upda
 	if e != nil {
 		return nil, e
 	}
-	return responses.GenerateUpdateStateResponse(players, nextPhase, map[string][]string{}), nil
+	return responses.GenerateUpdateStateResponse(players, nextPhase, map[string][]*db.Ability{}), nil
 }
 
 // ゲームを開始する

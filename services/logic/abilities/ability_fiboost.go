@@ -35,15 +35,15 @@ func (a *AbilityFiBoost) CanActivate(game *db.Game, player *db.Player, targetAbi
 	}
 }
 
-func (a *AbilityFiBoost) Fire(game *db.Game, player *db.Player, abilityIndex int) (bool, error) {
+func (a *AbilityFiBoost) Fire(game *db.Game, player *db.Player, abilityIndex int) (bool, *db.Ability, error) {
 	if !IsActive(&player.Abilities[abilityIndex]) {
-		return false, nil
+		return false, nil, nil
 	}
 	player.Abilities[abilityIndex].Status = string(consts.AbilityStatusReady)
 	player.Coin += BonusCoin
 	if _, e := db.SetPlayer(game.RoomID, player); e != nil {
-		return false, e
+		return false, nil, e
 	} else {
-		return true, nil
+		return true, &player.Abilities[abilityIndex], nil
 	}
 }

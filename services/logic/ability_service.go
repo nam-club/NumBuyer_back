@@ -47,6 +47,19 @@ func ReadyAbility(roomId, playerId string, abilityId string) (*db.Ability, error
 	return ret, nil
 }
 
+func TryActivateAbilitiesIfHave(game *db.Game, abilityId string) (err error) {
+	players, err := db.GetPlayers(game.RoomID)
+	if err != nil {
+		return err
+	}
+
+	for _, p := range players {
+		if err = TryActivateAbilityIfHave(game, &p, abilityId); err != nil {
+			return err
+		}
+	}
+	return nil
+}
 func TryActivateAbilityIfHave(game *db.Game, player *db.Player, abilityId string) (err error) {
 	abilityIndex := -1
 	for i, a := range player.Abilities {
@@ -85,8 +98,8 @@ func TryActivateAbilityIfHave(game *db.Game, player *db.Player, abilityId string
 	return err
 }
 
-func FireAbility(game *db.Game, player *db.Player) ([]string, error) {
-	firedAbilityId := []string{}
+func FireAbility(game *db.Game, player *db.Player) ([]*db.Ability, error) {
+	firedAbilities := []*db.Ability{}
 	for i, ab := range player.Abilities {
 		var ability abilities.Ability
 		switch ab.ID {
@@ -103,11 +116,11 @@ func FireAbility(game *db.Game, player *db.Player) ([]string, error) {
 		default:
 			return nil, orgerrors.NewValidationError("ability parse error. " + ab.ID)
 		}
-		if fired, err := ability.Fire(game, player, i); fired {
-			firedAbilityId = append(firedAbilityId, ab.ID)
+		if fired, firedAbility, err := ability.Fire(game, player, i); fired {
+			firedAbilities = append(firedAbilities, firedAbility)
 		} else if err != nil {
 			utils.Log.Error("ability fire failed", zap.String("error", err.Error()))
 		}
 	}
-	return firedAbilityId, nil
+	return firedAbilities, nil
 }

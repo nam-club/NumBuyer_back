@@ -22,10 +22,17 @@ type Player struct {
 }
 
 type Ability struct {
-	ID        string `json:"id"`
-	Status    string `json:"status"`    // 実行状態
-	Remaining int    `json:"remaining"` // 残使用回数 -1なら無限に実行可能
+	ID               string           `json:"id"`
+	Status           string           `json:"status"`           // 実行状態
+	Remaining        int              `json:"remaining"`        // 残使用回数 -1なら無限に実行可能
+	BlockedAbilities []BlockedAbility `json:"blockedAbilities"` // 本アビリティによりブロックされたアビリティ ※現状"自業自得"でのみ使われる
 }
+
+type BlockedAbility struct {
+	AbilityId  string `json:"abilityId"`
+	PlayerName string `json:"playerName"`
+}
+
 type BuyAction struct {
 	Action   string `json:"action"`
 	Value    string `json:"value"`
@@ -43,6 +50,24 @@ var rp *RedisHandler
 
 func init() {
 	rp = NewRedisHandler( /*index=*/ 1)
+}
+
+// プレイヤー情報一覧を取得
+func GetPlayerIds(roomId string) ([]string, error) {
+	r, e := rp.HVals(roomId)
+	if e != nil {
+		return []string{}, e
+	}
+
+	var ret []string
+	for _, v := range r {
+		var player Player
+		if e := json.Unmarshal(v, &player); e != nil {
+			return []string{}, errors.WithStack(e)
+		}
+		ret = append(ret, player.PlayerID)
+	}
+	return ret, nil
 }
 
 // プレイヤー情報一覧を取得

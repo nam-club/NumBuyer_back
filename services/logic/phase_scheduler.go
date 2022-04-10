@@ -199,6 +199,17 @@ func (o *PhaseSheduler) auctionFinishAction(next consts.Phase) {
 
 func (o *PhaseSheduler) calculateFinishAction(next consts.Phase) {
 
+	// アビリティ発動準備
+	game, e := db.GetGame(o.roomId)
+	if e != nil {
+		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameUpdateState, utils.ResponseError(e))
+		return
+	}
+	if e = TryActivateAbilitiesIfHave(game, consts.AbilityIdNumViolence); e != nil {
+		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameUpdateState, utils.ResponseError(e))
+		return
+	}
+
 	// ゲーム終了条件を満たしているか
 	if finished, _ := IsMeetClearCondition(o.roomId); finished {
 		// 最新の状態を返却

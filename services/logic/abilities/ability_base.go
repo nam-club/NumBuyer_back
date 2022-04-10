@@ -9,8 +9,8 @@ import (
 // 1. アビリティ毎適切なタイミングでActivateする
 // 2. スケジューラがActiveなアビリティを検知して発動
 type Ability interface {
-	CanActivate(game *db.Game, player *db.Player, targetAbility *db.Ability) (bool, error)
-	Fire(game *db.Game, player *db.Player, abilityIndex int) (bool, error)
+	CanActivate(*db.Game, *db.Player, *db.Ability) (bool, error)
+	Fire(*db.Game, *db.Player, int) (bool, *db.Ability, error)
 }
 
 func IsReady(ability *db.Ability) bool {
