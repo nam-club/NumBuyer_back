@@ -183,7 +183,11 @@ func RoutesGame(r *RouteBase) {
 			return
 		}
 
-		s.Emit(consts.FSGameReadyAbility, utils.Response(responses.GameReadyAbilityResponse{Status: ability.Status, Remaining: ability.Remaining}))
+		s.Emit(consts.FSGameReadyAbility, utils.Response(
+			responses.GameReadyAbilityResponse{
+				Status:    ability.Status,
+				Remaining: ability.Remaining,
+				AbilityId: ability.ID}))
 	})
 
 	r.path(consts.TSGamePlayersInfo, func(s socketio.Conn, msg string) {
