@@ -47,6 +47,24 @@ func ReadyAbility(roomId, playerId string, abilityId string) (*db.Ability, error
 	return ret, nil
 }
 
+func IsExistsActive(roomId string, abilityId string) (bool, error) {
+	players, err := db.GetPlayers(roomId)
+	if err != nil {
+		return false, err
+	}
+
+	for _, p := range players {
+		for _, a := range p.Abilities {
+			if a.ID == abilityId {
+				if abilities.IsActive(&a) {
+					return true, nil
+				}
+			}
+		}
+	}
+	return false, nil
+}
+
 func TryActivateAbilitiesIfHave(game *db.Game, abilityId string) (err error) {
 	players, err := db.GetPlayers(game.RoomID)
 	if err != nil {

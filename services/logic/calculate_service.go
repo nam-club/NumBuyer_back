@@ -10,6 +10,8 @@ import (
 	"nam-club/NumBuyer_back/utils"
 	"strconv"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 // 正解者を全て取得する
@@ -68,6 +70,14 @@ func ShuffleAnswer(roomId string) (string, error) {
 func CalculateSubmits(roomId, playerId string, action consts.CalculateAction, submits []string) (*responses.CalculateResponse, error) {
 	if !CheckPhase(roomId, consts.PhaseCalculate) {
 		return nil, orgerrors.NewValidationError("not calculate phase")
+	}
+
+	if active, err := IsExistsActive(roomId, consts.AbilityIdShutdown); active {
+		if err != nil {
+			utils.Log.Error("error detected.",
+				zap.String("error", fmt.Sprintf("%v", err)))
+		}
+		return nil, nil
 	}
 
 	game, e := db.GetGame(roomId)
@@ -139,10 +149,18 @@ func CalculateSubmits(roomId, playerId string, action consts.CalculateAction, su
 			if e != nil {
 				return nil, e
 			}
+
+			// アビリティ: Fiboost 条件満たしてればアクティブにする
 			e = TryActivateAbilityIfHave(game, player, consts.AbilityIdFiBoost)
 			if e != nil {
 				return nil, e
 			}
+			// アビリティ: Shutdown 条件満たしてればアクティブにする
+			e = TryActivateAbilityIfHave(game, player, consts.AbilityIdShutdown)
+			if e != nil {
+				return nil, e
+			}
+
 			return &responses.CalculateResponse{
 				IsCorrectAnswer: true,
 				PlayerID:        playerId,
