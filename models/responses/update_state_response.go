@@ -19,6 +19,8 @@ type UpdateStateResponsePlayers struct {
 type UpdateStateResponseFiredAbilities struct {
 	AbilityId        string                                `json:"abilityId"`
 	Status           string                                `json:"status"`
+	Type             string                                `json:"type"`
+	Trigger          string                                `json:"trigger"`
 	BlockedAbilities []UpdateStateResponseBlockedAbilities `json:"blockedAbilities"`
 }
 
@@ -47,9 +49,12 @@ func GenerateUpdateStateResponse(players []db.Player,
 					PlayerName: blockedAb.PlayerName,
 				})
 			}
+			ab, _ := consts.ParseAbility(firedAb.ID)
 			respAb = append(respAb, UpdateStateResponseFiredAbilities{
 				AbilityId:        firedAb.ID,
 				Status:           firedAb.Status,
+				Type:             string(ab.Type),
+				Trigger:          string(ab.Trigger),
 				BlockedAbilities: blockedAblities,
 			})
 		}
