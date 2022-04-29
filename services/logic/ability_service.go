@@ -32,7 +32,7 @@ func ReadyAbility(roomId, playerId string, abilityId string) (*db.Ability, error
 			if v.Status != string(consts.AbilityStatusUnused) {
 				return nil, orgerrors.NewValidationError("ability status is not unused")
 			}
-			if player.Abilities[i].Remaining <= 0 {
+			if player.Abilities[i].Remaining == 0 {
 				return nil, orgerrors.NewValidationError("exceeded the number of ability usable")
 			}
 			player.Abilities[i].Status = string(consts.AbilityStatusReady)
