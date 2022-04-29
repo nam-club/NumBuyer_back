@@ -72,13 +72,13 @@ func TryActivateAbilitiesIfHave(game *db.Game, abilityId string) (err error) {
 	}
 
 	for _, p := range players {
-		if err = TryActivateAbilityIfHave(game, &p, abilityId); err != nil {
+		if _, err = TryActivateAbilityIfHave(game, &p, abilityId); err != nil {
 			return err
 		}
 	}
 	return nil
 }
-func TryActivateAbilityIfHave(game *db.Game, player *db.Player, abilityId string) (err error) {
+func TryActivateAbilityIfHave(game *db.Game, player *db.Player, abilityId string) (canActivate bool, err error) {
 	abilityIndex := -1
 	for i, a := range player.Abilities {
 		if a.ID == abilityId {
@@ -87,7 +87,7 @@ func TryActivateAbilityIfHave(game *db.Game, player *db.Player, abilityId string
 		}
 	}
 	if abilityIndex == -1 {
-		return nil
+		return false, nil
 	}
 
 	var ability abilities.Ability
@@ -103,17 +103,26 @@ func TryActivateAbilityIfHave(game *db.Game, player *db.Player, abilityId string
 	case consts.AbilityIdCatastrophe:
 		ability = abilityCatastrophe
 	default:
-		return orgerrors.NewValidationError("ability parse error. " + abilityId)
+		return false, orgerrors.NewValidationError("ability parse error. " + abilityId)
 	}
 
 	enable := false
-	if enable, err = ability.CanActivate(game, player, &player.Abilities[abilityIndex]); enable {
+	if enable, _ = ability.CanActivate(game, player, &player.Abilities[abilityIndex]); enable {
 		player.Abilities[abilityIndex].Status = string(consts.AbilityStatusActive)
 		if _, err = db.SetPlayer(game.RoomID, player); err != nil {
-			return err
+			return false, err
 		}
 	}
-	return err
+	return true, nil
+}
+
+func HaveAbility(player *db.Player, abilityId string) bool {
+	for _, a := range player.Abilities {
+		if a.ID == abilityId {
+			return true
+		}
+	}
+	return false
 }
 
 func FireAbility(game *db.Game, player *db.Player) ([]*db.Ability, error) {

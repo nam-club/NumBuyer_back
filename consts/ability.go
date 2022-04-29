@@ -42,7 +42,7 @@ var (
 		AbilityIdFiBoost:     {AbilityIdFiBoost, AbilityTriggerPassive, AbilityTypeBoost, -1, AbilityStatusReady},
 		AbilityIdNumViolence: {AbilityIdNumViolence, AbilityTriggerPassive, AbilityTypeAttack, -1, AbilityStatusReady},
 		AbilityIdReboot:      {AbilityIdReboot, AbilityTriggerActive, AbilityTypeRecover, -1, AbilityStatusUnused},
-		AbilityIdShutdown:    {AbilityIdShutdown, AbilityTriggerActive, AbilityTypeJam, 5, AbilityStatusUnused},
+		AbilityIdShutdown:    {AbilityIdShutdown, AbilityTriggerPassive, AbilityTypeJam, -1, AbilityStatusReady},
 		AbilityIdCatastrophe: {AbilityIdCatastrophe, AbilityTriggerActive, AbilityTypeConfuse, 1, AbilityStatusUnused},
 	}
 )

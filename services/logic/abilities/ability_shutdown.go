@@ -14,8 +14,7 @@ type AbilityShutdown struct{}
 func (a *AbilityShutdown) CanActivate(game *db.Game, me *db.Player, targetAbility *db.Ability) (bool, error) {
 	if IsUsed(targetAbility) ||
 		!IsReady(targetAbility) ||
-		game.State.Phase != consts.PhaseCalculate.Value ||
-		!me.AnswerAction.Correct {
+		game.State.Phase != consts.PhaseCalculate.Value {
 		return false, nil
 	}
 	return true, nil

@@ -17,16 +17,10 @@ type UpdateStateResponsePlayers struct {
 	FiredAbilities []UpdateStateResponseFiredAbilities `json:"firedAbilities"`
 }
 type UpdateStateResponseFiredAbilities struct {
-	AbilityId        string                                `json:"abilityId"`
-	Status           string                                `json:"status"`
-	Type             string                                `json:"type"`
-	Trigger          string                                `json:"trigger"`
-	BlockedAbilities []UpdateStateResponseBlockedAbilities `json:"blockedAbilities"`
-}
-
-type UpdateStateResponseBlockedAbilities struct {
-	AbilityId  string `json:"abilityId"`
-	PlayerName string `json:"playerName"`
+	AbilityId string `json:"abilityId"`
+	Status    string `json:"status"`
+	Type      string `json:"type"`
+	Trigger   string `json:"trigger"`
 }
 
 // レスポンスを生成
@@ -42,20 +36,12 @@ func GenerateUpdateStateResponse(players []db.Player,
 		fires := firedAbilities[p.PlayerID]
 		respAb := []UpdateStateResponseFiredAbilities{}
 		for _, firedAb := range fires {
-			blockedAblities := []UpdateStateResponseBlockedAbilities{}
-			for _, blockedAb := range firedAb.BlockedAbilities {
-				blockedAblities = append(blockedAblities, UpdateStateResponseBlockedAbilities{
-					AbilityId:  blockedAb.AbilityId,
-					PlayerName: blockedAb.PlayerName,
-				})
-			}
 			ab, _ := consts.ParseAbility(firedAb.ID)
 			respAb = append(respAb, UpdateStateResponseFiredAbilities{
-				AbilityId:        firedAb.ID,
-				Status:           firedAb.Status,
-				Type:             string(ab.Type),
-				Trigger:          string(ab.Trigger),
-				BlockedAbilities: blockedAblities,
+				AbilityId: firedAb.ID,
+				Status:    firedAb.Status,
+				Type:      string(ab.Type),
+				Trigger:   string(ab.Trigger),
 			})
 		}
 		ret.Players = append(ret.Players,

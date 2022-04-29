@@ -94,6 +94,10 @@ func CalculateSubmits(roomId, playerId string, action consts.CalculateAction, su
 		return nil, orgerrors.NewValidationError("player already correctly answered")
 	}
 
+	if player.AnswerAction.Action == consts.CalculateActionPass.String() {
+		return nil, orgerrors.NewValidationError("player passed")
+	}
+
 	if action == consts.CalculateActionPass {
 		// actionがpassの場合ステータスをpassに更新してリターン
 		player.AnswerAction.Action = action.String()
@@ -104,6 +108,7 @@ func CalculateSubmits(roomId, playerId string, action consts.CalculateAction, su
 		}
 		return &responses.CalculateResponse{
 			IsCorrectAnswer: false,
+			IsPassed:        true,
 			PlayerID:        playerId,
 			Coin:            player.Coin,
 			Cards:           player.Cards,
@@ -151,24 +156,31 @@ func CalculateSubmits(roomId, playerId string, action consts.CalculateAction, su
 			}
 
 			// アビリティ: Fiboost 条件満たしてればアクティブにする
-			e = TryActivateAbilityIfHave(game, player, consts.AbilityIdFiBoost)
+			_, e = TryActivateAbilityIfHave(game, player, consts.AbilityIdFiBoost)
 			if e != nil {
 				return nil, e
 			}
 			// アビリティ: Shutdown 条件満たしてればアクティブにする
-			e = TryActivateAbilityIfHave(game, player, consts.AbilityIdShutdown)
+			_, e = TryActivateAbilityIfHave(game, player, consts.AbilityIdShutdown)
 			if e != nil {
 				return nil, e
 			}
 
 			return &responses.CalculateResponse{
 				IsCorrectAnswer: true,
+				IsPassed:        false,
 				PlayerID:        playerId,
 				Coin:            player.Coin,
 				Cards:           player.Cards,
 			}, nil
 		} else {
 			// 不正解の時
+
+			// アビリティ: Shutdown 条件満たしてればアクティブにはせず、スキップしたことにする
+			haveShutdown := HaveAbility(player, consts.AbilityIdShutdown)
+			if haveShutdown {
+				player.AnswerAction.Action = consts.CalculateActionPass.String()
+			}
 			player.AnswerAction.Correct = false
 			player, e = db.SetPlayer(roomId, player)
 			if e != nil {
@@ -176,10 +188,12 @@ func CalculateSubmits(roomId, playerId string, action consts.CalculateAction, su
 			}
 			return &responses.CalculateResponse{
 				IsCorrectAnswer: false,
+				IsPassed:        haveShutdown,
 				PlayerID:        playerId,
 				Coin:            player.Coin,
 				Cards:           player.Cards,
 			}, nil
+
 		}
 	}
 }
