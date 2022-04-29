@@ -20,7 +20,7 @@ const (
 	// 区分
 	AbilityTypeBoost   AbilityType = "boost"
 	AbilityTypeAttack  AbilityType = "attack"
-	AbilityTypeDefense AbilityType = "defense"
+	AbilityTypeRecover AbilityType = "recover"
 	AbilityTypeJam     AbilityType = "jam"
 	AbilityTypeConfuse AbilityType = "confuse"
 	// 実行状態
@@ -29,21 +29,21 @@ const (
 	AbilityStatusActive AbilityStatus = "active"
 	AbilityStatusUsed   AbilityStatus = "used"
 	// ID
-	AbilityIdFiBoost       = "bst_prm_001"
-	AbilityIdNumViolence   = "atk_prm_001"
-	AbilityIdBringYourself = "def_tmp_001"
-	AbilityIdShutdown      = "jam_prm_001"
-	AbilityIdShakeShake    = "cnf_tmp_001"
+	AbilityIdFiBoost     = "bst_prm_001"
+	AbilityIdNumViolence = "atk_prm_001"
+	AbilityIdReboot      = "rcv_tmp_001"
+	AbilityIdShutdown    = "jam_prm_001"
+	AbilityIdCatastrophe = "cnf_tmp_001"
 )
 
 var (
 	// keyにID, valueにアビリティ情報
 	abilities = map[string]Ability{
-		AbilityIdFiBoost:       {AbilityIdFiBoost, AbilityTriggerPassive, AbilityTypeBoost, -1, AbilityStatusReady},
-		AbilityIdNumViolence:   {AbilityIdNumViolence, AbilityTriggerPassive, AbilityTypeAttack, -1, AbilityStatusReady},
-		AbilityIdBringYourself: {AbilityIdBringYourself, AbilityTriggerPassive, AbilityTypeDefense, -1, AbilityStatusReady},
-		AbilityIdShutdown:      {AbilityIdShutdown, AbilityTriggerActive, AbilityTypeJam, 0, AbilityStatusUnused},
-		AbilityIdShakeShake:    {AbilityIdShakeShake, AbilityTriggerActive, AbilityTypeConfuse, 1, AbilityStatusUnused},
+		AbilityIdFiBoost:     {AbilityIdFiBoost, AbilityTriggerPassive, AbilityTypeBoost, -1, AbilityStatusReady},
+		AbilityIdNumViolence: {AbilityIdNumViolence, AbilityTriggerPassive, AbilityTypeAttack, -1, AbilityStatusReady},
+		AbilityIdReboot:      {AbilityIdReboot, AbilityTriggerPassive, AbilityTypeRecover, -1, AbilityStatusReady},
+		AbilityIdShutdown:    {AbilityIdShutdown, AbilityTriggerActive, AbilityTypeJam, 0, AbilityStatusUnused},
+		AbilityIdCatastrophe: {AbilityIdCatastrophe, AbilityTriggerActive, AbilityTypeConfuse, 1, AbilityStatusUnused},
 	}
 )
 

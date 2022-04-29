@@ -11,11 +11,11 @@ import (
 )
 
 var (
-	abilityFiBoost       = new(abilities.AbilityFiBoost)
-	abilityNumViolence   = new(abilities.AbilityNumViolence)
-	abilityBringYourself = new(abilities.AbilityBringYourself)
-	abilityShutdown      = new(abilities.AbilityShutdown)
-	abilityShakeShake    = new(abilities.AbilityShakeShake)
+	abilityFiBoost     = new(abilities.AbilityFiBoost)
+	abilityNumViolence = new(abilities.AbilityNumViolence)
+	abilityReboot      = new(abilities.AbilityReboot)
+	abilityShutdown    = new(abilities.AbilityShutdown)
+	abilityCatastrophe = new(abilities.AbilityCatastrophe)
 )
 
 // アビリティを発動準備状態にする
@@ -96,12 +96,12 @@ func TryActivateAbilityIfHave(game *db.Game, player *db.Player, abilityId string
 		ability = abilityFiBoost
 	case consts.AbilityIdNumViolence:
 		ability = abilityNumViolence
-	case consts.AbilityIdBringYourself:
-		ability = abilityBringYourself
+	case consts.AbilityIdReboot:
+		ability = abilityReboot
 	case consts.AbilityIdShutdown:
 		ability = abilityShutdown
-	case consts.AbilityIdShakeShake:
-		ability = abilityShakeShake
+	case consts.AbilityIdCatastrophe:
+		ability = abilityCatastrophe
 	default:
 		return orgerrors.NewValidationError("ability parse error. " + abilityId)
 	}
@@ -125,12 +125,12 @@ func FireAbility(game *db.Game, player *db.Player) ([]*db.Ability, error) {
 			ability = abilityFiBoost
 		case consts.AbilityIdNumViolence:
 			ability = abilityNumViolence
-		case consts.AbilityIdBringYourself:
-			ability = abilityBringYourself
+		case consts.AbilityIdReboot:
+			ability = abilityReboot
 		case consts.AbilityIdShutdown:
 			ability = abilityShutdown
-		case consts.AbilityIdShakeShake:
-			ability = abilityShakeShake
+		case consts.AbilityIdCatastrophe:
+			ability = abilityCatastrophe
 		default:
 			return nil, orgerrors.NewValidationError("ability parse error. " + ab.ID)
 		}
