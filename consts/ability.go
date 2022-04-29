@@ -41,8 +41,8 @@ var (
 	abilities = map[string]Ability{
 		AbilityIdFiBoost:       {AbilityIdFiBoost, AbilityTriggerPassive, AbilityTypeBoost, -1, AbilityStatusReady},
 		AbilityIdNumViolence:   {AbilityIdNumViolence, AbilityTriggerPassive, AbilityTypeAttack, -1, AbilityStatusReady},
-		AbilityIdBringYourself: {AbilityIdBringYourself, AbilityTriggerActive, AbilityTypeDefense, 5, AbilityStatusUnused},
-		AbilityIdShutdown:      {AbilityIdShutdown, AbilityTriggerPassive, AbilityTypeJam, -1, AbilityStatusReady},
+		AbilityIdBringYourself: {AbilityIdBringYourself, AbilityTriggerPassive, AbilityTypeDefense, -1, AbilityStatusReady},
+		AbilityIdShutdown:      {AbilityIdShutdown, AbilityTriggerActive, AbilityTypeJam, 0, AbilityStatusUnused},
 		AbilityIdShakeShake:    {AbilityIdShakeShake, AbilityTriggerActive, AbilityTypeConfuse, 1, AbilityStatusUnused},
 	}
 )
