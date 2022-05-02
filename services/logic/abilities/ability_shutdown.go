@@ -25,7 +25,7 @@ func (a *AbilityShutdown) Fire(game *db.Game, me *db.Player, abilityIndex int) (
 	if !IsActive(&me.Abilities[abilityIndex]) {
 		return false, nil, nil
 	}
-	me.Abilities[abilityIndex].Status = string(consts.AbilityStatusUnused)
+	me.Abilities[abilityIndex].Status = string(consts.AbilityStatusReady)
 	if _, e := db.SetPlayer(game.RoomID, me); e != nil {
 		return false, nil, e
 	} else {

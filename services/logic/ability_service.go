@@ -125,7 +125,7 @@ func HaveAbility(player *db.Player, abilityId string) bool {
 	return false
 }
 
-func FireAbility(game *db.Game, player *db.Player) ([]*db.Ability, error) {
+func FireAbilities(game *db.Game, player *db.Player) ([]*db.Ability, error) {
 	firedAbilities := []*db.Ability{}
 	for i, ab := range player.Abilities {
 		var ability abilities.Ability

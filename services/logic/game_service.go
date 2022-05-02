@@ -111,7 +111,7 @@ func NextPhase(nextPhase consts.Phase, roomId string) (*responses.UpdateStateRes
 		db.SetPlayer(roomId, player)
 
 		// アビリティを発動する
-		fired, e := FireAbility(game, player)
+		fired, e := FireAbilities(game, player)
 		if e != nil {
 			return nil, e
 		}
