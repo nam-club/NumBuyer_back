@@ -13,12 +13,12 @@ import (
 var (
 	abilityFiBoost     = new(abilities.AbilityFiBoost)
 	abilityNumViolence = new(abilities.AbilityNumViolence)
-	abilityReboot      = new(abilities.AbilityReboot)
+	abilityReload      = new(abilities.AbilityReload)
 	abilityShutdown    = new(abilities.AbilityShutdown)
 	abilityCatastrophe = new(abilities.AbilityCatastrophe)
 )
 
-// アビリティを発動準備状態にする
+// アビリティのステータスを発動状態・発動可能状態にする
 func ReadyAbility(roomId, playerId string, abilityId string) (*db.Ability, error) {
 
 	player, e := db.GetPlayer(roomId, playerId)
@@ -26,26 +26,56 @@ func ReadyAbility(roomId, playerId string, abilityId string) (*db.Ability, error
 		return nil, e
 	}
 
+	// パラメータのセット
 	var ret *db.Ability
+	var abilityDB *db.Ability
+	var abilityDBIndex int
+	var abilityConst *consts.Ability
 	for i, v := range player.Abilities {
 		if v.ID == abilityId {
-			if v.Status != string(consts.AbilityStatusUnused) {
-				return nil, orgerrors.NewValidationError("ability status is not unused")
+			ab, e := consts.ParseAbility(v.ID)
+			if e != nil {
+				return nil, orgerrors.NewValidationError("invalid ability id")
 			}
-			if player.Abilities[i].Remaining == 0 {
-				return nil, orgerrors.NewValidationError("exceeded the number of ability usable")
-			}
-			player.Abilities[i].Status = string(consts.AbilityStatusReady)
-			player.Abilities[i].Remaining = player.Abilities[i].Remaining - 1
-			ret = &player.Abilities[i]
+			abilityDB = &v
+			abilityConst = &ab
+			abilityDBIndex = i
 			break
 		}
 	}
-	_, e = db.SetPlayer(roomId, player)
-	if e != nil {
-		return nil, e
+
+	if abilityDB == nil || abilityConst == nil {
+		return nil, orgerrors.NewValidationError("invalid ability")
 	}
-	return ret, nil
+
+	if abilityConst.Timing == consts.AbilityTimingSoon {
+		// 発動タイミングがsoonならアビリティを発動する
+		game, e := db.GetGame(roomId)
+		if e != nil {
+			return nil, e
+		}
+
+		ab, e := FireAbility(game, player, abilityConst.ID)
+		return ab, e
+	} else if abilityConst.Timing == consts.AbilityTimingWait {
+		// 発動タイミングがwaitならステータスをreadyにする
+		if abilityDB.Status != string(consts.AbilityStatusUnused) {
+			return nil, orgerrors.NewValidationError("ability status is not unused")
+		}
+		if player.Abilities[abilityDBIndex].Remaining == 0 {
+			return nil, orgerrors.NewValidationError("exceeded the number of ability usable")
+		}
+		player.Abilities[abilityDBIndex].Status = string(consts.AbilityStatusReady)
+		player.Abilities[abilityDBIndex].Remaining = player.Abilities[abilityDBIndex].Remaining - 1
+		ret = &player.Abilities[abilityDBIndex]
+		_, e = db.SetPlayer(roomId, player)
+		if e != nil {
+			return nil, e
+		}
+		return ret, nil
+	}
+
+	return nil, orgerrors.NewInternalServerError("unexpected path")
 }
 
 func IsExistsActive(roomId string, abilityId string) (bool, error) {
@@ -97,8 +127,8 @@ func TryActivateAbilityIfHave(game *db.Game, player *db.Player, abilityId string
 		ability = abilityFiBoost
 	case consts.AbilityIdNumViolence:
 		ability = abilityNumViolence
-	case consts.AbilityIdReboot:
-		ability = abilityReboot
+	case consts.AbilityIdReload:
+		ability = abilityReload
 	case consts.AbilityIdShutdown:
 		ability = abilityShutdown
 	case consts.AbilityIdCatastrophe:
@@ -126,6 +156,7 @@ func HaveAbility(player *db.Player, abilityId string) bool {
 	return false
 }
 
+// 発動条件を満たしているアビリティを発動する
 func FireAbilities(game *db.Game, player *db.Player) ([]*db.Ability, error) {
 	firedAbilities := []*db.Ability{}
 	for i, ab := range player.Abilities {
@@ -135,8 +166,8 @@ func FireAbilities(game *db.Game, player *db.Player) ([]*db.Ability, error) {
 			ability = abilityFiBoost
 		case consts.AbilityIdNumViolence:
 			ability = abilityNumViolence
-		case consts.AbilityIdReboot:
-			ability = abilityReboot
+		case consts.AbilityIdReload:
+			ability = abilityReload
 		case consts.AbilityIdShutdown:
 			ability = abilityShutdown
 		case consts.AbilityIdCatastrophe:
@@ -151,4 +182,39 @@ func FireAbilities(game *db.Game, player *db.Player) ([]*db.Ability, error) {
 		}
 	}
 	return firedAbilities, nil
+}
+
+// 発動条件を満たしているアビリティを発動する
+func FireAbility(game *db.Game, player *db.Player, abilityId string) (*db.Ability, error) {
+	for i, ab := range player.Abilities {
+		if ab.ID != abilityId {
+			continue
+		}
+
+		var ability abilities.Ability
+		switch ab.ID {
+		case consts.AbilityIdFiBoost:
+			ability = abilityFiBoost
+		case consts.AbilityIdNumViolence:
+			ability = abilityNumViolence
+		case consts.AbilityIdReload:
+			ability = abilityReload
+		case consts.AbilityIdShutdown:
+			ability = abilityShutdown
+		case consts.AbilityIdCatastrophe:
+			ability = abilityCatastrophe
+		default:
+			return nil, orgerrors.NewValidationError("ability parse error. " + ab.ID)
+		}
+		if fired, firedAbility, err := ability.Fire(game, player, i); fired {
+			return firedAbility, nil
+		} else if err != nil {
+			return nil, err
+		} else if !fired {
+			return nil, nil
+		}
+
+	}
+	// 通常呼び出されないパス
+	return nil, orgerrors.NewValidationError("ability not found")
 }

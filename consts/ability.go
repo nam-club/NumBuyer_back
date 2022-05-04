@@ -4,10 +4,12 @@ import "nam-club/NumBuyer_back/models/orgerrors"
 
 type AbilityStatus string
 type AbilityTrigger string
+type AbilityTiming string
 type AbilityType string
 type Ability struct {
 	ID            string
 	Trigger       AbilityTrigger
+	Timing        AbilityTiming
 	Type          AbilityType
 	UsableNum     int // -1なら無制限
 	InitialStatus AbilityStatus
@@ -17,6 +19,9 @@ const (
 	// 実行のされ方
 	AbilityTriggerActive  AbilityTrigger = "active"
 	AbilityTriggerPassive AbilityTrigger = "passive"
+	// 実行タイミング
+	AbilityTimingSoon AbilityTiming = "soon"
+	AbilityTimingWait AbilityTiming = "wait"
 	// 区分
 	AbilityTypeBoost   AbilityType = "boost"
 	AbilityTypeAttack  AbilityType = "attack"
@@ -31,7 +36,7 @@ const (
 	// ID
 	AbilityIdFiBoost     = "bst_prm_001"
 	AbilityIdNumViolence = "atk_prm_001"
-	AbilityIdReboot      = "rcv_tmp_001"
+	AbilityIdReload      = "rcv_tmp_001"
 	AbilityIdShutdown    = "jam_prm_001"
 	AbilityIdCatastrophe = "cnf_tmp_001"
 )
@@ -39,11 +44,41 @@ const (
 var (
 	// keyにID, valueにアビリティ情報
 	abilities = map[string]Ability{
-		AbilityIdFiBoost:     {AbilityIdFiBoost, AbilityTriggerPassive, AbilityTypeBoost, -1, AbilityStatusReady},
-		AbilityIdNumViolence: {AbilityIdNumViolence, AbilityTriggerPassive, AbilityTypeAttack, -1, AbilityStatusReady},
-		AbilityIdReboot:      {AbilityIdReboot, AbilityTriggerActive, AbilityTypeRecover, -1, AbilityStatusUnused},
-		AbilityIdShutdown:    {AbilityIdShutdown, AbilityTriggerPassive, AbilityTypeJam, -1, AbilityStatusReady},
-		AbilityIdCatastrophe: {AbilityIdCatastrophe, AbilityTriggerActive, AbilityTypeConfuse, 1, AbilityStatusUnused},
+		AbilityIdFiBoost: {
+			ID:            AbilityIdFiBoost,
+			Trigger:       AbilityTriggerPassive,
+			Timing:        AbilityTimingWait,
+			Type:          AbilityTypeBoost,
+			UsableNum:     -1,
+			InitialStatus: AbilityStatusReady},
+		AbilityIdNumViolence: {
+			ID:            AbilityIdNumViolence,
+			Trigger:       AbilityTriggerPassive,
+			Timing:        AbilityTimingWait,
+			Type:          AbilityTypeAttack,
+			UsableNum:     -1,
+			InitialStatus: AbilityStatusReady},
+		AbilityIdReload: {
+			ID:            AbilityIdReload,
+			Trigger:       AbilityTriggerActive,
+			Timing:        AbilityTimingSoon,
+			Type:          AbilityTypeRecover,
+			UsableNum:     -1,
+			InitialStatus: AbilityStatusUnused},
+		AbilityIdShutdown: {
+			ID:            AbilityIdShutdown,
+			Trigger:       AbilityTriggerPassive,
+			Timing:        AbilityTimingSoon,
+			Type:          AbilityTypeJam,
+			UsableNum:     -1,
+			InitialStatus: AbilityStatusReady},
+		AbilityIdCatastrophe: {
+			ID:            AbilityIdCatastrophe,
+			Trigger:       AbilityTriggerActive,
+			Timing:        AbilityTimingWait,
+			Type:          AbilityTypeConfuse,
+			UsableNum:     100,
+			InitialStatus: AbilityStatusUnused},
 	}
 )
 

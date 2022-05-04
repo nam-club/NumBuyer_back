@@ -11,7 +11,6 @@ type AbilityCatastrophe struct{}
 func (a *AbilityCatastrophe) CanActivate(game *db.Game, me *db.Player, targetAbility *db.Ability) (bool, error) {
 	if IsUsed(targetAbility) ||
 		!IsReady(targetAbility) ||
-		game.State.Phase != consts.PhaseCalculate.Value ||
 		targetAbility.Remaining == 0 {
 		return false, nil
 	}

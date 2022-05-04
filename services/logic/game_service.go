@@ -111,11 +111,21 @@ func NextPhase(nextPhase consts.Phase, roomId string) (*responses.UpdateStateRes
 		db.SetPlayer(roomId, player)
 
 		// アビリティを発動する
-		fired, e := FireAbilities(game, player)
-		if e != nil {
-			return nil, e
+		firedAbs := []*db.Ability{}
+		for _, ability := range player.Abilities {
+			if ab, _ := consts.ParseAbility(ability.ID); ab.Timing != consts.AbilityTimingWait {
+				continue
+			}
+			firedAb, e := FireAbility(game, player, ability.ID)
+			if e != nil {
+				return nil, e
+			}
+			if firedAb != nil {
+				firedAbs = append(firedAbs, firedAb)
+			}
+
 		}
-		firedAbilities[player.PlayerID] = fired
+		firedAbilities[player.PlayerID] = firedAbs
 	}
 	players, _ := db.GetPlayers(roomId)
 	return responses.GenerateUpdateStateResponse(players, nextPhase, firedAbilities), nil
