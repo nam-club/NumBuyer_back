@@ -38,6 +38,7 @@ func ReadyAbility(roomId, playerId string, abilityId string) (*db.Ability, error
 			player.Abilities[i].Status = string(consts.AbilityStatusReady)
 			player.Abilities[i].Remaining = player.Abilities[i].Remaining - 1
 			ret = &player.Abilities[i]
+			break
 		}
 	}
 	_, e = db.SetPlayer(roomId, player)
