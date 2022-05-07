@@ -99,9 +99,12 @@ func IsAllPlayersReady(roomId string) (bool, error) {
 
 	ready := true
 	for _, p := range players {
+		if p.ForceReady {
+			return true, nil
+		}
+
 		if !p.Ready {
 			ready = false
-			break
 		}
 	}
 

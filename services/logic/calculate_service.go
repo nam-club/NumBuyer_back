@@ -10,8 +10,6 @@ import (
 	"nam-club/NumBuyer_back/utils"
 	"strconv"
 	"time"
-
-	"go.uber.org/zap"
 )
 
 // 正解者を全て取得する
@@ -72,12 +70,8 @@ func CalculateSubmits(roomId, playerId string, action consts.CalculateAction, su
 		return nil, orgerrors.NewValidationError("not calculate phase")
 	}
 
-	if active, err := IsExistsActive(roomId, consts.AbilityIdShutdown); active {
-		if err != nil {
-			utils.Log.Error("error detected.",
-				zap.String("error", fmt.Sprintf("%v", err)))
-		}
-		return nil, nil
+	if ready, _ := IsAllPlayersReady(roomId); ready {
+		return nil, orgerrors.NewValidationError("already all players ready")
 	}
 
 	game, e := db.GetGame(roomId)
@@ -159,8 +153,8 @@ func CalculateSubmits(roomId, playerId string, action consts.CalculateAction, su
 			if e != nil {
 				return nil, e
 			}
-			// アビリティ: Shutdown 条件満たしてればアクティブにする
-			_, e = TryActivateAbilityIfHave(game, player, consts.AbilityIdShutdown)
+			// アビリティ: Shutdown 条件満たしてれば発動する
+			_, e = FireAbility(game, player, consts.AbilityIdShutdown)
 			if e != nil {
 				return nil, e
 			}

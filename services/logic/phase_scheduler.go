@@ -83,12 +83,6 @@ LOOP:
 				nextPhase = consts.PhaseShowAuction
 			}
 			o.phaseFinishAction(phase, nextPhase)
-		} else if isExists, err := IsExistsActive(o.roomId, consts.AbilityIdShutdown); isExists {
-			// アビリティ: shutdown を発動
-			o.phaseFinishAction(phase, nextPhase)
-		} else if err != nil {
-			utils.Log.Error("error detected.",
-				zap.String("error", fmt.Sprintf("%v", err)))
 		}
 	}
 }

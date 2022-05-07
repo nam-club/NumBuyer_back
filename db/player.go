@@ -18,7 +18,8 @@ type Player struct {
 	Abilities    []Ability    `json:"abilities"`
 	BuyAction    BuyAction    `json:"buyAction"`
 	AnswerAction AnswerAction `json:"answerAction"`
-	Ready        bool         `json:"ready"`
+	Ready        bool         `json:"ready"`      // 自身が次フェーズへ遷移できる状態にする
+	ForceReady   bool         `json:"forceReady"` // 他プレイヤー含め次フェーズへ遷移できる状態にする
 }
 
 type Ability struct {

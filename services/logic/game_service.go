@@ -108,6 +108,7 @@ func NextPhase(nextPhase consts.Phase, roomId string) (*responses.UpdateStateRes
 		// プレイヤーの準備状態をリセット
 		player, _ := db.GetPlayer(roomId, playerId)
 		player.Ready = false
+		player.ForceReady = false
 		db.SetPlayer(roomId, player)
 
 		// アビリティを発動する
