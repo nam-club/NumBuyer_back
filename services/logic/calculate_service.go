@@ -107,11 +107,10 @@ func CalculateSubmits(roomId, playerId string, action consts.CalculateAction, su
 			return nil, e
 		}
 		return &responses.CalculateResponse{
-			IsCorrectAnswer: false,
-			IsPassed:        true,
-			PlayerID:        playerId,
-			Coin:            player.Coin,
-			Cards:           player.Cards,
+			ActionResult: string(consts.CalculateActionResultPass),
+			PlayerID:     playerId,
+			Coin:         player.Coin,
+			Cards:        player.Cards,
 		}, nil
 	} else {
 		// actionがanswerの場合
@@ -167,11 +166,10 @@ func CalculateSubmits(roomId, playerId string, action consts.CalculateAction, su
 			}
 
 			return &responses.CalculateResponse{
-				IsCorrectAnswer: true,
-				IsPassed:        false,
-				PlayerID:        playerId,
-				Coin:            player.Coin,
-				Cards:           player.Cards,
+				ActionResult: string(consts.CalculateActionResultCorrect),
+				PlayerID:     playerId,
+				Coin:         player.Coin,
+				Cards:        player.Cards,
 			}, nil
 		} else {
 			// 不正解の時
@@ -188,11 +186,10 @@ func CalculateSubmits(roomId, playerId string, action consts.CalculateAction, su
 				return nil, e
 			}
 			return &responses.CalculateResponse{
-				IsCorrectAnswer: false,
-				IsPassed:        haveShutdown,
-				PlayerID:        playerId,
-				Coin:            player.Coin,
-				Cards:           player.Cards,
+				ActionResult: string(consts.CalculateActionResultIncorrect),
+				PlayerID:     playerId,
+				Coin:         player.Coin,
+				Cards:        player.Cards,
 			}, nil
 
 		}
