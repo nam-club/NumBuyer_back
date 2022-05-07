@@ -26,6 +26,12 @@ func (o *RouteBase) path(path string, f func(socketio.Conn, string)) {
 	o.server.OnEvent("/", path, wrapFunc)
 }
 
+// 一つの部屋に参加する
+func LeaveAndJoin(s socketio.Conn, roomId string) {
+	s.LeaveAll()
+	s.Join(roomId)
+}
+
 // リクエストメッセージの構造体への変換 & バリデーション
 func Valid(reqBody string, result interface{}) error {
 	if e := json.Unmarshal([]byte(reqBody), result); e != nil {

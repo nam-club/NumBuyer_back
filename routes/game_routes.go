@@ -44,8 +44,7 @@ func RoutesGame(r *RouteBase) {
 				}
 				logic.NewPhaseScheduler(resp.RoomID, r.server).Start()
 
-				s.LeaveAll()
-				s.Join(resp.RoomID)
+				LeaveAndJoin(s, resp.RoomID)
 
 				s.Emit(consts.FSGameJoin, utils.Response(resp))
 				return
@@ -57,7 +56,7 @@ func RoutesGame(r *RouteBase) {
 			// ゲームに参加可能かチェック
 			joinable := logic.CheckPhase(roomId, consts.PhaseWaiting)
 			if !joinable {
-				s.Emit(consts.FSGameJoin, orgerrors.NewValidationError("can not join game"))
+				s.Emit(consts.FSGameJoin, utils.ResponseError(orgerrors.NewValidationError("can not join game")))
 				return
 			}
 
@@ -70,8 +69,7 @@ func RoutesGame(r *RouteBase) {
 			}
 
 			// 一つの部屋にのみ入室した状態にする
-			s.LeaveAll()
-			s.Join(roomId)
+			LeaveAndJoin(s, roomId)
 			resp, e := responses.GenerateJoinResponse(roomId, player)
 			if e != nil {
 				s.Emit(consts.FSGameJoin, utils.ResponseError(e))
@@ -112,7 +110,7 @@ func RoutesGame(r *RouteBase) {
 		// ゲームに参加可能かチェック
 		joinable := logic.CheckPhase(req.RoomID, consts.PhaseWaiting)
 		if !joinable {
-			s.Emit(consts.FSGameJoin, orgerrors.NewValidationError("can not join game"))
+			s.Emit(consts.FSGameJoin, utils.ResponseError(orgerrors.NewValidationError("can not join game")))
 			return
 		}
 
@@ -124,8 +122,7 @@ func RoutesGame(r *RouteBase) {
 		}
 
 		// 一つの部屋にのみ入室した状態にする
-		s.LeaveAll()
-		s.Join(req.RoomID)
+		LeaveAndJoin(s, req.RoomID)
 
 		resp, e := responses.GenerateJoinResponse(req.RoomID, player)
 		if e != nil {
@@ -160,8 +157,7 @@ func RoutesGame(r *RouteBase) {
 		}
 		logic.NewPhaseScheduler(resp.RoomID, r.server).Start()
 
-		s.LeaveAll()
-		s.Join(resp.RoomID)
+		LeaveAndJoin(s, resp.RoomID)
 		s.Emit(consts.FSGameJoin, utils.Response(resp))
 	})
 
