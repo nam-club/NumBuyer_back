@@ -31,6 +31,7 @@ type BuyAction struct {
 	Action   string `json:"action"`
 	Value    string `json:"value"`
 	BidCount int    `json:"bidCount"`
+	IsBuyer  bool   `json:"isBuyer"`
 }
 type AnswerAction struct {
 	Action     string   `json:"action"`

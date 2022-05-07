@@ -79,44 +79,47 @@ func Bid(roomId, playerId string, bidAction consts.BidAction, coin int) (*respon
 
 // プレイヤーのオークション終了時に必要な情報を取得する
 func FetchAuctionEndInfo(roomId, playerId string) (*responses.BuyUpdateResponse, error) {
-
 	player, e := db.GetPlayer(roomId, playerId)
 	if e != nil {
 		return nil, e
 	}
 
-	return &responses.BuyUpdateResponse{PlayerID: player.PlayerID, Coin: player.Coin, Cards: player.Cards}, nil
+	return &responses.BuyUpdateResponse{
+			PlayerID:    player.PlayerID,
+			IsSuccessed: player.BuyAction.IsBuyer,
+			Coin:        player.Coin,
+			Cards:       player.Cards},
+		nil
 }
 
 // 落札者を決定する
+// 最終入札者 = 落札者
 func DetermineBuyer(roomId string) (*db.Player, error) {
-
-	players, e := db.GetPlayers(roomId)
+	game, e := db.GetGame(roomId)
 	if e != nil {
 		return nil, e
 	}
-
-	var buyer db.Player
-	maxBidCoin := 0
-	for _, p := range players {
-		if p.BuyAction.Action == consts.BidActionBid.String() {
-			b, e := strconv.Atoi(p.BuyAction.Value)
-			if e == nil && b > maxBidCoin {
-				maxBidCoin = b
-				buyer = p
-			}
+	if game.State.AuctionLastBidPlayerId != "" {
+		buyer, e := db.GetPlayer(roomId, game.State.AuctionLastBidPlayerId)
+		if e != nil {
+			return nil, e
 		}
-	}
-	if maxBidCoin > 0 {
-		return &buyer, nil
+		buyer.BuyAction.IsBuyer = true
+		buyer, e = db.SetPlayer(roomId, buyer)
+		if e != nil {
+			return nil, e
+		}
+
+		return buyer, nil
 	} else {
 		return nil, nil
 	}
 }
 
-// オークションの状態をクリアする
-func ClearAuction(roomId string) error {
+// オークションの状態をクリアし再セットする
+func ClearAndResetAuction(roomId string) error {
 
+	// オークションの状態をクリア
 	game, e := db.GetGame(roomId)
 	if e != nil {
 		return e
@@ -138,6 +141,12 @@ func ClearAuction(roomId string) error {
 		player.Ready = false
 		player.BuyAction = db.BuyAction{}
 		db.SetPlayer(roomId, &player)
+	}
+
+	// オークションカードをシャッフル
+	_, e = ShuffleAuctionCard(roomId)
+	if e != nil {
+		return e
 	}
 
 	return nil

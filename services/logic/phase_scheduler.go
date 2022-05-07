@@ -167,13 +167,6 @@ func (o *PhaseSheduler) auctionFinishAction(next consts.Phase) {
 			return
 		}
 
-		// オークション情報をクリアする
-		e = ClearAuction(o.roomId)
-		if e != nil {
-			o.server.BroadcastToRoom("/", o.roomId, consts.FSGameBuyNotify, utils.ResponseError(e))
-			return
-		}
-
 		resp := &responses.BuyNotifyResponse{
 			PlayerName:   buyer.PlayerName,
 			Coin:         subtract,
@@ -189,13 +182,6 @@ func (o *PhaseSheduler) auctionFinishAction(next consts.Phase) {
 			IsPassAll:    true,
 		}
 		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameBuyNotify, utils.Response(resp))
-	}
-
-	// オークションカードをシャッフル
-	_, e = ShuffleAuctionCard(o.roomId)
-	if e != nil {
-		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameUpdateAnswer, utils.ResponseError(e))
-		return
 	}
 
 	// 次フェーズへ移動
@@ -277,6 +263,7 @@ func (o *PhaseSheduler) calculateFinishAction(next consts.Phase) {
 
 // 次ターンに移るときの準備をする
 func (o *PhaseSheduler) setUpNextTurn(next consts.Phase) {
+	ClearAndResetAuction(o.roomId)
 	ClearCalculateAction(o.roomId)
 	AddCardToAllPlayers(o.roomId)
 	o.nextPhase(next)
