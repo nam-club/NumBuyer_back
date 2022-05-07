@@ -131,12 +131,21 @@ func NextPhase(nextPhase consts.Phase, roomId string) (*responses.UpdateStateRes
 	return responses.GenerateUpdateStateResponse(players, nextPhase, firedAbilities), nil
 }
 
-func GenerateUpdateState(nextPhase consts.Phase, roomId string) (*responses.UpdateStateResponse, error) {
+func GenerateUpdateState(roomId string, firedAbilities map[string][]*db.Ability) (*responses.UpdateStateResponse, error) {
 	players, e := db.GetPlayers(roomId)
 	if e != nil {
 		return nil, e
 	}
-	return responses.GenerateUpdateStateResponse(players, nextPhase, map[string][]*db.Ability{}), nil
+	game, e := db.GetGame(roomId)
+	if e != nil {
+		return nil, e
+	}
+	currentPhase, e := consts.ParsePhase(game.State.Phase)
+	if e != nil {
+		return nil, e
+	}
+
+	return responses.GenerateUpdateStateResponse(players, currentPhase, firedAbilities), nil
 }
 
 // ゲームを開始する

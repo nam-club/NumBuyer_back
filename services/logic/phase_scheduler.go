@@ -204,7 +204,7 @@ func (o *PhaseSheduler) calculateFinishAction(next consts.Phase) {
 	// ゲーム終了条件を満たしているか
 	if finished, _ := IsMeetClearCondition(o.roomId); finished {
 		// 最新の状態を返却
-		if state, e := GenerateUpdateState(next, o.roomId); e != nil {
+		if state, e := GenerateUpdateState(o.roomId, nil); e != nil {
 			o.server.BroadcastToRoom("/", o.roomId, consts.FSGameUpdateState, utils.ResponseError(e))
 			return
 		} else {
