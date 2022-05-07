@@ -50,6 +50,16 @@ func GetPlayersInfo(roomId string) (*responses.PlayersInfoResponse, error) {
 	return responses.GeneratePlayersInfoResponse(players, roomId), nil
 }
 
+// プレイヤー情報を取得する
+func GetPlayerInfo(roomId, playerId string) (*responses.PlayerInfoResponse, error) {
+	player, e := db.GetPlayer(roomId, playerId)
+	if e != nil {
+		return nil, e
+	}
+
+	return responses.GeneratePlayerInfoResponse(*player), nil
+}
+
 // 全プレイヤーが次フェーズに移行する準備ができている状態にする
 func SetAllPlayersReady(roomId string) error {
 	players, e := db.GetPlayers(roomId)

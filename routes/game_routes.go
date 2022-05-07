@@ -188,6 +188,12 @@ func RoutesGame(r *RouteBase) {
 				Status:    ability.Status,
 				Remaining: ability.Remaining,
 				AbilityId: ability.ID}))
+
+		// 即時発動のアビリティならプレイヤーの情報を更新する
+		if ab, e := consts.ParseAbility(ability.ID); e == nil && ab.Timing == consts.AbilityTimingSoon {
+			player, _ := logic.GetPlayerInfo(req.RoomID, req.PlayerID)
+			s.Emit(consts.FSGamePlayerInfo, utils.Response(player))
+		}
 	})
 
 	r.path(consts.TSGamePlayersInfo, func(s socketio.Conn, msg string) {

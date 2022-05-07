@@ -23,6 +23,7 @@ const (
 	FSGameReadyAbility    = "game/ready_ability"
 	FSGameJoin            = "game/join"
 	FSGamePlayersInfo     = "game/players_info"
+	FSGamePlayerInfo      = "game/player_info"
 	FSGameNextTurn        = "game/next_turn"
 	FSGameStart           = "game/start"
 	FSGameBid             = "game/bid"
