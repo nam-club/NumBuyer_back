@@ -180,6 +180,7 @@ func CalculateSubmits(roomId, playerId string, action consts.CalculateAction, su
 			haveShutdown := HaveAbility(player, consts.AbilityIdShutdown)
 			if haveShutdown {
 				player.AnswerAction.Action = consts.CalculateActionPass.String()
+				player.Ready = true
 			}
 			player.AnswerAction.Correct = false
 			player, e = db.SetPlayer(roomId, player)
