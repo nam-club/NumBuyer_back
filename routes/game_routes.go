@@ -299,11 +299,6 @@ func RoutesGame(r *RouteBase) {
 			return
 		}
 
-		// Answer時のみレスポンスを返却
-		if action == consts.CalculateActionAnswer {
-			s.Emit(consts.FSGameCalculateResult, utils.Response(resp))
-			return
-		}
-
+		s.Emit(consts.FSGameCalculateResult, utils.Response(resp))
 	})
 }
