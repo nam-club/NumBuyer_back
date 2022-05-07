@@ -169,10 +169,13 @@ func CalculateSubmits(roomId, playerId string, action consts.CalculateAction, su
 			// 不正解の時
 
 			// アビリティ: Shutdown 条件満たしてればアクティブにはせず、スキップしたことにする
-			haveShutdown := HaveAbility(player, consts.AbilityIdShutdown)
-			if haveShutdown {
+			var actionResult consts.CalculateActionResult
+			if HaveAbility(player, consts.AbilityIdShutdown) {
 				player.AnswerAction.Action = consts.CalculateActionPass.String()
 				player.Ready = true
+				actionResult = consts.CalculateActionResultIncorrectWithPass
+			} else {
+				actionResult = consts.CalculateActionResultIncorrect
 			}
 			player.AnswerAction.Correct = false
 			player, e = db.SetPlayer(roomId, player)
@@ -180,7 +183,7 @@ func CalculateSubmits(roomId, playerId string, action consts.CalculateAction, su
 				return nil, e
 			}
 			return &responses.CalculateResponse{
-				ActionResult: string(consts.CalculateActionResultIncorrect),
+				ActionResult: string(actionResult),
 				PlayerID:     playerId,
 				Coin:         player.Coin,
 				Cards:        player.Cards,
