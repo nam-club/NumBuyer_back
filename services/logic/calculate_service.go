@@ -154,9 +154,11 @@ func CalculateSubmits(roomId, playerId string, action consts.CalculateAction, su
 				return nil, e
 			}
 			// アビリティ: Shutdown 条件満たしてれば発動する
-			_, e = FireAbility(game, player, consts.AbilityIdShutdown)
-			if e != nil {
-				return nil, e
+			if HaveAbility(player, consts.AbilityIdShutdown) {
+				_, e = FireAbility(game, player, consts.AbilityIdShutdown)
+				if e != nil {
+					return nil, e
+				}
 			}
 
 			return &responses.CalculateResponse{
