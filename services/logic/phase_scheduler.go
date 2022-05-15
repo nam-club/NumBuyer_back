@@ -22,16 +22,16 @@ type PhaseSheduler struct {
 
 func CanCreateGameScheduler(roomId string) error {
 	if exists, _ := db.ExistsGame(roomId); !exists {
-		return orgerrors.NewGameNotFoundError("")
+		return orgerrors.NewGameNotFoundError("", nil)
 	}
-	game, e := db.GetGame(roomId)
+	game, e := GetGame(roomId)
 	if e != nil {
-		return orgerrors.NewInternalServerError("")
+		return e
 	}
 	if p, e := consts.ParsePhase(game.State.Phase); e != nil {
-		return orgerrors.NewInternalServerError("")
+		return orgerrors.NewInternalServerError("", nil)
 	} else if p != consts.PhaseWaiting {
-		return orgerrors.NewValidationError("game already started")
+		return orgerrors.NewValidationError("", "game already started", nil)
 	}
 	return nil
 }
@@ -273,24 +273,24 @@ func (o *PhaseSheduler) clean() {
 
 // タイマーを指定した時間を残してリセットする
 func ResetTimer(roomId string, remainSeconds int) (bool, error) {
-	game, e := db.GetGame(roomId)
+	game, e := GetGame(roomId)
 	if e != nil {
-		return false, orgerrors.NewInternalServerError("")
+		return false, e
 	}
 
 	phase, e := consts.ParsePhase(game.State.Phase)
 	if e != nil {
-		return false, orgerrors.NewInternalServerError("")
+		return false, orgerrors.NewInternalServerError("", nil)
 	}
 
 	passed := phase.Duration - remainSeconds
 	if passed <= 0 {
-		return false, orgerrors.NewInternalServerError("")
+		return false, orgerrors.NewInternalServerError("", nil)
 	}
 
 	beforeTime, e := time.Parse(time.RFC3339, game.State.PhaseChangedTime)
 	if e != nil {
-		return false, orgerrors.NewInternalServerError("")
+		return false, orgerrors.NewInternalServerError("", nil)
 	}
 
 	// 現在時刻が前回のフェーズ変更から指定時間していない場合、何もしない
@@ -303,7 +303,7 @@ func ResetTimer(roomId string, remainSeconds int) (bool, error) {
 	game.State.PhaseChangedTime = time.Now().Add(time.Second * -time.Duration(passed)).Format(time.RFC3339)
 	_, e = db.SetGame(roomId, game)
 	if e != nil {
-		return false, orgerrors.NewInternalServerError("")
+		return false, orgerrors.NewInternalServerError("", nil)
 	}
 	return true, nil
 }

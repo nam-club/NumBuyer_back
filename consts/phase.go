@@ -69,6 +69,6 @@ func ParsePhase(s string) (v Phase, err error) {
 	case PhaseEnd.Value:
 		return PhaseEnd, nil
 	default:
-		return PhaseWaiting, orgerrors.NewInternalServerError("invalid phase type")
+		return PhaseWaiting, orgerrors.NewInternalServerError("invalid phase type", nil)
 	}
 }

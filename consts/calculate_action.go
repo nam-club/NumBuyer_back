@@ -21,7 +21,7 @@ func (v CalculateAction) Valid() error {
 	case CalculateActionAnswer, CalculateActionPass:
 		return nil
 	default:
-		return orgerrors.NewValidationError("invalid bid action type")
+		return orgerrors.NewValidationError("calculate.action", "invalid calculate action", map[string]string{"action": v.String()})
 	}
 }
 

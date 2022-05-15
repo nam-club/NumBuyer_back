@@ -26,7 +26,7 @@ func (v CalculateActionResult) Valid() error {
 		CalculateActionResultIncorrectWithPass:
 		return nil
 	default:
-		return orgerrors.NewValidationError("invalid bid action type")
+		return orgerrors.NewValidationError("calculate.actionResult", "invalid calculate action result", map[string]string{"actionResult": v.String()})
 	}
 }
 

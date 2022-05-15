@@ -14,7 +14,7 @@ import (
 func CreateNewPlayer(playerName, roomId string, isOwner bool, abilities []consts.Ability) (*db.Player, error) {
 
 	if b, _ := db.ExistsGame(roomId); !b {
-		return nil, orgerrors.NewGameNotFoundError("game not found")
+		return nil, orgerrors.NewPlayerNotFoundError("player not found", nil)
 	}
 
 	dbAbilities := []db.Ability{}
@@ -51,8 +51,28 @@ func GetPlayersInfo(roomId string) (*responses.PlayersInfoResponse, error) {
 }
 
 // プレイヤー情報を取得する
-func GetPlayerInfo(roomId, playerId string) (*responses.PlayerInfoResponse, error) {
+func GetPlayer(roomId, playerId string) (*db.Player, error) {
 	player, e := db.GetPlayer(roomId, playerId)
+	if e != nil {
+		return nil, orgerrors.NewPlayerNotFoundError("player not found", map[string]string{"roomId": roomId, "playerId": playerId})
+	}
+
+	return player, nil
+}
+
+// ゲームの全プレイヤー情報を取得する
+func GetPlayers(roomId string) ([]db.Player, error) {
+	players, e := db.GetPlayers(roomId)
+	if e != nil {
+		return nil, orgerrors.NewPlayerNotFoundError("players not found", map[string]string{"roomId": roomId})
+	}
+
+	return players, nil
+}
+
+// プレイヤー情報を取得する
+func GetPlayerInfo(roomId, playerId string) (*responses.PlayerInfoResponse, error) {
+	player, e := GetPlayer(roomId, playerId)
 	if e != nil {
 		return nil, e
 	}
@@ -62,7 +82,7 @@ func GetPlayerInfo(roomId, playerId string) (*responses.PlayerInfoResponse, erro
 
 // 全プレイヤーが次フェーズに移行する準備ができている状態にする
 func SetAllPlayersReady(roomId string) error {
-	players, e := db.GetPlayers(roomId)
+	players, e := GetPlayers(roomId)
 	if e != nil {
 		return e
 	}
@@ -77,7 +97,7 @@ func SetAllPlayersReady(roomId string) error {
 
 // 全プレイヤーにランダムにカードを一枚付与する
 func AddCardToAllPlayers(roomId string) error {
-	players, e := db.GetPlayers(roomId)
+	players, e := GetPlayers(roomId)
 	if e != nil {
 		return e
 	}
@@ -92,7 +112,7 @@ func AddCardToAllPlayers(roomId string) error {
 
 // 全プレイヤーが次フェーズに移行する準備ができているか
 func IsAllPlayersReady(roomId string) (bool, error) {
-	players, e := db.GetPlayers(roomId)
+	players, e := GetPlayers(roomId)
 	if e != nil {
 		return false, e
 	}
@@ -113,7 +133,7 @@ func IsAllPlayersReady(roomId string) (bool, error) {
 
 // プレイヤーにカードを追加する
 func AppendCard(roomId, playerId string, appendCards []string) (*db.Player, error) {
-	player, e := db.GetPlayer(roomId, playerId)
+	player, e := GetPlayer(roomId, playerId)
 	if e != nil {
 		return nil, e
 	}
@@ -136,7 +156,7 @@ func SubtractCoin(roomId, playerId string, subtract int) (*db.Player, error) {
 
 	subtracted := player.Coin - subtract
 	if subtracted < 0 {
-		return nil, orgerrors.NewValidationError("coin shortage")
+		return nil, orgerrors.NewValidationError("", "coin shortage", nil)
 	}
 
 	player.Coin = subtracted

@@ -35,12 +35,12 @@ func LeaveAndJoin(s socketio.Conn, roomId string) {
 // リクエストメッセージの構造体への変換 & バリデーション
 func Valid(reqBody string, result interface{}) error {
 	if e := json.Unmarshal([]byte(reqBody), result); e != nil {
-		return orgerrors.NewValidationError(e.Error())
+		return orgerrors.NewValidationError("", e.Error(), nil)
 	}
 
 	v := validator.New()
 	if e := v.Struct(result); e != nil {
-		return orgerrors.NewValidationError(e.Error())
+		return orgerrors.NewValidationError("", e.Error(), nil)
 	}
 
 	return nil

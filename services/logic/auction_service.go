@@ -13,7 +13,7 @@ import (
 // 入札する
 func Bid(roomId, playerId string, bidAction consts.BidAction, coin int) (*responses.BidResponse, error) {
 	if !CheckPhase(roomId, consts.PhaseAuction) {
-		return nil, orgerrors.NewValidationError("not auction phase")
+		return nil, orgerrors.NewValidationError("bid.notAuctionPhase", "not auction phase", nil)
 	}
 
 	game, e := db.GetGame(roomId)
@@ -27,20 +27,20 @@ func Bid(roomId, playerId string, bidAction consts.BidAction, coin int) (*respon
 	}
 
 	if player.BuyAction.Value == consts.BidActionPass.String() {
-		return nil, orgerrors.NewValidationError("player already passed")
+		return nil, orgerrors.NewValidationError("bid.alreadyPassed", "player already passed", nil)
 	}
 
 	player.BuyAction.Action = bidAction.String()
 	if bidAction == consts.BidActionBid {
 		// バリデーション
 		if maxBid, _ := strconv.Atoi(game.State.AuctionMaxBid); maxBid >= coin {
-			return nil, orgerrors.NewValidationError("insufficient bid")
+			return nil, orgerrors.NewValidationError("bid.insuffcient", "insufficient bid", nil)
 		}
 		if player.BuyAction.BidCount >= consts.AuctionMaxBidCount {
-			return nil, orgerrors.NewValidationError("exceed max bid count")
+			return nil, orgerrors.NewValidationError("bid.exceedMax", "exceed max bid count", nil)
 		}
 		if game.State.AuctionLastBidPlayerId == playerId {
-			return nil, orgerrors.NewValidationError("cannot bid in a row")
+			return nil, orgerrors.NewValidationError("bid.ProhibitedInARow", "cannot bid in a row", nil)
 		}
 
 		// Bid情報セット処理

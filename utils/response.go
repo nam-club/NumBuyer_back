@@ -30,7 +30,7 @@ func ResponseError(err error) string {
 		// stacktraceを吐きたいためzapでないloggerを使用
 		// TODO zapでstacktrace吐けそうだったらそっちを使う
 		log.Printf("[ERROR] %+v\n", err)
-		retJson, _ = json.Marshal(errors.Unwrap(orgerrors.NewInternalServerError("")))
+		retJson, _ = json.Marshal(errors.Unwrap(orgerrors.NewInternalServerError("", nil)))
 	}
 
 	return string(retJson)

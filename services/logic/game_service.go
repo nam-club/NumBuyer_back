@@ -66,16 +66,16 @@ func GetRandomRoomId() (string, error) {
 func GetGame(roomId string) (*db.Game, error) {
 	r, e := db.GetGame(roomId)
 	if e != nil {
-		return nil, e
+		return nil, orgerrors.NewGameNotFoundError("game not found", map[string]string{"roomId": roomId})
 	}
 	return r, nil
 }
 
 // 次ターンで必要な情報を返却する
 func FetchNextTurnInfo(roomId, playerId string) (*responses.NextTurnResponse, error) {
-	game, err := db.GetGame(roomId)
+	game, err := GetGame(roomId)
 	if err != nil {
-		return nil, orgerrors.NewGameNotFoundError("")
+		return nil, err
 	}
 	player, e := db.GetPlayer(roomId, playerId)
 	if e != nil {
@@ -94,9 +94,9 @@ func FetchNextTurnInfo(roomId, playerId string) (*responses.NextTurnResponse, er
 // 次フェーズに移行する
 func NextPhase(nextPhase consts.Phase, roomId string) (*responses.UpdateStateResponse, error) {
 	// ゲーム状態を更新する
-	game, err := db.GetGame(roomId)
+	game, err := GetGame(roomId)
 	if err != nil {
-		return nil, orgerrors.NewGameNotFoundError("")
+		return nil, err
 	}
 	game.State.Phase = nextPhase.Value
 	game.State.PhaseChangedTime = time.Now().Format(time.RFC3339)
@@ -152,20 +152,25 @@ func GenerateUpdateState(roomId string, firedAbilities map[string][]*db.Ability)
 // ゲームを開始する
 func StartGame(roomId string) error {
 	// ゲーム開始のバリデーション
-	game, err := db.GetGame(roomId)
+	game, err := GetGame(roomId)
 	if err != nil {
-		return orgerrors.NewValidationError("get room failed: " + roomId)
+		return err
 	}
 	if game.State.Phase != consts.PhaseWaiting.Value {
-		return orgerrors.NewValidationError("game status is not waiting")
+		return orgerrors.NewValidationError("game.notWaitingPhase", "game status is not waiting", nil)
 	}
 
-	players, err := db.GetPlayers(roomId)
+	players, err := GetPlayers(roomId)
 	if err != nil {
-		return orgerrors.NewValidationError("get players failed: " + roomId)
+		return err
 	}
 	if len(players) < game.PlayersMin || game.PlayersMax < len(players) {
-		return orgerrors.NewValidationError("players num is not meet. min=" + strconv.Itoa(game.PlayersMin) + ", max=" + strconv.Itoa(game.PlayersMax) + ", current=" + strconv.Itoa(len(players)))
+		return orgerrors.NewValidationError("game.notMeetPlayerNums",
+			"players num is not meet.",
+			map[string]string{
+				"min":     strconv.Itoa(game.PlayersMin),
+				"max":     strconv.Itoa(game.PlayersMax),
+				"current": strconv.Itoa(len(players))})
 	}
 
 	// ゲーム開始処理
@@ -173,15 +178,15 @@ func StartGame(roomId string) error {
 		return e
 	}
 	if e := SetAllPlayersReady(roomId); e != nil {
-		return orgerrors.NewInternalServerError("set players status ready failed.")
+		return orgerrors.NewInternalServerError("set players status ready failed.", nil)
 	}
 
 	if _, e := ShuffleAnswer(roomId); e != nil {
-		return orgerrors.NewInternalServerError("failed to shuffle answer.")
+		return orgerrors.NewInternalServerError("failed to shuffle answer.", nil)
 	}
 
 	if _, e := ShuffleAuctionCard(roomId); e != nil {
-		return orgerrors.NewInternalServerError("failed to shuffle auction.")
+		return orgerrors.NewInternalServerError("failed to shuffle auction.", nil)
 	}
 	// プレイヤーに初期カードを付与する
 	players, err = db.GetPlayers(roomId)
@@ -232,6 +237,14 @@ func CheckPhase(roomId string, phase consts.Phase) bool {
 	return game.State.Phase == phase.Value
 }
 
+func IsJoinable(roomId string) (bool, error) {
+	game, err := GetGame(roomId)
+	if err != nil {
+		return false, err
+	}
+	return game.State.Phase == consts.PhaseWaiting.Value, nil
+}
+
 // ゲームを終了する（ゲーム終了条件のチェックは行わない）
 func FinishGame(roomId string) (*responses.FinishGameResponse, error) {
 	players, err := db.GetPlayers(roomId)
@@ -257,9 +270,9 @@ func FinishGame(roomId string) (*responses.FinishGameResponse, error) {
 		}
 	}
 
-	game, err := db.GetGame(roomId)
+	game, err := GetGame(roomId)
 	if err != nil {
-		return nil, orgerrors.NewGameNotFoundError("")
+		return nil, err
 	}
 	game.State.Phase = consts.PhaseEnd.Value
 	db.SetGame(roomId, game)
@@ -276,7 +289,7 @@ func generateRoomId() (string, error) {
 		// 乱数を生成
 		b := make([]byte, 10)
 		if _, err := rand.Read(b); err != nil {
-			return "", orgerrors.NewInternalServerError("")
+			return "", orgerrors.NewInternalServerError("", nil)
 		}
 
 		var result string
@@ -288,5 +301,5 @@ func generateRoomId() (string, error) {
 			return result, nil
 		}
 	}
-	return "", orgerrors.NewInternalServerError("create room id error")
+	return "", orgerrors.NewInternalServerError("create room id error", nil)
 }

@@ -104,7 +104,7 @@ func SetPlayer(roomId string, player *Player) (*Player, error) {
 		if e != nil {
 			return nil, errors.WithStack(e)
 		}
-		return nil, orgerrors.NewGameNotFoundError("")
+		return nil, orgerrors.NewGameNotFoundError("", nil)
 	}
 
 	b, _ := json.Marshal(player)

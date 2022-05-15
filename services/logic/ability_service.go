@@ -35,7 +35,7 @@ func ReadyAbility(roomId, playerId string, abilityId string) (*db.Ability, error
 		if v.ID == abilityId {
 			ab, e := consts.ParseAbility(v.ID)
 			if e != nil {
-				return nil, orgerrors.NewValidationError("invalid ability id")
+				return nil, e
 			}
 			abilityDB = &v
 			abilityConst = &ab
@@ -45,7 +45,7 @@ func ReadyAbility(roomId, playerId string, abilityId string) (*db.Ability, error
 	}
 
 	if abilityDB == nil || abilityConst == nil {
-		return nil, orgerrors.NewValidationError("invalid ability")
+		return nil, orgerrors.NewValidationError("", "invalid ability", nil)
 	}
 
 	if abilityConst.Timing == consts.AbilityTimingSoon {
@@ -60,10 +60,10 @@ func ReadyAbility(roomId, playerId string, abilityId string) (*db.Ability, error
 	} else if abilityConst.Timing == consts.AbilityTimingWait {
 		// 発動タイミングがwaitならステータスをreadyにする
 		if abilityDB.Status != string(consts.AbilityStatusUnused) {
-			return nil, orgerrors.NewValidationError("ability status is not unused")
+			return nil, orgerrors.NewValidationError("ability.alreadyUsed", "ability status is not unused", nil)
 		}
 		if player.Abilities[abilityDBIndex].Remaining == 0 {
-			return nil, orgerrors.NewValidationError("exceeded the number of ability usable")
+			return nil, orgerrors.NewValidationError("ability.notRemaining", "exceeded the number of ability usable", nil)
 		}
 		player.Abilities[abilityDBIndex].Status = string(consts.AbilityStatusReady)
 		player.Abilities[abilityDBIndex].Remaining = player.Abilities[abilityDBIndex].Remaining - 1
@@ -75,7 +75,7 @@ func ReadyAbility(roomId, playerId string, abilityId string) (*db.Ability, error
 		return ret, nil
 	}
 
-	return nil, orgerrors.NewInternalServerError("unexpected path")
+	return nil, orgerrors.NewInternalServerError("unexpected ready ability path", nil)
 }
 
 func TryActivateAbilitiesIfHave(game *db.Game, abilityId string) (err error) {
@@ -116,7 +116,7 @@ func TryActivateAbilityIfHave(game *db.Game, player *db.Player, abilityId string
 	case consts.AbilityIdCatastrophe:
 		ability = abilityCatastrophe
 	default:
-		return false, orgerrors.NewValidationError("ability parse error. " + abilityId)
+		return false, orgerrors.NewAbilityNotFoundError("ability not found", map[string]string{"abilityId": abilityId})
 	}
 
 	enable := false
@@ -155,7 +155,7 @@ func FireAbilities(game *db.Game, player *db.Player) ([]*db.Ability, error) {
 		case consts.AbilityIdCatastrophe:
 			ability = abilityCatastrophe
 		default:
-			return nil, orgerrors.NewValidationError("ability parse error. " + ab.ID)
+			return nil, orgerrors.NewAbilityNotFoundError("ability not found", map[string]string{"abilityId": ab.ID})
 		}
 		if fired, firedAbility, err := ability.Fire(game, player, i); fired {
 			firedAbilities = append(firedAbilities, firedAbility)
@@ -186,7 +186,7 @@ func FireAbility(game *db.Game, player *db.Player, abilityId string) (*db.Abilit
 		case consts.AbilityIdCatastrophe:
 			ability = abilityCatastrophe
 		default:
-			return nil, orgerrors.NewValidationError("ability parse error. " + ab.ID)
+			return nil, orgerrors.NewAbilityNotFoundError("ability not found", map[string]string{"abilityId": ab.ID})
 		}
 		if fired, firedAbility, err := ability.Fire(game, player, i); fired {
 			return firedAbility, nil
@@ -198,5 +198,5 @@ func FireAbility(game *db.Game, player *db.Player, abilityId string) (*db.Abilit
 
 	}
 	// 通常呼び出されないパス
-	return nil, orgerrors.NewValidationError("ability not found")
+	return nil, orgerrors.NewInternalServerError("unexpected fire ability path", nil)
 }

@@ -55,9 +55,9 @@ func RoutesGame(r *RouteBase) {
 			}
 		} else {
 			// ゲームに参加可能かチェック
-			joinable := logic.CheckPhase(roomId, consts.PhaseWaiting)
+			joinable, err := logic.IsJoinable(roomId)
 			if !joinable {
-				s.Emit(consts.FSGameJoin, utils.ResponseError(orgerrors.NewValidationError("can not join game")))
+				s.Emit(consts.FSGameJoin, utils.ResponseError(err))
 				return
 			}
 
@@ -109,9 +109,9 @@ func RoutesGame(r *RouteBase) {
 		}
 
 		// ゲームに参加可能かチェック
-		joinable := logic.CheckPhase(req.RoomID, consts.PhaseWaiting)
+		joinable, err := logic.IsJoinable(req.RoomID)
 		if !joinable {
-			s.Emit(consts.FSGameJoin, utils.ResponseError(orgerrors.NewValidationError("can not join game")))
+			s.Emit(consts.FSGameJoin, utils.ResponseError(err))
 			return
 		}
 

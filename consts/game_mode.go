@@ -16,7 +16,7 @@ func (v GameMode) Valid() error {
 	case GameModeQuickMatch, GameModeFriendMatch:
 		return nil
 	default:
-		return orgerrors.NewValidationError("invalid bid action type")
+		return orgerrors.NewValidationError("game.mode", "invalid game mode", nil)
 	}
 }
 

@@ -77,7 +77,7 @@ var (
 			Trigger:       AbilityTriggerActive,
 			Timing:        AbilityTimingWait,
 			Type:          AbilityTypeConfuse,
-			UsableNum:     100,
+			UsableNum:     2,
 			InitialStatus: AbilityStatusUnused},
 	}
 )
@@ -95,7 +95,7 @@ func ParseAbility(s string) (Ability, error) {
 	if val, ok := abilities[s]; ok {
 		return val, nil
 	} else {
-		return Ability{}, orgerrors.NewValidationError("ability parse error. " + s)
+		return Ability{}, orgerrors.NewValidationError("ability.parseError", "ability parse error", map[string]string{"abilidyId": s})
 	}
 }
 

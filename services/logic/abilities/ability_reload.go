@@ -15,7 +15,9 @@ func (a *AbilityReload) CanActivate(game *db.Game, me *db.Player, targetAbility 
 
 func (a *AbilityReload) Fire(game *db.Game, me *db.Player, abilityIndex int) (bool, *db.Ability, error) {
 	if game.State.Phase == consts.PhaseAuction.Value {
-		return false, nil, orgerrors.NewValidationError("ability can not fire when phase is aunction")
+		return false,
+			nil,
+			orgerrors.NewValidationError("ability.reload.invalidPhase", "ability can not fire when phase is aunction", nil)
 	}
 	if me.Abilities[abilityIndex].Remaining == 0 {
 		me.Abilities[abilityIndex].Status = string(consts.AbilityStatusUsed)
