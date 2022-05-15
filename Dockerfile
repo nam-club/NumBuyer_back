@@ -1,4 +1,4 @@
-FROM golang:latest
+FROM golang:1.17
 RUN mkdir /go/src/work && \
     go env -w GO111MODULE=on && \
     # 以下、ローカルでのデバッグの設定
