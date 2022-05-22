@@ -6,7 +6,7 @@
 https://app.zerossl.com/dashboard
 - ↑から無料プランで発行していく
 - 検証手順は `HTTP File Upload` にする
--  リポジトリの `(Numbuyer_backルート)/ssl/docs` フォルダ以下に指定された検証用ファイルを入れてPUSHし、サーバにデプロイする
+-  リポジトリの `(Numbuyer_backルート)/ssl/docs/.well-known/pki-validation` フォルダ以下に指定された検証用ファイルを入れてPUSHし、サーバにデプロイする
 -  デプロイが終わったらZeroSSLで検証をする
 -  証明書一式zipをダウンロード、展開
 

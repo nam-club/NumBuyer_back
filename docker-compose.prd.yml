@@ -14,6 +14,7 @@ services:
     tty: true
     volumes:
       - .:/go/src/work
+  # SSL証明書の更新時検証ファイルの置き場のために使用
   httpd:
     image: "httpd:latest"
     ports:
