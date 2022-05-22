@@ -22,7 +22,7 @@ const (
 	TargetMax = 30
 
 	// ランダムに生成されるオークションカードの枚数
-	AuctionCardsNumMin = 1
+	AuctionCardsNumMin = 2
 	AuctionCardsNumMax = 3
 
 	// 符号
