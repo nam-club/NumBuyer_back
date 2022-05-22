@@ -138,6 +138,24 @@ func HaveAbility(player *db.Player, abilityId string) bool {
 	return false
 }
 
+// 表示更新待ちのアビリティを取得し、ステータスを更新する
+func ProccessReadyUpdateAbilities(roomId string, players []db.Player) map[string][]*db.Ability {
+	abilities := map[string][]*db.Ability{}
+	for _, player := range players {
+		for i, a := range player.Abilities {
+			if a.Status == string(consts.AbilityStatusBackToReady) {
+				abilities[player.PlayerID] = append(abilities[player.PlayerID], &a)
+				player.Abilities[i].Status = string(consts.AbilityStatusReady)
+			} else if a.Status == string(consts.AbilityStatusBackToUnused) {
+				abilities[player.PlayerID] = append(abilities[player.PlayerID], &a)
+				player.Abilities[i].Status = string(consts.AbilityStatusUnused)
+			}
+		}
+		db.SetPlayer(roomId, &player)
+	}
+	return abilities
+}
+
 // 発動条件を満たしているアビリティを発動する
 func FireAbilities(game *db.Game, player *db.Player) ([]*db.Ability, error) {
 	firedAbilities := []*db.Ability{}

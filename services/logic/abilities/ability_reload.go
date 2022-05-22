@@ -22,10 +22,11 @@ func (a *AbilityReload) Fire(game *db.Game, me *db.Player, abilityIndex int) (bo
 	if me.Abilities[abilityIndex].Remaining == 0 {
 		me.Abilities[abilityIndex].Status = string(consts.AbilityStatusUsed)
 	} else {
-		me.Abilities[abilityIndex].Status = string(consts.AbilityStatusUnused)
+		me.Abilities[abilityIndex].Status = string(consts.AbilityStatusBackToUnused)
 	}
 	me.Coin = me.Coin / 2
 	me.Cards = utils.GenerateRandomCard(len(me.Cards))
+
 	if _, e := db.SetPlayer(game.RoomID, me); e != nil {
 		return false, nil, e
 	} else {

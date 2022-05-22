@@ -111,16 +111,21 @@ func AddCardToAllPlayers(roomId string) error {
 }
 
 // 全プレイヤーが次フェーズに移行する準備ができているか
-func IsAllPlayersReady(roomId string) (bool, error) {
+func IsAllPlayersReadyByRoomId(roomId string) (bool, error) {
 	players, e := GetPlayers(roomId)
 	if e != nil {
 		return false, e
 	}
 
+	return IsAllPlayersReady(players), nil
+}
+
+// 全プレイヤーが次フェーズに移行する準備ができているか
+func IsAllPlayersReady(players []db.Player) bool {
 	ready := true
 	for _, p := range players {
 		if p.ForceReady {
-			return true, nil
+			return true
 		}
 
 		if !p.Ready {
@@ -128,7 +133,7 @@ func IsAllPlayersReady(roomId string) (bool, error) {
 		}
 	}
 
-	return ready, nil
+	return ready
 }
 
 // プレイヤーにカードを追加する

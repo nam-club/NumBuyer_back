@@ -49,7 +49,7 @@ LOOP:
 	for {
 		time.Sleep(1 * time.Second)
 
-		game, e := db.GetGame(o.roomId)
+		game, e := GetGame(o.roomId)
 		if e != nil {
 			o.clean()
 			break LOOP
@@ -73,8 +73,17 @@ LOOP:
 			break LOOP
 		}
 
+		players, _ := GetPlayers(o.roomId)
+
+		// 表示更新待ちのアビリティを取得し、ステータスを更新する
+		firedAbilities := ProccessReadyUpdateAbilities(o.roomId, players)
+		if len(firedAbilities) > 0 {
+			updateStateResp, _ := GenerateUpdateState(o.roomId, firedAbilities)
+			o.server.BroadcastToRoom("/", o.roomId, consts.FSGameUpdateState, utils.Response(updateStateResp))
+		}
+
 		// 全プレイヤーが準備済み または 指定時間を経過した場合、次フェーズに移動する
-		if ready, _ := IsAllPlayersReady(o.roomId); ready {
+		if IsAllPlayersReady(players) {
 			o.phaseFinishAction(phase, nextPhase)
 		} else if phase.Duration != consts.PhaseTimeValueInfinite &&
 			startTime.Add(time.Duration(phase.Duration+phase.Grace)*time.Second).Before(time.Now()) {

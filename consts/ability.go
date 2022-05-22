@@ -29,10 +29,17 @@ const (
 	AbilityTypeJam     AbilityType = "jam"
 	AbilityTypeConfuse AbilityType = "confuse"
 	// 実行状態
-	AbilityStatusUnused AbilityStatus = "unused"
-	AbilityStatusReady  AbilityStatus = "ready"
-	AbilityStatusActive AbilityStatus = "active"
-	AbilityStatusUsed   AbilityStatus = "used"
+	// [種別フロー]
+	// active かつ 即時発動 なability : unused -> ready -> back_to_unused -> ready -> back_to_unused -> ... -> used
+	// active かつ 発動待ち なability : unused -> ready -> active -> ready -> active -> ... -> used
+	// passive かつ 即時発動 なability : unused -> ready -> back_to_ready -> ready -> back_to_ready -> ... -> used
+	// passive かつ 発動待ち なability : ready -> active -> ready -> active -> ... -> used
+	AbilityStatusUnused       AbilityStatus = "unused"         // 未使用
+	AbilityStatusReady        AbilityStatus = "ready"          // 発動可能
+	AbilityStatusActive       AbilityStatus = "active"         // スケジューラによる発動待ち
+	AbilityStatusBackToReady  AbilityStatus = "back_to_ready"  // 発動してReadyに戻る前の状態
+	AbilityStatusBackToUnused AbilityStatus = "back_to_unused" // 発動してUnusedに戻る前の状態
+	AbilityStatusUsed         AbilityStatus = "used"           // 使用済み（もう使えない）
 	// ID
 	AbilityIdFiBoost     = "bst_prm_001"
 	AbilityIdNumViolence = "atk_prm_001"

@@ -70,7 +70,7 @@ func CalculateSubmits(roomId, playerId string, action consts.CalculateAction, su
 		return nil, orgerrors.NewValidationError("calculate.notCalculatePhase", "not calculate phase", nil)
 	}
 
-	if ready, _ := IsAllPlayersReady(roomId); ready {
+	if ready, _ := IsAllPlayersReadyByRoomId(roomId); ready {
 		return nil, orgerrors.NewValidationError("calculate.alreadyReady", "already all players ready", nil)
 	}
 

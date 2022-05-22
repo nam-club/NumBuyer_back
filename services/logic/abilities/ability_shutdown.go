@@ -1,6 +1,7 @@
 package abilities
 
 import (
+	"nam-club/NumBuyer_back/consts"
 	"nam-club/NumBuyer_back/db"
 )
 
@@ -17,6 +18,11 @@ func (a *AbilityShutdown) CanActivate(game *db.Game, me *db.Player, targetAbilit
 // shutdownの効果はスケジューラが発動するため、ここではステータスの更新だけ行う
 func (a *AbilityShutdown) Fire(game *db.Game, me *db.Player, abilityIndex int) (bool, *db.Ability, error) {
 	println("set force ready true")
+	if me.Abilities[abilityIndex].Remaining == 0 {
+		me.Abilities[abilityIndex].Status = string(consts.AbilityStatusUsed)
+	} else {
+		me.Abilities[abilityIndex].Status = string(consts.AbilityStatusBackToReady)
+	}
 	me.ForceReady = true
 	if _, e := db.SetPlayer(game.RoomID, me); e != nil {
 		return false, nil, e

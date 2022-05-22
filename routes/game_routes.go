@@ -3,7 +3,6 @@ package routes
 import (
 	"errors"
 	"nam-club/NumBuyer_back/consts"
-	"nam-club/NumBuyer_back/db"
 	"nam-club/NumBuyer_back/models/orgerrors"
 	"nam-club/NumBuyer_back/models/requests"
 	"nam-club/NumBuyer_back/models/responses"
@@ -190,10 +189,6 @@ func RoutesGame(r *RouteBase) {
 		if ab, e := consts.ParseAbility(ability.ID); e == nil && ab.Timing == consts.AbilityTimingSoon {
 			player, _ := logic.GetPlayerInfo(req.RoomID, req.PlayerID)
 			s.Emit(consts.FSGamePlayerInfo, utils.Response(player))
-
-			updateStateResp, _ := logic.GenerateUpdateState(req.RoomID, map[string][]*db.Ability{req.PlayerID: {ability}})
-			s.Emit(consts.FSGameUpdateState, utils.Response(updateStateResp))
-
 		}
 	})
 
