@@ -142,12 +142,14 @@ func HaveAbility(player *db.Player, abilityId string) bool {
 func ProccessReadyUpdateAbilities(roomId string, players []db.Player) map[string][]*db.Ability {
 	abilities := map[string][]*db.Ability{}
 	for _, player := range players {
-		for i, a := range player.Abilities {
-			if a.Status == string(consts.AbilityStatusBackToReady) {
-				abilities[player.PlayerID] = append(abilities[player.PlayerID], &a)
+		for i, ability := range player.Abilities {
+			abilityL := ability
+			if ability.Status == string(consts.AbilityStatusBackToReady) {
+
+				abilities[player.PlayerID] = append(abilities[player.PlayerID], &abilityL)
 				player.Abilities[i].Status = string(consts.AbilityStatusReady)
-			} else if a.Status == string(consts.AbilityStatusBackToUnused) {
-				abilities[player.PlayerID] = append(abilities[player.PlayerID], &a)
+			} else if ability.Status == string(consts.AbilityStatusBackToUnused) {
+				abilities[player.PlayerID] = append(abilities[player.PlayerID], &abilityL)
 				player.Abilities[i].Status = string(consts.AbilityStatusUnused)
 			}
 		}
