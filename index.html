@@ -60,17 +60,21 @@
 </head>
 
 <body>
+  <form action="" id="form-ready-ablility">
+    <button>Ready Ability</button>
+    <input id="ra" value="{&quot;roomId&quot;:&quot;xx&quot;,&quot;playerId&quot;:&quot;junpei&quot;,&quot;abilityId&quot;:&quot;bst_prm_001&quot;}" autocomplete="off" />
+  </form>
   <form action="" id="form-join-friend">
     <button>Friend Join</button>
-    <input id="jf" value="{&quot;roomId&quot;:&quot;xx&quot;,&quot;playerName&quot;:&quot;junpei&quot;}" autocomplete="off" />
+    <input id="jf" value="{&quot;roomId&quot;:&quot;xx&quot;,&quot;playerName&quot;:&quot;junpei&quot;,&quot;abilityIds&quot;:[&quot;bst_prm_001&quot;,&quot;def_tmp_001&quot;]}" autocomplete="off" />
   </form>
   <form action="" id="form-join-quick">
     <button>Quick Join</button>
-    <input id="jq" value="{&quot;playerName&quot;:&quot;junpei&quot;}" autocomplete="off" />
+    <input id="jq" value="{&quot;playerName&quot;:&quot;junpei&quot;,&quot;abilityIds&quot;:[&quot;bst_prm_001&quot;,&quot;def_tmp_001&quot;]}" autocomplete="off" />
   </form>
   <form action="" id="form-create-game">
     <button>Create Game</button>
-    <input id="cr" value="{&quot;playerName&quot;:&quot;junpei&quot;}" autocomplete="off" />
+    <input id="cr" value="{&quot;playerName&quot;:&quot;junpei&quot;,&quot;abilityIds&quot;:[&quot;bst_prm_001&quot;,&quot;def_tmp_001&quot;]}" autocomplete="off" />
   </form>
   <form action="" id="form-players-info">
     <button>Players Info</button>
@@ -107,6 +111,12 @@
   <script>
     var socket = io("http://localhost:8000/");
 
+    socket.on('get/abilities', function (msg) {
+      $('#messages').append($('<li>').text('[get/abilities] ' + msg));
+    });
+    socket.on('game/ready_ability', function (msg) {
+      $('#messages').append($('<li>').text('[ready/abilities] ' + msg));
+    });
     socket.on('game/join', function (msg) {
       $('#messages').append($('<li>').text('[game/join] ' + msg));
     });
@@ -144,6 +154,10 @@
       $('#messages').append($('<li>').text('[game/finish_game] ' + msg));
     });
 
+    $('#form-ready-ablility').submit(function () {
+      socket.emit('game/ready_ability', $('#ra').val());
+      return false;
+    });
     $('#form-join-friend').submit(function () {
       socket.emit('join/friend_match', $('#jf').val());
       return false;

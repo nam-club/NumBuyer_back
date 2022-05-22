@@ -26,10 +26,12 @@ func RoutesGame(r *RouteBase) {
 			// 部屋が見つからなかった場合は新規作成
 			switch errors.Unwrap(e).(type) {
 			case *orgerrors.GameNotFoundError:
+				abilities := consts.ParseAbilities(req.AbilityIds)
 				resp, e := logic.CreateNewGame(req.PlayerName,
 					consts.QuickMatchPlayersMin,
 					consts.QuickMatchPlayersMax,
-					consts.GameModeQuickMatch)
+					consts.GameModeQuickMatch,
+					abilities)
 				if e != nil {
 					s.Emit(consts.FSGameJoin, utils.ResponseError(e))
 					return
@@ -42,8 +44,7 @@ func RoutesGame(r *RouteBase) {
 				}
 				logic.NewPhaseScheduler(resp.RoomID, r.server).Start()
 
-				s.LeaveAll()
-				s.Join(resp.RoomID)
+				LeaveAndJoin(s, resp.RoomID)
 
 				s.Emit(consts.FSGameJoin, utils.Response(resp))
 				return
@@ -53,23 +54,27 @@ func RoutesGame(r *RouteBase) {
 			}
 		} else {
 			// ゲームに参加可能かチェック
-			joinable := logic.CheckPhase(roomId, consts.PhaseWaiting)
+			joinable, err := logic.IsJoinable(roomId)
 			if !joinable {
-				s.Emit(consts.FSGameJoin, orgerrors.NewValidationError("can not join game"))
+				s.Emit(consts.FSGameJoin, utils.ResponseError(err))
 				return
 			}
 
 			// 部屋が見つかった場合はその部屋に参加
-			player, e := logic.CreateNewPlayer(req.PlayerName, roomId, false)
+			abilities := consts.ParseAbilities(req.AbilityIds)
+			player, e := logic.CreateNewPlayer(req.PlayerName, roomId, false, abilities)
 			if e != nil {
 				s.Emit(consts.FSGameJoin, utils.ResponseError(e))
 				return
 			}
 
 			// 一つの部屋にのみ入室した状態にする
-			s.LeaveAll()
-			s.Join(roomId)
-			resp := responses.JoinResponse{RoomID: roomId, PlayerID: player.PlayerID}
+			LeaveAndJoin(s, roomId)
+			resp, e := responses.GenerateJoinResponse(roomId, player)
+			if e != nil {
+				s.Emit(consts.FSGameJoin, utils.ResponseError(e))
+				return
+			}
 			s.Emit(consts.FSGameJoin, utils.Response(resp))
 
 			// 人数が揃っていたらゲームを開始する
@@ -103,23 +108,27 @@ func RoutesGame(r *RouteBase) {
 		}
 
 		// ゲームに参加可能かチェック
-		joinable := logic.CheckPhase(req.RoomID, consts.PhaseWaiting)
+		joinable, err := logic.IsJoinable(req.RoomID)
 		if !joinable {
-			s.Emit(consts.FSGameJoin, orgerrors.NewValidationError("can not join game"))
+			s.Emit(consts.FSGameJoin, utils.ResponseError(err))
 			return
 		}
 
-		player, e := logic.CreateNewPlayer(req.PlayerName, req.RoomID, false)
+		abilities := consts.ParseAbilities(req.AbilityIds)
+		player, e := logic.CreateNewPlayer(req.PlayerName, req.RoomID, false, abilities)
 		if e != nil {
 			s.Emit(consts.FSGameJoin, utils.ResponseError(e))
 			return
 		}
 
 		// 一つの部屋にのみ入室した状態にする
-		s.LeaveAll()
-		s.Join(req.RoomID)
+		LeaveAndJoin(s, req.RoomID)
 
-		resp := responses.JoinResponse{RoomID: req.RoomID, PlayerID: player.PlayerID}
+		resp, e := responses.GenerateJoinResponse(req.RoomID, player)
+		if e != nil {
+			s.Emit(consts.FSGameJoin, utils.ResponseError(e))
+			return
+		}
 		s.Emit(consts.FSGameJoin, utils.Response(resp))
 	})
 
@@ -130,10 +139,12 @@ func RoutesGame(r *RouteBase) {
 			return
 		}
 
+		abilities := consts.ParseAbilities(req.AbilityIds)
 		resp, e := logic.CreateNewGame(req.PlayerName,
 			consts.FriendMatchPlayersMin,
 			consts.FriendMatchPlayersMax,
-			consts.GameModeFriendMatch)
+			consts.GameModeFriendMatch,
+			abilities)
 		if e != nil {
 			s.Emit(consts.FSGameJoin, utils.ResponseError(e))
 			return
@@ -146,9 +157,39 @@ func RoutesGame(r *RouteBase) {
 		}
 		logic.NewPhaseScheduler(resp.RoomID, r.server).Start()
 
-		s.LeaveAll()
-		s.Join(resp.RoomID)
+		LeaveAndJoin(s, resp.RoomID)
 		s.Emit(consts.FSGameJoin, utils.Response(resp))
+	})
+
+	r.path(consts.TSGetAbilities, func(s socketio.Conn, msg string) {
+		resp := responses.GenerateGetAbilitiesResponse(consts.GetAbilities())
+		s.Emit(consts.FSGetAbilities, utils.Response(resp))
+	})
+
+	r.path(consts.TSGameReadyAbility, func(s socketio.Conn, msg string) {
+		req := &requests.GameReadyAbility{}
+		if e := Valid(msg, req); e != nil {
+			s.Emit(consts.FSGameReadyAbility, utils.ResponseError(e))
+			return
+		}
+
+		ability, e := logic.ReadyAbility(req.RoomID, req.PlayerID, req.AbilityId)
+		if e != nil {
+			s.Emit(consts.FSGameReadyAbility, utils.ResponseError(e))
+			return
+		}
+
+		s.Emit(consts.FSGameReadyAbility, utils.Response(
+			responses.GameReadyAbilityResponse{
+				Status:    ability.Status,
+				Remaining: ability.Remaining,
+				AbilityId: ability.ID}))
+
+		// 即時発動のアビリティならプレイヤーの情報を更新する
+		if ab, e := consts.ParseAbility(ability.ID); e == nil && ab.Timing == consts.AbilityTimingSoon {
+			player, _ := logic.GetPlayerInfo(req.RoomID, req.PlayerID)
+			s.Emit(consts.FSGamePlayerInfo, utils.Response(player))
+		}
 	})
 
 	r.path(consts.TSGamePlayersInfo, func(s socketio.Conn, msg string) {
@@ -253,11 +294,6 @@ func RoutesGame(r *RouteBase) {
 			return
 		}
 
-		// Answer時のみレスポンスを返却
-		if action == consts.CalculateActionAnswer {
-			s.Emit(consts.FSGameCalculateResult, utils.Response(resp))
-			return
-		}
-
+		s.Emit(consts.FSGameCalculateResult, utils.Response(resp))
 	})
 }

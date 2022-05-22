@@ -22,16 +22,16 @@ type PhaseSheduler struct {
 
 func CanCreateGameScheduler(roomId string) error {
 	if exists, _ := db.ExistsGame(roomId); !exists {
-		return orgerrors.NewGameNotFoundError("")
+		return orgerrors.NewGameNotFoundError("", nil)
 	}
-	game, e := db.GetGame(roomId)
+	game, e := GetGame(roomId)
 	if e != nil {
-		return orgerrors.NewInternalServerError("")
+		return e
 	}
 	if p, e := consts.ParsePhase(game.State.Phase); e != nil {
-		return orgerrors.NewInternalServerError("")
+		return orgerrors.NewInternalServerError("", nil)
 	} else if p != consts.PhaseWaiting {
-		return orgerrors.NewValidationError("game already started")
+		return orgerrors.NewValidationError("", "game already started", nil)
 	}
 	return nil
 }
@@ -49,7 +49,7 @@ LOOP:
 	for {
 		time.Sleep(1 * time.Second)
 
-		game, e := db.GetGame(o.roomId)
+		game, e := GetGame(o.roomId)
 		if e != nil {
 			o.clean()
 			break LOOP
@@ -73,8 +73,17 @@ LOOP:
 			break LOOP
 		}
 
+		players, _ := GetPlayers(o.roomId)
+
+		// 表示更新待ちのアビリティを取得し、ステータスを更新する
+		firedAbilities := ProccessReadyUpdateAbilities(o.roomId, players)
+		if len(firedAbilities) > 0 {
+			updateStateResp, _ := GenerateUpdateState(o.roomId, firedAbilities)
+			o.server.BroadcastToRoom("/", o.roomId, consts.FSGameUpdateState, utils.Response(updateStateResp))
+		}
+
 		// 全プレイヤーが準備済み または 指定時間を経過した場合、次フェーズに移動する
-		if ready, _ := IsAllPlayersReady(o.roomId); ready {
+		if IsAllPlayersReady(players) {
 			o.phaseFinishAction(phase, nextPhase)
 		} else if phase.Duration != consts.PhaseTimeValueInfinite &&
 			startTime.Add(time.Duration(phase.Duration+phase.Grace)*time.Second).Before(time.Now()) {
@@ -83,7 +92,6 @@ LOOP:
 				nextPhase = consts.PhaseShowAuction
 			}
 			o.phaseFinishAction(phase, nextPhase)
-
 		}
 	}
 }
@@ -162,13 +170,6 @@ func (o *PhaseSheduler) auctionFinishAction(next consts.Phase) {
 			return
 		}
 
-		// オークション情報をクリアする
-		e = ClearAuction(o.roomId)
-		if e != nil {
-			o.server.BroadcastToRoom("/", o.roomId, consts.FSGameBuyNotify, utils.ResponseError(e))
-			return
-		}
-
 		resp := &responses.BuyNotifyResponse{
 			PlayerName:   buyer.PlayerName,
 			Coin:         subtract,
@@ -186,23 +187,27 @@ func (o *PhaseSheduler) auctionFinishAction(next consts.Phase) {
 		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameBuyNotify, utils.Response(resp))
 	}
 
-	// オークションカードをシャッフル
-	_, e = ShuffleAuctionCard(o.roomId)
-	if e != nil {
-		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameUpdateAnswer, utils.ResponseError(e))
-		return
-	}
-
 	// 次フェーズへ移動
 	o.nextPhase(next)
 }
 
 func (o *PhaseSheduler) calculateFinishAction(next consts.Phase) {
 
+	// アビリティ発動準備
+	game, e := db.GetGame(o.roomId)
+	if e != nil {
+		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameUpdateState, utils.ResponseError(e))
+		return
+	}
+	if e = TryActivateAbilitiesIfHave(game, consts.AbilityIdNumViolence); e != nil {
+		o.server.BroadcastToRoom("/", o.roomId, consts.FSGameUpdateState, utils.ResponseError(e))
+		return
+	}
+
 	// ゲーム終了条件を満たしているか
 	if finished, _ := IsMeetClearCondition(o.roomId); finished {
 		// 最新の状態を返却
-		if state, e := GenerateUpdateState(next, o.roomId); e != nil {
+		if state, e := GenerateUpdateState(o.roomId, nil); e != nil {
 			o.server.BroadcastToRoom("/", o.roomId, consts.FSGameUpdateState, utils.ResponseError(e))
 			return
 		} else {
@@ -261,6 +266,7 @@ func (o *PhaseSheduler) calculateFinishAction(next consts.Phase) {
 
 // 次ターンに移るときの準備をする
 func (o *PhaseSheduler) setUpNextTurn(next consts.Phase) {
+	ClearAndResetAuction(o.roomId)
 	ClearCalculateAction(o.roomId)
 	AddCardToAllPlayers(o.roomId)
 	o.nextPhase(next)
@@ -276,24 +282,24 @@ func (o *PhaseSheduler) clean() {
 
 // タイマーを指定した時間を残してリセットする
 func ResetTimer(roomId string, remainSeconds int) (bool, error) {
-	game, e := db.GetGame(roomId)
+	game, e := GetGame(roomId)
 	if e != nil {
-		return false, orgerrors.NewInternalServerError("")
+		return false, e
 	}
 
 	phase, e := consts.ParsePhase(game.State.Phase)
 	if e != nil {
-		return false, orgerrors.NewInternalServerError("")
+		return false, orgerrors.NewInternalServerError("", nil)
 	}
 
 	passed := phase.Duration - remainSeconds
 	if passed <= 0 {
-		return false, orgerrors.NewInternalServerError("")
+		return false, orgerrors.NewInternalServerError("", nil)
 	}
 
 	beforeTime, e := time.Parse(time.RFC3339, game.State.PhaseChangedTime)
 	if e != nil {
-		return false, orgerrors.NewInternalServerError("")
+		return false, orgerrors.NewInternalServerError("", nil)
 	}
 
 	// 現在時刻が前回のフェーズ変更から指定時間していない場合、何もしない
@@ -306,7 +312,7 @@ func ResetTimer(roomId string, remainSeconds int) (bool, error) {
 	game.State.PhaseChangedTime = time.Now().Add(time.Second * -time.Duration(passed)).Format(time.RFC3339)
 	_, e = db.SetGame(roomId, game)
 	if e != nil {
-		return false, orgerrors.NewInternalServerError("")
+		return false, orgerrors.NewInternalServerError("", nil)
 	}
 	return true, nil
 }

@@ -67,7 +67,11 @@ func ShuffleAnswer(roomId string) (string, error) {
 
 func CalculateSubmits(roomId, playerId string, action consts.CalculateAction, submits []string) (*responses.CalculateResponse, error) {
 	if !CheckPhase(roomId, consts.PhaseCalculate) {
-		return nil, orgerrors.NewValidationError("not calculate phase")
+		return nil, orgerrors.NewValidationError("calculate.notCalculatePhase", "not calculate phase", nil)
+	}
+
+	if ready, _ := IsAllPlayersReadyByRoomId(roomId); ready {
+		return nil, orgerrors.NewValidationError("calculate.alreadyReady", "already all players ready", nil)
 	}
 
 	game, e := db.GetGame(roomId)
@@ -81,7 +85,11 @@ func CalculateSubmits(roomId, playerId string, action consts.CalculateAction, su
 	}
 
 	if player.AnswerAction.Correct {
-		return nil, orgerrors.NewValidationError("player already correctly answered")
+		return nil, orgerrors.NewValidationError("calculate.alreadyCorrected", "player already correctly answered", nil)
+	}
+
+	if player.AnswerAction.Action == consts.CalculateActionPass.String() {
+		return nil, orgerrors.NewValidationError("calculate.alreadyPassed", "player passed", nil)
 	}
 
 	if action == consts.CalculateActionPass {
@@ -93,10 +101,10 @@ func CalculateSubmits(roomId, playerId string, action consts.CalculateAction, su
 			return nil, e
 		}
 		return &responses.CalculateResponse{
-			IsCorrectAnswer: false,
-			PlayerID:        playerId,
-			Coin:            player.Coin,
-			Cards:           player.Cards,
+			ActionResult: string(consts.CalculateActionResultPass),
+			PlayerID:     playerId,
+			Coin:         player.Coin,
+			Cards:        player.Cards,
 		}, nil
 	} else {
 		// actionがanswerの場合
@@ -108,7 +116,7 @@ func CalculateSubmits(roomId, playerId string, action consts.CalculateAction, su
 			if i := utils.ContainsStringWithIndex(validateCards, s); i != -1 {
 				validateCards = utils.DeleteSliceElement(validateCards, i)
 			} else {
-				return nil, orgerrors.NewValidationError("player is not have submitted cards")
+				return nil, orgerrors.NewValidationError("", "player is not have submitted cards", nil)
 			}
 		}
 
@@ -139,25 +147,50 @@ func CalculateSubmits(roomId, playerId string, action consts.CalculateAction, su
 			if e != nil {
 				return nil, e
 			}
+
+			// アビリティ: Fiboost 条件満たしてればアクティブにする
+			_, e = TryActivateAbilityIfHave(game, player, consts.AbilityIdFiBoost)
+			if e != nil {
+				return nil, e
+			}
+			// アビリティ: Shutdown 条件満たしてれば発動する
+			if HaveAbility(player, consts.AbilityIdShutdown) {
+				_, e = FireAbility(game, player, consts.AbilityIdShutdown)
+				if e != nil {
+					return nil, e
+				}
+			}
+
 			return &responses.CalculateResponse{
-				IsCorrectAnswer: true,
-				PlayerID:        playerId,
-				Coin:            player.Coin,
-				Cards:           player.Cards,
+				ActionResult: string(consts.CalculateActionResultCorrect),
+				PlayerID:     playerId,
+				Coin:         player.Coin,
+				Cards:        player.Cards,
 			}, nil
 		} else {
 			// 不正解の時
+
+			// アビリティ: Shutdown 条件満たしてればアクティブにはせず、スキップしたことにする
+			var actionResult consts.CalculateActionResult
+			if HaveAbility(player, consts.AbilityIdShutdown) {
+				player.AnswerAction.Action = consts.CalculateActionPass.String()
+				player.Ready = true
+				actionResult = consts.CalculateActionResultIncorrectWithPass
+			} else {
+				actionResult = consts.CalculateActionResultIncorrect
+			}
 			player.AnswerAction.Correct = false
 			player, e = db.SetPlayer(roomId, player)
 			if e != nil {
 				return nil, e
 			}
 			return &responses.CalculateResponse{
-				IsCorrectAnswer: false,
-				PlayerID:        playerId,
-				Coin:            player.Coin,
-				Cards:           player.Cards,
+				ActionResult: string(actionResult),
+				PlayerID:     playerId,
+				Coin:         player.Coin,
+				Cards:        player.Cards,
 			}, nil
+
 		}
 	}
 }
@@ -171,7 +204,7 @@ func calculate(submits []string) (int, error) {
 			submitInt, e := strconv.Atoi(submit)
 			if (e != nil) ||
 				(submitInt < consts.TermMin || consts.TermMax <= submitInt) {
-				return -1, orgerrors.NewValidationError("Invalid calculate card: " + submit)
+				return -1, orgerrors.NewValidationError("", "Invalid calculate card: "+submit, nil)
 			}
 			switch code {
 			case consts.CodePlus:
@@ -190,12 +223,12 @@ func calculate(submits []string) (int, error) {
 			if utils.ContainsString(consts.Codes, submit) {
 				code = submit
 			} else {
-				return -1, orgerrors.NewValidationError("Invalid calculate card: " + submit)
+				return -1, orgerrors.NewValidationError("", "Invalid calculate card: "+submit, nil)
 			}
 		}
 	}
 	if code != "" {
-		return -1, orgerrors.NewValidationError(fmt.Sprintf("Invalid calculate submits: %v", submits))
+		return -1, orgerrors.NewValidationError("", fmt.Sprintf("Invalid calculate submits: %v", submits), nil)
 	}
 	return calculated, nil
 }

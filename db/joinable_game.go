@@ -50,7 +50,7 @@ func GetRandomRoomId() (string, error) {
 		return "", e
 	}
 	if l < 1 {
-		return "", orgerrors.NewGameNotFoundError("")
+		return "", orgerrors.NewGameNotFoundError("", nil)
 	}
 
 	r, e := rj.RandomKey()
