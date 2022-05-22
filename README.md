@@ -49,7 +49,8 @@ awsで新規アカウント作成してからコードが自動でサーバに�
 それぞれ変数名は`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`。
 2. GitHubActionsで`Initialize infrastracture`を実行する。
 3. `numbuyer-cfn.yaml`のOutputからElastiCacheのホスト名を取得、docker-compose.prd.ymlにセットする。
-4. [SSL化対応手順](ssl/SSL化対応手順.md)を参考にEC2をhttps対応にする。
+3. `numbuyer-cfn.yaml`のOutput中のpublic IPアドレスで、フロントリポジトリの`package.json`にある`REACT_APP_SOCKET_URL`を更新。
+3. `numbuyer-cfn.yaml`のOutput中のpublic IPアドレスで、[SSL化対応手順](ssl/SSL化対応手順.md)を参考にEC2をhttps対応にする。
 
 あとはmasterブランチにpushしたのをトリガーに自動でデプロイされていく。
 
