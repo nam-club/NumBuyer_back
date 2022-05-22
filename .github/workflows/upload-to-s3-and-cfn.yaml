@@ -11,7 +11,7 @@ jobs:
       BUCKET: numbuyer-sources-a
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-    name: Upload to S3
+    name: Upload to S3 and CloudFormation
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -34,6 +34,14 @@ jobs:
           echo "Environment name: $ENVIRONMENT"
           echo "::set-output name=environment::$ENVIRONMENT"
 
+      - name: Deploy to AWS CloudFormation infrastracture stack
+        continue-on-error: true
+        id: cfn
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: ${{ steps.env-name.outputs.environment }}
+          template: .aws/numbuyer-cfn.yaml
+
       - name: Create S3 bucket if not exists
         continue-on-error: true
         run: |
@@ -42,6 +50,7 @@ jobs:
           aws s3api put-bucket-lifecycle-configuration \
             --bucket "${BUCKET}" \
             --lifecycle-configuration file://./.aws/s3-bucket-lifecycle.json
+
       - name: Archive
         run: zip -r package.zip ./*
 
