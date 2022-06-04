@@ -102,7 +102,7 @@ func ParseAbility(s string) (Ability, error) {
 	if val, ok := abilities[s]; ok {
 		return val, nil
 	} else {
-		return Ability{}, orgerrors.NewValidationError("ability.parseError", "ability parse error", map[string]string{"abilidyId": s})
+		return Ability{}, orgerrors.NewValidationError(orgerrors.VALIDATION_ERROR_ABILITY_PARSE, "ability parse error", map[string]string{"abilidyId": s})
 	}
 }
 

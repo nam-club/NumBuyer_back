@@ -17,7 +17,7 @@ func (a *AbilityReload) Fire(game *db.Game, me *db.Player, abilityIndex int) (bo
 	if game.State.Phase == consts.PhaseAuction.Value {
 		return false,
 			nil,
-			orgerrors.NewValidationError("ability.reload.invalidPhase", "ability can not fire when phase is aunction", nil)
+			orgerrors.NewValidationError(orgerrors.VALIDATION_ERROR_ABLITY_RELOAD_INVAlID_PHASE, "ability can not fire when phase is aunction", nil)
 	}
 	if me.Abilities[abilityIndex].Remaining == 0 {
 		me.Abilities[abilityIndex].Status = string(consts.AbilityStatusUsed)

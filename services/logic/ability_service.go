@@ -60,10 +60,10 @@ func ReadyAbility(roomId, playerId string, abilityId string) (*db.Ability, error
 	} else if abilityConst.Timing == consts.AbilityTimingWait {
 		// 発動タイミングがwaitならステータスをreadyにする
 		if abilityDB.Status != string(consts.AbilityStatusUnused) {
-			return nil, orgerrors.NewValidationError("ability.alreadyUsed", "ability status is not unused", nil)
+			return nil, orgerrors.NewValidationError(orgerrors.VALIDATION_ERROR_ABILITY_ALREADY_USED, "ability status is not unused", nil)
 		}
 		if player.Abilities[abilityDBIndex].Remaining == 0 {
-			return nil, orgerrors.NewValidationError("ability.notRemaining", "exceeded the number of ability usable", nil)
+			return nil, orgerrors.NewValidationError(orgerrors.VALIDATION_ERROR_ABILITY_NOT_REMAINING, "exceeded the number of ability usable", nil)
 		}
 		player.Abilities[abilityDBIndex].Status = string(consts.AbilityStatusReady)
 		player.Abilities[abilityDBIndex].Remaining = player.Abilities[abilityDBIndex].Remaining - 1
