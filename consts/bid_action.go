@@ -21,7 +21,7 @@ func (v BidAction) Valid() error {
 	case BidActionBid, BidActionPass:
 		return nil
 	default:
-		return orgerrors.NewValidationError("bid,action", "invalid bid action type", map[string]string{"action": v.String()})
+		return orgerrors.NewValidationError(orgerrors.VALIDATION_ERROR_BID_ACTION, "invalid bid action type", map[string]string{"action": v.String()})
 	}
 }
 

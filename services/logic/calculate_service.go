@@ -67,11 +67,11 @@ func ShuffleAnswer(roomId string) (string, error) {
 
 func CalculateSubmits(roomId, playerId string, action consts.CalculateAction, submits []string) (*responses.CalculateResponse, error) {
 	if !CheckPhase(roomId, consts.PhaseCalculate) {
-		return nil, orgerrors.NewValidationError("calculate.notCalculatePhase", "not calculate phase", nil)
+		return nil, orgerrors.NewValidationError(orgerrors.VALIDATION_ERROR_CALCULATE_NOT_CALCULATE_PHASE, "not calculate phase", nil)
 	}
 
 	if ready, _ := IsAllPlayersReadyByRoomId(roomId); ready {
-		return nil, orgerrors.NewValidationError("calculate.alreadyReady", "already all players ready", nil)
+		return nil, orgerrors.NewValidationError(orgerrors.VALIDATION_ERROR_CALCULATE_ALREADY_READY, "already all players ready", nil)
 	}
 
 	game, e := db.GetGame(roomId)
@@ -85,11 +85,11 @@ func CalculateSubmits(roomId, playerId string, action consts.CalculateAction, su
 	}
 
 	if player.AnswerAction.Correct {
-		return nil, orgerrors.NewValidationError("calculate.alreadyCorrected", "player already correctly answered", nil)
+		return nil, orgerrors.NewValidationError(orgerrors.VALIDATION_ERROR_CALCULATE_ALREADY_CORRECTED, "player already correctly answered", nil)
 	}
 
 	if player.AnswerAction.Action == consts.CalculateActionPass.String() {
-		return nil, orgerrors.NewValidationError("calculate.alreadyPassed", "player passed", nil)
+		return nil, orgerrors.NewValidationError(orgerrors.VALIDATION_ERROR_CALCULATE_ALREADY_PASSED, "player passed", nil)
 	}
 
 	if action == consts.CalculateActionPass {

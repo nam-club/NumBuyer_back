@@ -157,7 +157,7 @@ func StartGame(roomId string) error {
 		return err
 	}
 	if game.State.Phase != consts.PhaseWaiting.Value {
-		return orgerrors.NewValidationError("game.notWaitingPhase", "game status is not waiting", nil)
+		return orgerrors.NewValidationError(orgerrors.VALIDATION_ERROR_GAME_NOT_WAITING_PHASE, "game status is not waiting", nil)
 	}
 
 	players, err := GetPlayers(roomId)
@@ -165,7 +165,7 @@ func StartGame(roomId string) error {
 		return err
 	}
 	if len(players) < game.PlayersMin || game.PlayersMax < len(players) {
-		return orgerrors.NewValidationError("game.notMeetPlayerNums",
+		return orgerrors.NewValidationError(orgerrors.VALIDATION_ERROR_GAME_NOT_MEET_PLAYER_NUMS,
 			"players num is not meet.",
 			map[string]string{
 				"min":     strconv.Itoa(game.PlayersMin),
