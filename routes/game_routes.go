@@ -161,6 +161,22 @@ func RoutesGame(r *RouteBase) {
 		s.Emit(consts.FSGameJoin, utils.Response(resp))
 	})
 
+	r.path(consts.TSJoinLeave, func(s socketio.Conn, msg string) {
+		req := &requests.JoinLeave{}
+		if e := Valid(msg, req); e != nil {
+			s.Emit(consts.FSGameJoin, utils.ResponseError(e))
+			return
+		}
+
+		resp, e := logic.LeaveLobby(req.PlayerID, req.RoomID)
+		if e != nil {
+			s.Emit(consts.FSGamePlayersInfo, utils.ResponseError(e))
+			return
+		}
+
+		r.server.BroadcastToRoom("/", s.Rooms()[0], consts.FSGamePlayersInfo, utils.Response(resp))
+	})
+
 	r.path(consts.TSGetAbilities, func(s socketio.Conn, msg string) {
 		resp := responses.GenerateGetAbilitiesResponse(consts.GetAbilities())
 		s.Emit(consts.FSGetAbilities, utils.Response(resp))

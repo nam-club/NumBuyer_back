@@ -120,6 +120,11 @@ func SetPlayer(roomId string, player *Player) (*Player, error) {
 }
 
 // プレイヤー情報を削除
+func DeletePlayer(roomId, playerId string) (int, error) {
+	return rp.HDelete(roomId, playerId)
+}
+
+// プレイヤー情報を削除
 func DeletePlayers(id string) (int, error) {
 	return rp.Delete(id)
 }

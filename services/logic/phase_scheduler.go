@@ -51,25 +51,25 @@ LOOP:
 
 		game, e := GetGame(o.roomId)
 		if e != nil {
-			o.clean()
+			Clean(o.roomId)
 			break LOOP
 		}
 		startTime, e := time.Parse(time.RFC3339, game.State.PhaseChangedTime)
 		if e != nil {
-			o.clean()
+			Clean(o.roomId)
 			break LOOP
 		}
 
 		phase, e := consts.ParsePhase(game.State.Phase)
 		if phase.NextPhase == nil || *phase.NextPhase == consts.PhaseEnd || e != nil {
-			o.clean()
+			Clean(o.roomId)
 			break LOOP
 		}
 		nextPhase := *phase.NextPhase
 
 		// フェーズの更新が指定時間以上ない場合強制終了
 		if startTime.Add(time.Duration(consts.TimeAutoEnd) * time.Second).Before(time.Now()) {
-			o.clean()
+			Clean(o.roomId)
 			break LOOP
 		}
 
@@ -270,14 +270,6 @@ func (o *PhaseSheduler) setUpNextTurn(next consts.Phase) {
 	ClearCalculateAction(o.roomId)
 	AddCardToAllPlayers(o.roomId)
 	o.nextPhase(next)
-}
-
-func (o *PhaseSheduler) clean() {
-	utils.Log.Debug("start delete...", zap.String("roomId", o.roomId))
-	db.DeleteJoinableGame(o.roomId)
-	db.DeletePlayers(o.roomId)
-	db.DeleteGame(o.roomId)
-	utils.Log.Debug("complete delete", zap.String("roomId", o.roomId))
 }
 
 // タイマーを指定した時間を残してリセットする

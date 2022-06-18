@@ -10,6 +10,8 @@ import (
 	"sort"
 	"strconv"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 // 新規ゲームを生成する
@@ -302,4 +304,51 @@ func generateRoomId() (string, error) {
 		}
 	}
 	return "", orgerrors.NewInternalServerError("create room id error", nil)
+}
+
+// ロビーから抜ける
+func LeaveLobby(playerId, roomId string) (*responses.PlayersInfoResponse, error) {
+	if !CheckPhase(roomId, consts.PhaseWaiting) {
+		return nil, orgerrors.NewValidationError(orgerrors.VALIDATION_ERROR_GAME_NOT_WAITING_PHASE, "not waiting phase", nil)
+	}
+
+	player, err := db.GetPlayer(roomId, playerId)
+	if err != nil {
+		return nil, err
+	}
+	if player.IsOwner {
+		// プレイヤー情報を削除した上でオーナー権限を付け替え
+		if _, err := db.DeletePlayer(roomId, playerId); err != nil {
+			return nil, err
+		}
+
+		players, err := db.GetPlayers(roomId)
+		if err != nil {
+			return nil, err
+		}
+
+		if len(players) > 0 {
+			players[0].IsOwner = true
+			db.SetPlayer(roomId, &players[0])
+		}
+	} else {
+		if _, err := db.DeletePlayer(roomId, playerId); err != nil {
+			return nil, err
+		}
+	}
+	players, err := db.GetPlayers(roomId)
+	if err != nil {
+		return nil, err
+	}
+
+	return responses.GeneratePlayersInfoResponse(players, roomId), nil
+
+}
+
+func Clean(roomId string) {
+	utils.Log.Debug("start delete...", zap.String("roomId", roomId))
+	db.DeleteJoinableGame(roomId)
+	db.DeletePlayers(roomId)
+	db.DeleteGame(roomId)
+	utils.Log.Debug("complete delete", zap.String("roomId", roomId))
 }

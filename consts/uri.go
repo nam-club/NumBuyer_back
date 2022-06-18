@@ -10,6 +10,7 @@ const (
 	TSJoinFriendMatch  = "join/friend_match"
 	TSCreateMatch      = "create/match"
 	TSGetAbilities     = "get/abilities"
+	TSJoinLeave        = "join/leave"
 	TSGameReadyAbility = "game/ready_ability"
 	TSGamePlayersInfo  = "game/players_info"
 	TSGameStart        = "game/start"

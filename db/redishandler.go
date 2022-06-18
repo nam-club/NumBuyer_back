@@ -95,6 +95,17 @@ func (o *RedisHandler) HVals(key string) ([][]byte, error) {
 	return res, nil
 }
 
+// Hashデータの削除
+func (o *RedisHandler) HDelete(key, field string) (int, error) {
+	conn := o.pool.Get()
+	res, err := redis.Int(conn.Do("HDEL", key, field))
+	defer conn.Close()
+	if err != nil {
+		return -1, errors.WithStack(err)
+	}
+	return res, nil
+}
+
 // データベースに存在するキーの数を取得
 func (o *RedisHandler) DBSize() (int64, error) {
 	conn := o.pool.Get()
