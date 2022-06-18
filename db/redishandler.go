@@ -40,6 +40,17 @@ func (o *RedisHandler) Set(key, value string) (string, error) {
 	return res, nil
 }
 
+// データの登録。TTL付きでロックする
+func (o *RedisHandler) SetNXEX(key, value string, ttl int) (string, error) {
+	conn := o.pool.Get()
+	res, err := redis.String(conn.Do("SET", key, value, "NX", "EX", ttl))
+	defer conn.Close()
+	if err != nil {
+		return "", errors.WithStack(err)
+	}
+	return res, nil
+}
+
 // Hashデータの登録
 func (o *RedisHandler) HSet(key, field, value string) (int64, error) {
 	conn := o.pool.Get()
