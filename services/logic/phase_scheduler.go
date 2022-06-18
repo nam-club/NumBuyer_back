@@ -74,6 +74,10 @@ LOOP:
 		}
 
 		players, _ := GetPlayers(o.roomId)
+		if len(players) == 0 {
+			Clean(o.roomId)
+			break LOOP
+		}
 
 		// 表示更新待ちのアビリティを取得し、ステータスを更新する
 		firedAbilities := ProccessReadyUpdateAbilities(o.roomId, players)

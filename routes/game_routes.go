@@ -175,6 +175,7 @@ func RoutesGame(r *RouteBase) {
 		}
 
 		r.server.BroadcastToRoom("/", s.Rooms()[0], consts.FSGamePlayersInfo, utils.Response(resp))
+		s.LeaveAll()
 	})
 
 	r.path(consts.TSGetAbilities, func(s socketio.Conn, msg string) {
