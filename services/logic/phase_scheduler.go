@@ -102,6 +102,20 @@ func (o *PhaseSheduler) phaseFinishAction(current, next consts.Phase) {
 		zap.String("current", fmt.Sprintf("%v", current)),
 		zap.String("next", fmt.Sprintf("%v", next)))
 
+	// ゲームをロックする
+	for retry := 0; retry < consts.MutexRetryCount; retry++ {
+		if locked, e := db.SetLock(o.roomId, consts.MutexTTL); !locked {
+			break
+		} else if e != nil {
+			utils.Log.Error("lock failed.", zap.String("error", fmt.Sprintf("%v", e)))
+		}
+		utils.Log.Debug("game db is locked. try lock again...", zap.String("retry count", strconv.Itoa(retry)))
+		time.Sleep(consts.MutexRetrySpan * time.Millisecond)
+	}
+
+	// ロック情報を最後に削除
+	defer db.DeleteLock(o.roomId)
+
 	switch current {
 	case consts.PhaseWaiting:
 		o.nextPhase(next)

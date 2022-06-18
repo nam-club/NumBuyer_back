@@ -12,6 +12,16 @@ import (
 
 // 入札する
 func Bid(roomId, playerId string, bidAction consts.BidAction, coin int) (*responses.BidResponse, error) {
+	// ゲーム操作をロック
+	if locked, e := db.SetLock(roomId, consts.MutexTTL); locked || e != nil {
+		if e != nil {
+			return nil, e
+		}
+		return nil, orgerrors.NewMutexError("calculate mutex error", nil)
+	}
+	// ロック情報を最後に削除
+	defer db.DeleteLock(roomId)
+
 	if !CheckPhase(roomId, consts.PhaseAuction) {
 		return nil, orgerrors.NewValidationError(orgerrors.VALIDATION_ERROR_BID_NOT_AUCTION_PHASE, "not auction phase", nil)
 	}
