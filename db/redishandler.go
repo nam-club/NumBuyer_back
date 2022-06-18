@@ -9,6 +9,13 @@ import (
 	"github.com/pkg/errors"
 )
 
+type MutexMode int
+
+const (
+	Safe MutexMode = iota
+	Force
+)
+
 type RedisHandler struct {
 	DBIndex int
 	pool    *redis.Pool
@@ -33,6 +40,18 @@ func newPool(addr string, dbIndex int) *redis.Pool {
 func (o *RedisHandler) Set(key, value string) (string, error) {
 	conn := o.pool.Get()
 	res, err := redis.String(conn.Do("SET", key, value))
+	defer conn.Close()
+	if err != nil {
+		return "", errors.WithStack(err)
+	}
+	return res, nil
+}
+
+// データの登録。TTL付きでロックする
+// セットに成功したら"OK", 失敗したらnilが返される
+func (o *RedisHandler) SetNXEX(key, value string, ttl int) (interface{}, error) {
+	conn := o.pool.Get()
+	res, err := conn.Do("SET", key, value, "NX", "EX", ttl)
 	defer conn.Close()
 	if err != nil {
 		return "", errors.WithStack(err)

@@ -100,7 +100,7 @@ func GetPlayer(roomId, playerId string) (*Player, error) {
 
 // プレイヤー情報を追加
 func SetPlayer(roomId string, player *Player) (*Player, error) {
-	if b, e := ExistsGame(roomId); e != nil || b == false {
+	if b, e := ExistsGame(roomId); e != nil || !b {
 		if e != nil {
 			return nil, errors.WithStack(e)
 		}

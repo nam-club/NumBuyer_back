@@ -20,6 +20,15 @@ var (
 
 // アビリティのステータスを発動状態・発動可能状態にする
 func ReadyAbility(roomId, playerId string, abilityId string) (*db.Ability, error) {
+	// ゲーム操作をロック
+	if locked, e := db.SetLock(roomId, consts.MutexTTL); locked || e != nil {
+		if e != nil {
+			return nil, e
+		}
+		return nil, orgerrors.NewMutexError("calculate mutex error", nil)
+	}
+	// ロック情報を最後に削除
+	defer db.DeleteLock(roomId)
 
 	player, e := db.GetPlayer(roomId, playerId)
 	if e != nil {
