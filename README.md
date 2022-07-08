@@ -57,7 +57,10 @@ awsで新規アカウント作成してからコードが自動でサーバに�
 ### メンテナンス
 - 3ヶ月でSSL証明書の期限が切れるので、ZeroSSLで証明書を再発行、EC2に反映する ※手順後ほど記載
 
-## 設計
+## 仕様・設計
+- [技術まとめ](https://docs.google.com/presentation/d/13yBZkI0HET2hinfhkMoRaU6Dl5finoOjSjgIpGGfniI/edit#slide=id.p)
+- [仕様](https://docs.google.com/presentation/d/1_oYHFmDGAUUbQG_Ga70Nul1jqPHU4wqhb-aQlXqYpcw/edit#slide=id.gd882837116_0_21)
+
 ### 基本方針
 MVC + Service + Repository の構成とする。各層の関係は下記。
 ```
