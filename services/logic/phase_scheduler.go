@@ -106,19 +106,33 @@ func (o *PhaseSheduler) phaseFinishAction(current, next consts.Phase) {
 		zap.String("current", fmt.Sprintf("%v", current)),
 		zap.String("next", fmt.Sprintf("%v", next)))
 
+	playerIds, e := db.GetPlayerIds(o.roomId)
+	if e != nil {
+		utils.Log.Error("users info fetch failed.", zap.String("error", fmt.Sprintf("%v", e)))
+	}
 	// ゲームをロックする
 	for retry := 0; retry < consts.MutexRetryCount; retry++ {
-		if locked, e := db.SetLock(o.roomId, consts.MutexTTL); !locked {
-			break
-		} else if e != nil {
-			utils.Log.Error("lock failed.", zap.String("error", fmt.Sprintf("%v", e)))
+		lockFailed := false
+		for _, playerId := range playerIds {
+			if locked, e := db.SetLock(db.CreateLockKey(o.roomId, playerId), consts.MutexTTL); locked {
+				if e != nil {
+					utils.Log.Warn("lock failed.", zap.String("error", fmt.Sprintf("%v", e)))
+				}
+				lockFailed = true
+				db.DeleteLock(db.CreateLockKey(o.roomId, playerId))
+			}
 		}
-		utils.Log.Debug("game db is locked. try lock again...", zap.String("retry count", strconv.Itoa(retry)))
+		if !lockFailed {
+			break
+		}
+		utils.Log.Warn("game db is locked. try lock again...", zap.String("retry count", strconv.Itoa(retry)))
 		time.Sleep(consts.MutexRetrySpan * time.Millisecond)
 	}
 
 	// ロック情報を最後に削除
-	defer db.DeleteLock(o.roomId)
+	for _, playerId := range playerIds {
+		defer db.DeleteLock(db.CreateLockKey(o.roomId, playerId))
+	}
 
 	switch current {
 	case consts.PhaseWaiting:

@@ -3,13 +3,19 @@ package db
 
 var rl *RedisHandler
 
+type LockKey string
+
 func init() {
 	rl = NewRedisHandler( /*index=*/ 3)
 }
 
+func CreateLockKey(roomId, playerId string) LockKey {
+	return LockKey(roomId + playerId)
+}
+
 // ゲームのロック情報を取得
-func SetLock(lockKey string, ttl int) (bool, error) {
-	r, e := rl.SetNXEX(lockKey, "LOCK", ttl)
+func SetLock(lockKey LockKey, ttl int) (bool, error) {
+	r, e := rl.SetNXEX(string(lockKey), "LOCK", ttl)
 	if e != nil {
 		return false, e
 	}
@@ -17,12 +23,12 @@ func SetLock(lockKey string, ttl int) (bool, error) {
 	return r == nil, nil
 }
 
-func ExistsLock(lockKey string) (bool, error) {
-	return rl.Exists(lockKey)
+func ExistsLock(lockKey LockKey) (bool, error) {
+	return rl.Exists(string(lockKey))
 }
 
-func DeleteLock(lockKey string) error {
-	_, e := rl.Delete(lockKey)
+func DeleteLock(lockKey LockKey) error {
+	_, e := rl.Delete(string(lockKey))
 	if e != nil {
 		return e
 	}

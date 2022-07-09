@@ -67,14 +67,14 @@ func ShuffleAnswer(roomId string) (string, error) {
 
 func CalculateSubmits(roomId, playerId string, action consts.CalculateAction, submits []string) (*responses.CalculateResponse, error) {
 	// ゲーム操作をロック
-	if locked, e := db.SetLock(roomId, consts.MutexTTL); locked || e != nil {
+	if locked, e := db.SetLock(db.CreateLockKey(roomId, playerId), consts.MutexTTL); locked || e != nil {
 		if e != nil {
 			return nil, e
 		}
 		return nil, orgerrors.NewMutexError("calculate mutex error", nil)
 	}
 	// ロック情報を最後に削除
-	defer db.DeleteLock(roomId)
+	defer db.DeleteLock(db.CreateLockKey(roomId, playerId))
 
 	if !CheckPhase(roomId, consts.PhaseCalculate) {
 		return nil, orgerrors.NewValidationError(orgerrors.VALIDATION_ERROR_CALCULATE_NOT_CALCULATE_PHASE, "not calculate phase", nil)
