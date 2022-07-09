@@ -16,6 +16,7 @@ type Game struct {
 	CreatedAt  string `json:"createdAt"`
 }
 type State struct {
+	CurrentTurn            int      `json:"currentTurn"`
 	Phase                  string   `json:"phase"`
 	Auction                []string `json:"auction"`
 	AuctionMaxBid          string   `json:"auctionMaxBid"`
