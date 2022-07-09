@@ -29,6 +29,7 @@ func CreateNewGame(playerName string, playersMin, playersMax int, gameMode const
 		PlayersMax: playersMax,
 		CreatedAt:  time.Now().Format(time.RFC3339),
 		State: db.State{
+			CurrentTurn:      1,
 			Phase:            consts.PhaseWaiting.Value,
 			Auction:          []string{},
 			Answer:           "",
@@ -224,6 +225,19 @@ func SetSkipShowTarget(roomId string, skip bool) error {
 		return err
 	}
 	game.State.SkipShowTarget = skip
+	if _, err := db.SetGame(roomId, game); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func IncreaseTurn(roomId string) error {
+	game, err := db.GetGame(roomId)
+	if err != nil {
+		return err
+	}
+	game.State.CurrentTurn += 1
 	if _, err := db.SetGame(roomId, game); err != nil {
 		return err
 	}

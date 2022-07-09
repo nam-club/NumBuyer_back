@@ -4,6 +4,16 @@ import (
 	"math/rand"
 	"nam-club/NumBuyer_back/consts"
 	"nam-club/NumBuyer_back/db"
+	"nam-club/NumBuyer_back/models/orgerrors"
+	"strconv"
+)
+
+// do not mutate it
+var subtractPatterns = []int{10, 20, 30, 40, 50}
+
+const (
+	// 4ターン目移行ならカタストロフィ使用可能
+	CatastropheEnableMinTurn = 4
 )
 
 type AbilityCatastrophe struct{}
@@ -22,18 +32,28 @@ func (a *AbilityCatastrophe) Fire(game *db.Game, me *db.Player, abilityIndex int
 		return false, nil, nil
 	}
 
+	if game.State.CurrentTurn < CatastropheEnableMinTurn {
+		return false, nil, orgerrors.NewValidationError(orgerrors.VALIDATION_ERROR_ABILITY_CATASTROPHE_NOT_MEET_TURN, "", nil)
+	}
+
 	players, e := db.GetPlayers(game.RoomID)
 	if e != nil {
 		return false, nil, e
 	}
+
+	subtractedPerPlayerMap := map[string]int{}
 	for _, player := range players {
+		if player.PlayerID == me.PlayerID {
+			continue
+		}
+
 		// ランダムな数値コインを減算
-		subtract := rand.Intn(30)
+		subtract := subtractPatterns[rand.Intn(len(subtractPatterns))]
 		player.Coin = player.Coin - subtract
 		if player.Coin < 0 {
 			player.Coin = 0
 		}
-
+		subtractedPerPlayerMap[player.PlayerID] = subtract
 		db.SetPlayer(game.RoomID, &player)
 	}
 
@@ -47,6 +67,16 @@ func (a *AbilityCatastrophe) Fire(game *db.Game, me *db.Player, abilityIndex int
 	} else {
 		me.Abilities[abilityIndex].Status = string(consts.AbilityStatusUnused)
 	}
+	for k, v := range subtractedPerPlayerMap {
+		me.Abilities[abilityIndex].Parameters =
+			append(me.Abilities[abilityIndex].Parameters,
+				db.AbilityParam{
+					Key:   consts.AbilityParamKeyCatastropheSubtractedCoins,
+					To:    k,
+					Value: strconv.Itoa(v)},
+			)
+	}
+
 	if _, e := db.SetPlayer(game.RoomID, me); e != nil {
 		return false, nil, e
 	} else {

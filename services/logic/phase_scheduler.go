@@ -301,6 +301,7 @@ func (o *PhaseSheduler) setUpNextTurn(next consts.Phase) {
 	ClearAndResetAuction(o.roomId)
 	ClearCalculateAction(o.roomId)
 	AddCardToAllPlayers(o.roomId)
+	IncreaseTurn(o.roomId)
 	o.nextPhase(next)
 }
 
