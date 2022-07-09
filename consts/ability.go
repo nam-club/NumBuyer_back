@@ -46,6 +46,9 @@ const (
 	AbilityIdReload      = "rcv_tmp_001"
 	AbilityIdShutdown    = "jam_prm_001"
 	AbilityIdCatastrophe = "cnf_tmp_001"
+
+	// アビリティのパラメータキー
+	AbilityParamKeyCatastropheSubtractedCoins = "catastrophe.subtractedCoins"
 )
 
 var (

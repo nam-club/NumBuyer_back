@@ -5,6 +5,7 @@ import (
 	"nam-club/NumBuyer_back/consts"
 	"nam-club/NumBuyer_back/db"
 	"nam-club/NumBuyer_back/models/orgerrors"
+	"strconv"
 )
 
 // do not mutate it
@@ -39,6 +40,8 @@ func (a *AbilityCatastrophe) Fire(game *db.Game, me *db.Player, abilityIndex int
 	if e != nil {
 		return false, nil, e
 	}
+
+	subtractedPerPlayerMap := map[string]int{}
 	for _, player := range players {
 		if player.PlayerID == me.PlayerID {
 			continue
@@ -50,7 +53,7 @@ func (a *AbilityCatastrophe) Fire(game *db.Game, me *db.Player, abilityIndex int
 		if player.Coin < 0 {
 			player.Coin = 0
 		}
-
+		subtractedPerPlayerMap[player.PlayerID] = subtract
 		db.SetPlayer(game.RoomID, &player)
 	}
 
@@ -64,6 +67,16 @@ func (a *AbilityCatastrophe) Fire(game *db.Game, me *db.Player, abilityIndex int
 	} else {
 		me.Abilities[abilityIndex].Status = string(consts.AbilityStatusUnused)
 	}
+	for k, v := range subtractedPerPlayerMap {
+		me.Abilities[abilityIndex].Parameters =
+			append(me.Abilities[abilityIndex].Parameters,
+				db.AbilityParam{
+					Key:   consts.AbilityParamKeyCatastropheSubtractedCoins,
+					To:    k,
+					Value: strconv.Itoa(v)},
+			)
+	}
+
 	if _, e := db.SetPlayer(game.RoomID, me); e != nil {
 		return false, nil, e
 	} else {

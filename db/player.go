@@ -23,9 +23,15 @@ type Player struct {
 }
 
 type Ability struct {
-	ID        string `json:"id"`
-	Status    string `json:"status"`    // 実行状態
-	Remaining int    `json:"remaining"` // 残使用回数 -1なら無限に実行可能
+	ID         string         `json:"id"`
+	Status     string         `json:"status"`    // 実行状態
+	Remaining  int            `json:"remaining"` // 残使用回数 -1なら無限に実行可能
+	Parameters []AbilityParam `json:"parameters"`
+}
+type AbilityParam struct {
+	Key   string `json:"key"`   // 何のパラメータか
+	To    string `json:"to"`    // 誰に対してか
+	Value string `json:"value"` // パラメータ
 }
 
 type BuyAction struct {
