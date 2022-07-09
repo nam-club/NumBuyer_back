@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	ShutdownThresholdSeconds = 5
+	ShutdownMinCardsNum = 5
 )
 
 type AbilityShutdown struct{}
@@ -17,7 +17,10 @@ func (a *AbilityShutdown) CanActivate(game *db.Game, me *db.Player, targetAbilit
 
 // shutdownの効果はスケジューラが発動するため、ここではステータスの更新だけ行う
 func (a *AbilityShutdown) Fire(game *db.Game, me *db.Player, abilityIndex int) (bool, *db.Ability, error) {
-	println("set force ready true")
+	if len(me.AnswerAction.Cards) < ShutdownMinCardsNum {
+		return false, nil, nil
+	}
+
 	if me.Abilities[abilityIndex].Remaining == 0 {
 		me.Abilities[abilityIndex].Status = string(consts.AbilityStatusUsed)
 	} else {
